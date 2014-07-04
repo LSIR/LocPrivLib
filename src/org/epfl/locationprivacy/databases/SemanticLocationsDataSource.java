@@ -1,0 +1,107 @@
+package org.epfl.locationprivacy.databases;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.epfl.locationprivacy.models.SemanticLocation;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+public class SemanticLocationsDataSource {
+	private static final String LOGTAG = "SemanticLocationsDataSource";
+	private static final float DEFAULT_USERSENSITIVITY = 1.0f;
+
+	SQLiteOpenHelper dbHelper;
+	SQLiteDatabase db;
+	Context context;
+
+	private static final String[] allColums = { LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_ID,
+			LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME,
+			LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY };
+
+	public SemanticLocationsDataSource(Context context) {
+		this.context = context;
+		dbHelper = LocationDBOpenHelper.getInstance(context);
+	}
+
+	public void open() {
+		Log.i(LOGTAG, "DataBase opened");
+		db = dbHelper.getWritableDatabase();
+	}
+
+	public void close() {
+		Log.i(LOGTAG, "DataBase closed");
+		dbHelper.close();
+	}
+
+	public SemanticLocation create(SemanticLocation semanticLocation) {
+
+		ContentValues values = new ContentValues();
+		values.put(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME, semanticLocation.name);
+		values.put(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY,
+				semanticLocation.userSentivity);
+
+		long semanticLocationId = db.insert(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, null,
+				values);
+		semanticLocation.id = semanticLocationId;
+		return semanticLocation;
+	}
+
+	public List<SemanticLocation> finaAll() {
+		List<SemanticLocation> semanticLocations = new ArrayList<SemanticLocation>();
+
+		Cursor cursor = db.query(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, allColums, null,
+				null, null, null, null, null);
+		Log.i(LOGTAG, "Returned " + cursor.getCount() + " rows");
+		if (cursor.getCount() > 0) {
+			while (cursor.moveToNext()) {
+
+				long semanticLocationID = cursor.getLong(cursor
+						.getColumnIndex(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_ID));
+				String semanticLocationName = cursor.getString(cursor
+						.getColumnIndex(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME));
+				float semanticLocationUserSensitivity = cursor
+						.getFloat(cursor
+								.getColumnIndex(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY));
+
+				SemanticLocation semanticLocation = new SemanticLocation(semanticLocationID,
+						semanticLocationName, semanticLocationUserSensitivity);
+				semanticLocations.add(semanticLocation);
+			}
+		}
+		return semanticLocations;
+	}
+
+	public void populateDB()  {
+		// read file
+		ArrayList<String> semanticLocations = new ArrayList<String>();
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(context.getAssets().open(
+					"semantic_locations.txt")));
+			String mLine = reader.readLine();
+			while (mLine != null) {
+				semanticLocations.add(mLine);
+				mLine = reader.readLine();
+			}
+			reader.close();
+		} catch (IOException e) {
+			Log.e(LOGTAG, "Failed While reading sematic_locations.txt");
+		}
+
+		// add data to DB
+		for (String semanticLocationName : semanticLocations) {
+			SemanticLocation sl = new SemanticLocation(semanticLocationName,
+					DEFAULT_USERSENSITIVITY);
+			create(sl);
+		}
+	}
+}
