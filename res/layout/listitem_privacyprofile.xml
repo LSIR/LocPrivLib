@@ -10,28 +10,42 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
-        android:text="TextView1" />
+        android:layout_marginTop="10dp"
+        android:text="TextView1"
+        android:textSize="20sp" />
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginLeft="40dp" >
+        android:layout_height="wrap_content" >
 
         <SeekBar
             android:id="@+id/seekbar"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="50"
-            android:layout_weight="7" />
+            android:paddingLeft="50dp"
+            android:paddingRight="50dp" />
 
         <TextView
             android:id="@+id/textView2"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="0 KM"
-            android:layout_weight="1" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_below="@id/seekbar"
+            android:paddingLeft="50dp"
+            android:text="min"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/seekbar"
+            android:paddingRight="50dp"
+            android:text="max"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textSize="12sp" />
+    </RelativeLayout>
 
 </LinearLayout>

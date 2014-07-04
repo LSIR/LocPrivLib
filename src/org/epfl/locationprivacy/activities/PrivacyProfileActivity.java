@@ -40,16 +40,5 @@ public class PrivacyProfileActivity extends Activity {
 		SemanticLocationAdapter semanticLocationAdapter = new SemanticLocationAdapter(this,
 				semanticLocations);
 		listView.setAdapter(semanticLocationAdapter);
-		
-		
-		// listView.setOnItemClickListener(new OnItemClickListener() {
-		// @Override
-		// public void onItemClick(AdapterView parent, View view, int position,
-		// long id) {
-		// Toast.makeText(PrivacyProfileActivity.this, "You clicked : " +
-		// position,
-		// Toast.LENGTH_LONG).show();
-		// }
-		// });
 	}
 }

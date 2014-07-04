@@ -15,7 +15,7 @@
         
          <activity
             android:name=".activities.PrivacyProfileActivity"
-            android:label="Privacy Profile" >
+            android:label="Privacy Sensitivities" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

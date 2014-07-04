@@ -22,11 +22,13 @@ public class SemanticLocationAdapter extends BaseAdapter {
 
 	private List<SemanticLocation> semanticLocations;
 	private LayoutInflater myLayoutInflater;
+	private Context context;
 
 	public SemanticLocationAdapter(Context context, List<SemanticLocation> semanticLocations) {
 		this.semanticLocations = semanticLocations;
 		myLayoutInflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		this.context = context;
 	}
 
 	@Override
@@ -50,12 +52,11 @@ public class SemanticLocationAdapter extends BaseAdapter {
 		final View view = myLayoutInflater.inflate(R.layout.listitem_privacyprofile, null);
 		TextView textView = (TextView) view.findViewById(R.id.textView1);
 		textView.setText(semanticLocations.get(position).name);
-		
-		final NumberFormat formatter = new DecimalFormat("#0.0");     
-		
 
 		// Seekbar
 		SeekBar privacyBar = (SeekBar) view.findViewById(R.id.seekbar);
+		privacyBar.setProgressDrawable(context.getResources()
+				.getDrawable(R.drawable.seekbarbgimage));
 		privacyBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
 			@Override
@@ -68,8 +69,6 @@ public class SemanticLocationAdapter extends BaseAdapter {
 
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				TextView textView2 = (TextView) view.findViewById(R.id.textView2);
-				textView2.setText(formatter.format(progress/10.0) + " KM");
 			}
 		});
 
