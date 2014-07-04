@@ -9,9 +9,6 @@ import org.epfl.locationprivacy.models.SemanticLocation;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -25,7 +22,7 @@ public class PrivacyProfileActivity extends Activity {
 		setContentView(R.layout.activity_privacyprofile);
 
 		// Data
-		semanticLocationsDataSource = new SemanticLocationsDataSource(this);
+		semanticLocationsDataSource = SemanticLocationsDataSource.getInstance(this);
 		semanticLocationsDataSource.open();
 		List<SemanticLocation> semanticLocations = semanticLocationsDataSource.finaAll();
 		if (semanticLocations.size() == 0) {

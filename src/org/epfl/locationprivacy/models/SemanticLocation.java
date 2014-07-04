@@ -4,15 +4,15 @@ public class SemanticLocation {
 
 	public long id;
 	public String name;
-	public float userSentivity;
+	public int userSentivity;
 
-	public SemanticLocation(String name, float userSentivity) {
+	public SemanticLocation(String name, int userSentivity) {
 		super();
 		this.name = name;
 		this.userSentivity = userSentivity;
 	}
 
-	public SemanticLocation(long id, String name, float userSentivity) {
+	public SemanticLocation(long id, String name, int userSentivity) {
 		super();
 		this.id = id;
 		this.name = name;

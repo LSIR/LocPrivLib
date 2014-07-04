@@ -1,10 +1,9 @@
 package org.epfl.locationprivacy.adapters;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.List;
 
 import org.epfl.locationprivacy.R;
+import org.epfl.locationprivacy.listeners.mySeekBarChangeListener;
 import org.epfl.locationprivacy.models.SemanticLocation;
 
 import android.content.Context;
@@ -13,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 public class SemanticLocationAdapter extends BaseAdapter {
@@ -47,7 +45,7 @@ public class SemanticLocationAdapter extends BaseAdapter {
 	}
 
 	@Override
-	public View getView(int position, final View convertView, ViewGroup parent) {
+	public View getView(final int position, final View convertView, ViewGroup parent) {
 
 		final View view = myLayoutInflater.inflate(R.layout.listitem_privacyprofile, null);
 		TextView textView = (TextView) view.findViewById(R.id.textView1);
@@ -57,20 +55,9 @@ public class SemanticLocationAdapter extends BaseAdapter {
 		SeekBar privacyBar = (SeekBar) view.findViewById(R.id.seekbar);
 		privacyBar.setProgressDrawable(context.getResources()
 				.getDrawable(R.drawable.seekbarbgimage));
-		privacyBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-
-			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {
-			}
-
-			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {
-			}
-
-			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-			}
-		});
+		privacyBar.setProgress(semanticLocations.get(position).userSentivity);
+		privacyBar.setOnSeekBarChangeListener(new mySeekBarChangeListener(context, semanticLocations
+				.get(position)));
 
 		return view;
 	}

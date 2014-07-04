@@ -20,7 +20,7 @@ public class LocationDBOpenHelper extends SQLiteOpenHelper {
 	private static final String TABLE_SEMANTICLOCATIONS_CREATE = "CREATE TABLE "
 			+ TABLE_SEMANTICLOCATIONS + " (" + COLUMN_SEMANTICLOCATION_ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT" + " , " + COLUMN_SEMANTICLOCATION_NAME
-			+ " VARCHAR(50) " + " , " + COLUMN_SEMANTICLOCATION_USERSENSITIVITY + " FLOAT "
+			+ " VARCHAR(50) " + " , " + COLUMN_SEMANTICLOCATION_USERSENSITIVITY + " INTEGER "
 			+ ")";
 
 	public static LocationDBOpenHelper getInstance(Context context) {

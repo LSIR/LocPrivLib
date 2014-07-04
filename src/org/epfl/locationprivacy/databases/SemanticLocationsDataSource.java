@@ -17,7 +17,9 @@ import android.util.Log;
 
 public class SemanticLocationsDataSource {
 	private static final String LOGTAG = "SemanticLocationsDataSource";
-	private static final float DEFAULT_USERSENSITIVITY = 1.0f;
+	private static final int DEFAULT_USERSENSITIVITY = 0;
+
+	private static SemanticLocationsDataSource instance = null;
 
 	SQLiteOpenHelper dbHelper;
 	SQLiteDatabase db;
@@ -27,7 +29,13 @@ public class SemanticLocationsDataSource {
 			LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME,
 			LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY };
 
-	public SemanticLocationsDataSource(Context context) {
+	public static SemanticLocationsDataSource getInstance(Context context) {
+		if (instance == null)
+			instance = new SemanticLocationsDataSource(context);
+		return instance;
+	}
+
+	private SemanticLocationsDataSource(Context context) {
 		this.context = context;
 		dbHelper = LocationDBOpenHelper.getInstance(context);
 	}
@@ -68,8 +76,8 @@ public class SemanticLocationsDataSource {
 						.getColumnIndex(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_ID));
 				String semanticLocationName = cursor.getString(cursor
 						.getColumnIndex(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME));
-				float semanticLocationUserSensitivity = cursor
-						.getFloat(cursor
+				int semanticLocationUserSensitivity = cursor
+						.getInt(cursor
 								.getColumnIndex(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY));
 
 				SemanticLocation semanticLocation = new SemanticLocation(semanticLocationID,
@@ -80,7 +88,7 @@ public class SemanticLocationsDataSource {
 		return semanticLocations;
 	}
 
-	public void populateDB()  {
+	public void populateDB() {
 		// read file
 		ArrayList<String> semanticLocations = new ArrayList<String>();
 		BufferedReader reader = null;
@@ -103,5 +111,13 @@ public class SemanticLocationsDataSource {
 					DEFAULT_USERSENSITIVITY);
 			create(sl);
 		}
+	}
+
+	public void updateSemanticLocation(long id, int progress) {
+		String strSQL = "UPDATE " + LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS + " SET "
+				+ LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY + " = " + progress
+				+ " WHERE " + LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_ID + " = " + id;
+
+		db.execSQL(strSQL);
 	}
 }
