@@ -1,4 +1,4 @@
-package org.epfl.locationprivacy.models;
+package org.epfl.locationprivacy.privacyprofile.models;
 
 public class SemanticLocation {
 

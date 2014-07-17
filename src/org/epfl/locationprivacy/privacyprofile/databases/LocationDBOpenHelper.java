@@ -1,4 +1,4 @@
-package org.epfl.locationprivacy.databases;
+package org.epfl.locationprivacy.privacyprofile.databases;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

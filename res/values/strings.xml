@@ -1,5 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <string name="app_name">LocationPrivacyV2</string>
+    <string name="title_activity_landing_page">Landing Page</string>
+    <string name="title_activity_privacyprofile">Privacy Sensitivities</string>
+    <string name="title_activity_obfregion">Obfuscation Region</string>
+    <string name="title_activity_coarselocation">Coarse Location</string>
+    <string name="action_obfuscate">Obfuscate</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>

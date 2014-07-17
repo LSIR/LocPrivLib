@@ -1,10 +1,10 @@
-package org.epfl.locationprivacy.adapters;
+package org.epfl.locationprivacy.privacyprofile.adapters;
 
 import java.util.List;
 
 import org.epfl.locationprivacy.R;
-import org.epfl.locationprivacy.listeners.mySeekBarChangeListener;
-import org.epfl.locationprivacy.models.SemanticLocation;
+import org.epfl.locationprivacy.privacyprofile.listeners.mySeekBarChangeListener;
+import org.epfl.locationprivacy.privacyprofile.models.SemanticLocation;
 
 import android.content.Context;
 import android.view.LayoutInflater;

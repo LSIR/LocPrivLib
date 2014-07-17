@@ -1,11 +1,11 @@
-package org.epfl.locationprivacy.activities;
+package org.epfl.locationprivacy.privacyprofile.activities;
 
 import java.util.List;
 
 import org.epfl.locationprivacy.R;
-import org.epfl.locationprivacy.adapters.SemanticLocationAdapter;
-import org.epfl.locationprivacy.databases.SemanticLocationsDataSource;
-import org.epfl.locationprivacy.models.SemanticLocation;
+import org.epfl.locationprivacy.privacyprofile.adapters.SemanticLocationAdapter;
+import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
+import org.epfl.locationprivacy.privacyprofile.models.SemanticLocation;
 
 import android.app.Activity;
 import android.os.Bundle;

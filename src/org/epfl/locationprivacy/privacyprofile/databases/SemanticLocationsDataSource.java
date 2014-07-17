@@ -1,4 +1,4 @@
-package org.epfl.locationprivacy.databases;
+package org.epfl.locationprivacy.privacyprofile.databases;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.epfl.locationprivacy.models.SemanticLocation;
+import org.epfl.locationprivacy.privacyprofile.models.SemanticLocation;
 
 import android.content.ContentValues;
 import android.content.Context;

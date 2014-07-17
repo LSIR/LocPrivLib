@@ -1,7 +1,7 @@
-package org.epfl.locationprivacy.listeners;
+package org.epfl.locationprivacy.privacyprofile.listeners;
 
-import org.epfl.locationprivacy.databases.SemanticLocationsDataSource;
-import org.epfl.locationprivacy.models.SemanticLocation;
+import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
+import org.epfl.locationprivacy.privacyprofile.models.SemanticLocation;
 
 import android.content.Context;
 import android.util.Log;
