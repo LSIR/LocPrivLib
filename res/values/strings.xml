@@ -8,5 +8,6 @@
     <string name="title_activity_coarselocation">Coarse Location</string>
     <string name="action_obfuscate">Obfuscate</string>
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_sample_spatialite_query">SampleSpatialiteQueryActivity</string>
 
 </resources>

@@ -2,103 +2,176 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:paddingTop="20dp" >
+    android:orientation="vertical" >
 
-    <View
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_weight="1" >
-    </View>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="20dp" >
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
 
-        <ImageView
-            android:id="@+id/imageView1"
+        <RelativeLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onClickPrivacySensitivity"
-            android:src="@drawable/privacyprofile" />
+            android:layout_height="wrap_content" >
 
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="48dp"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/imageView1"
-            android:gravity="center"
-            android:inputType="textMultiLine"
-            android:maxLines="2"
-            android:paddingTop="5dp"
-            android:text="Privacy Sensitivity"
-            android:textSize="10sp" />
-    </RelativeLayout>
+            <ImageView
+                android:id="@+id/imageView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onClickPrivacySensitivity"
+                android:src="@drawable/privacyprofile" />
 
-    <View
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_weight="1" >
-    </View>
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/imageView1"
+                android:gravity="center"
+                android:inputType="textMultiLine"
+                android:maxLines="2"
+                android:paddingTop="5dp"
+                android:text="Privacy Sensitivity"
+                android:textSize="10sp" />
+        </RelativeLayout>
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
 
-        <ImageView
-            android:id="@+id/imageView2"
+        <RelativeLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onClickTrackEvents"
-            android:src="@drawable/track" />
+            android:layout_height="wrap_content" >
 
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="48dp"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/imageView2"
-            android:gravity="center"
-            android:inputType="textMultiLine"
-            android:maxLines="2"
-            android:paddingTop="5dp"
-            android:text="Track Events"
-            android:textSize="10sp" />
-    </RelativeLayout>
+            <ImageView
+                android:id="@+id/imageView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onClickTrackEvents"
+                android:src="@drawable/track" />
 
-    <View
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_weight="1" >
-    </View>
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/imageView2"
+                android:gravity="center"
+                android:inputType="textMultiLine"
+                android:maxLines="2"
+                android:paddingTop="5dp"
+                android:text="Track Events"
+                android:textSize="10sp" />
+        </RelativeLayout>
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" >
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
 
-        <ImageView
-            android:id="@+id/imageView3"
+        <RelativeLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onClickBaselineProtection"
-            android:src="@drawable/obfuscate" />
+            android:layout_height="wrap_content" >
 
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="48dp"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/imageView3"
-            android:gravity="center"
-            android:inputType="textMultiLine"
-            android:maxLines="2"
-            android:paddingTop="5dp"
-            android:text="Baseline Protection"
-            android:textSize="10sp" />
-    </RelativeLayout>
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onClickBaselineProtection"
+                android:src="@drawable/obfuscate" />
 
-    <View
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_weight="1" >
-    </View>
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/imageView3"
+                android:gravity="center"
+                android:inputType="textMultiLine"
+                android:maxLines="2"
+                android:paddingTop="5dp"
+                android:text="Baseline Protection"
+                android:textSize="10sp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="20dp" >
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <ImageView
+                android:id="@+id/imageView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onClickSpatialiteDB"
+                android:src="@drawable/db" />
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/imageView4"
+                android:gravity="center"
+                android:inputType="textMultiLine"
+                android:maxLines="2"
+                android:paddingTop="5dp"
+                android:text="Sample DB"
+                android:textSize="10sp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
+
+       <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" >
+        </View>
+    </LinearLayout>
 
 </LinearLayout>

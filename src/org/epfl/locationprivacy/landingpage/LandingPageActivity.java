@@ -3,6 +3,7 @@ package org.epfl.locationprivacy.landingpage;
 import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.baselineprotection.activities.ObfRegionActivity;
 import org.epfl.locationprivacy.privacyprofile.activities.PrivacyProfileActivity;
+import org.epfl.locationprivacy.spatialitedb.SampleSpatialiteQueryActivity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -24,11 +25,16 @@ public class LandingPageActivity extends Activity {
 	}
 
 	public void onClickTrackEvents(View view) {
-		Toast.makeText(this, "onClickTrackEvents", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, "Not Implemented Yet", Toast.LENGTH_SHORT).show();
 	}
 
 	public void onClickBaselineProtection(View view) {
 		Intent intent = new Intent(this, ObfRegionActivity.class);
+		startActivity(intent);
+	}
+
+	public void onClickSpatialiteDB(View view) {
+		Intent intent = new Intent(this, SampleSpatialiteQueryActivity.class);
 		startActivity(intent);
 	}
 }
