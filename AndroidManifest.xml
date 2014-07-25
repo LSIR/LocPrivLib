@@ -45,12 +45,17 @@
         </activity>
         <activity
             android:name=".baselineprotection.activities.ObfRegionActivity"
-            android:label="@string/title_activity_obfregion"
+            android:label="@string/title_activity_obf_region"
             android:theme="@style/Theme.AppCompat.Light.DarkActionBar" >
         </activity>
         <activity
-            android:name=".baselineprotection.activities.CoarseLocationActivity"
-            android:label="@string/title_activity_coarselocation" >
+            android:name=".baselineprotection.activities.ObfRegionSettingActivity"
+            android:label="@string/title_activity_obf_region_setting"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" >
+        </activity>
+        <activity
+            android:name=".spatialitedb.SampleSpatialiteQueryActivity"
+            android:label="@string/title_activity_sample_spatialite_query" >
         </activity>
 
         <meta-data
@@ -59,11 +64,6 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-
-        <activity
-            android:name=".spatialitedb.SampleSpatialiteQueryActivity"
-            android:label="@string/title_activity_sample_spatialite_query" >
-        </activity>
     </application>
 
 </manifest>

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.baselineprotection.activities.ObfRegionActivity;
+import org.epfl.locationprivacy.baselineprotection.activities.ObfRegionSettingActivity;
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.privacyprofile.activities.PrivacyProfileActivity;

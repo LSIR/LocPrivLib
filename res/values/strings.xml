@@ -4,11 +4,11 @@
     <string name="app_name">LocationPrivacyV2</string>
     <string name="title_activity_landing_page">Landing Page</string>
     <string name="title_activity_privacyprofile">Privacy Sensitivities</string>
-    <string name="title_activity_obfregion">Obfuscation Region</string>
-    <string name="title_activity_coarselocation">Coarse Location</string>
+    <string name="title_activity_obf_region_setting">Settings</string>
+    <string name="title_activity_obf_region">Baseline</string>
+    <string name="title_activity_sample_spatialite_query">Amenities</string>
     <string name="action_obfuscate">Obfuscate</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_save">Save</string>
     <string name="hello_world">Hello world!</string>
-    <string name="title_activity_sample_spatialite_query">SampleSpatialiteQueryActivity</string>
-    <string name="title_activity_dbpopulator">DBPopulatorActivity</string>
-
-</resources>
+</resources>
