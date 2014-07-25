@@ -8,6 +8,8 @@ import jsqlite.Stmt;
 
 import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.baselineprotection.util.Utils;
+import org.epfl.locationprivacy.map.databases.VenuesDBDataSource;
+import org.epfl.locationprivacy.map.models.MyPolygon;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -25,7 +27,6 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 
 public class SampleSpatialiteQueryActivity extends Activity {
 
@@ -34,10 +35,14 @@ public class SampleSpatialiteQueryActivity extends Activity {
 	GoogleMap googleMap;
 	MapView mapView;
 	LocationClient locationClient;
+	VenuesDBDataSource venuesDBDataSource;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		venuesDBDataSource = new VenuesDBDataSource(this);
+		venuesDBDataSource.open();
 
 		// Make sure that google play services are OK
 		if (Utils.googlePlayServicesOK(this)) {
@@ -66,18 +71,10 @@ public class SampleSpatialiteQueryActivity extends Activity {
 		//Data base query
 		ArrayList<MyPolygon> results = null;
 		try {
-			// Open DB
-			File sdcardDir = Environment.getExternalStorageDirectory();
-			File spatialDbFile = new File(sdcardDir, "laussane4.sqlite");
-			Database db = new jsqlite.Database();
-			db.open(spatialDbFile.getAbsolutePath(), jsqlite.Constants.SQLITE_OPEN_READWRITE);
-
 			// Query DB
-			results = queryDB(db);
+			results = venuesDBDataSource.findSampleFromPGAmenity();
 			Log.d(LOGTAG, "Results Size: " + results.size());
 
-			//Close DB
-			db.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e(LOGTAG, e.getMessage());
@@ -105,6 +102,7 @@ public class SampleSpatialiteQueryActivity extends Activity {
 	public void onLowMemory() {
 		super.onLowMemory();
 		mapView.onLowMemory();
+		venuesDBDataSource.close();
 	}
 
 	@Override
@@ -126,44 +124,16 @@ public class SampleSpatialiteQueryActivity extends Activity {
 	}
 
 	//=================================================================================
-	public ArrayList<MyPolygon> queryDB(Database db) {
-		ArrayList<MyPolygon> myPolygons = new ArrayList<MyPolygon>();
-		String query = "select name, sub_type, GeometryType(Geometry) as type, AsText(Geometry)"
-				+ " as locationgeometry from pg_amenity where name not NULL AND locationgeometry not NULL";
-		int rows = 0;
-
-		try {
-			Stmt stmt = db.prepare(query);
-			while (stmt.step()) {
-				rows++;
-				String name = stmt.column_string(0);
-				String subType = stmt.column_string(1);
-				String location = name + "\n" + subType + "\n" + stmt.column_string(2);
-				Log.d(LOGTAG, location);
-				myPolygons.add(MyPolygon.parseGeometry(stmt.column_string(3), name, subType));
-			}
-			stmt.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			Log.e(LOGTAG, e.getMessage());
-		}
-		Log.d(LOGTAG, "....Rows: " + rows + "\n");
-		Log.d(LOGTAG, "==============================");
-
-		return myPolygons;
-	}
-
-	//===========================================================
 
 	private void drawOnMap(MyPolygon myPolygon) {
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(Color.BLUE).strokeWidth(1);
-		for (int i = 0; i < myPolygon.points.size() - 1; i++) {
-			polygonOptions.add(myPolygon.points.get(i));
+		for (int i = 0; i < myPolygon.getPoints().size() - 1; i++) {
+			polygonOptions.add(myPolygon.getPoints().get(i));
 		}
 		googleMap.addPolygon(polygonOptions);
 
-		MarkerOptions markerOptions = new MarkerOptions().position(myPolygon.points.get(0))
-				.title(myPolygon.name).snippet(myPolygon.subType);
+		MarkerOptions markerOptions = new MarkerOptions().position(myPolygon.getPoints().get(0))
+				.title(myPolygon.getName()).snippet(myPolygon.getSemantic());
 		googleMap.addMarker(markerOptions);
 
 	}

@@ -6,6 +6,7 @@ import java.util.Random;
 import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Color;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -19,6 +20,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 public class Utils {
 
+	public static String LOGTAG = "Utils";
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
 	private static final float GRID_CELL_SIZE = 0.05f; //50 meters 
@@ -43,26 +45,27 @@ public class Utils {
 		return rand.nextInt((max - min) + 1) + min;
 	}
 
-	public static LatLng findTopLeftPoint(LatLng centerPoint, int gridSize) {
+	public static LatLng findTopLeftPoint(LatLng centerPoint, int gridHeightCells,
+			int gridWidthCells) {
 
-		LatLng midLeftPoint = Utils.getLatLong(centerPoint, (gridSize / 2 + 0.5f) * GRID_CELL_SIZE,
-				-90f);
-		LatLng topLeftPoint = Utils.getLatLong(midLeftPoint,
-				(gridSize / 2 + 0.5f) * GRID_CELL_SIZE, 0f);
+		LatLng midLeftPoint = Utils.getLatLong(centerPoint, (gridWidthCells / 2 + 0.5f)
+				* GRID_CELL_SIZE, -90f);
+		LatLng topLeftPoint = Utils.getLatLong(midLeftPoint, (gridHeightCells / 2 + 0.5f)
+				* GRID_CELL_SIZE, 0f);
 		return topLeftPoint;
 	}
 
-	public static LatLng[][] generateMapGrid(int arrSize, LatLng topLeftPoint) {
-		LatLng[][] grid = new LatLng[arrSize][arrSize];
+	public static LatLng[][] generateMapGrid(int arrRows, int arrCols, LatLng topLeftPoint) {
+		LatLng[][] grid = new LatLng[arrRows][arrCols];
 		grid[0][0] = topLeftPoint;
 
 		//fill first column
-		for (int i = 1; i < arrSize; i++)
+		for (int i = 1; i < arrRows; i++)
 			grid[i][0] = Utils.getLatLong(grid[i - 1][0], GRID_CELL_SIZE, 180);
 
 		//fill rows
-		for (int i = 0; i < arrSize; i++)
-			for (int j = 1; j < arrSize; j++)
+		for (int i = 0; i < arrRows; i++)
+			for (int j = 1; j < arrCols; j++)
 				grid[i][j] = Utils.getLatLong(grid[i][j - 1], GRID_CELL_SIZE, 90);
 
 		return grid;
@@ -80,19 +83,20 @@ public class Utils {
 
 	public static ArrayList<Polyline> drawMapGrid(LatLng[][] mapGrid, GoogleMap googleMap) {
 		ArrayList<Polyline> polylines = new ArrayList<Polyline>();
-		int arrSize = mapGrid.length;
+		int arrRows = mapGrid.length;
+		int arrCols = mapGrid[0].length;
 
 		//draw horizontal polylines
-		for (int i = 0; i < arrSize; i++) {
+		for (int i = 0; i < arrRows; i++) {
 			PolylineOptions polylineOptions = new PolylineOptions().color(Color.BLUE).width(1)
-					.add(mapGrid[i][0]).add(mapGrid[i][arrSize - 1]);
+					.add(mapGrid[i][0]).add(mapGrid[i][arrCols - 1]);
 			polylines.add(googleMap.addPolyline(polylineOptions));
 		}
 
 		//draw vertical polylines
-		for (int i = 0; i < arrSize; i++) {
+		for (int i = 0; i < arrCols; i++) {
 			PolylineOptions polylineOptions = new PolylineOptions().color(Color.BLUE).width(1)
-					.add(mapGrid[0][i]).add(mapGrid[arrSize - 1][i]);
+					.add(mapGrid[0][i]).add(mapGrid[arrRows - 1][i]);
 			polylines.add(googleMap.addPolyline(polylineOptions));
 		}
 
@@ -101,12 +105,14 @@ public class Utils {
 
 	public static Polygon drawObfuscationArea(LatLng[][] mapGrid, GoogleMap googleMap) {
 
-		int arrSize = mapGrid.length;
+		int arrRows = mapGrid.length;
+		int arrCols = mapGrid[0].length;
+		Log.d(LOGTAG, "Rows:"+arrRows+"  Cols:"+arrCols);
 
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(0x330000FF)
 				.strokeColor(Color.BLUE).strokeWidth(1);
-		polygonOptions.add(mapGrid[0][0]).add(mapGrid[0][arrSize - 1]).add(mapGrid[arrSize - 1][arrSize - 1])
-				.add(mapGrid[arrSize - 1][0]);
+		polygonOptions.add(mapGrid[0][0]).add(mapGrid[0][arrCols - 1])
+				.add(mapGrid[arrRows - 1][arrCols - 1]).add(mapGrid[arrRows - 1][0]);
 		return googleMap.addPolygon(polygonOptions);
 
 	}

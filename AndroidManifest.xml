@@ -61,7 +61,7 @@
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name="org.epfl.locationprivacy.spatialitedb.SampleSpatialiteQueryActivity"
+            android:name=".spatialitedb.SampleSpatialiteQueryActivity"
             android:label="@string/title_activity_sample_spatialite_query" >
         </activity>
     </application>

@@ -36,7 +36,8 @@ public class CoarseLocationActivity extends Activity {
 		double fineLocationLng = intent.getDoubleExtra("fineLocationLng", 0.0);
 		LatLng fineLocation = new LatLng(fineLocationLat, fineLocationLng);
 
-		int obfuscationRegionSize = intent.getIntExtra("obfuscationRegionSize", 1);
+		int obfuscationRegionHeightCells = intent.getIntExtra("obfuscationRegionHeightCells", 1);
+		int obfuscationRegionWidthCells = intent.getIntExtra("obfuscationRegionWidthCells", 1);
 
 		double obfuscationRegionTopLeftLat = intent.getDoubleExtra("obfuscationRegionTopLeftLat",
 				0.0);
@@ -55,14 +56,16 @@ public class CoarseLocationActivity extends Activity {
 				//Animate
 				CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(fineLocation, 13);
 				googleMap.moveCamera(cameraUpdate);
-				
+
 				//Adding Marker
 				MarkerOptions markerOptions = new MarkerOptions().position(fineLocation);
 				googleMap.addMarker(markerOptions);
 
 				// generate Map Grid
-				int arrSize = obfuscationRegionSize + 1;
-				LatLng[][] mapGrid = Utils.generateMapGrid(arrSize, obfuscationRegionTopLeftPoint);
+				int arrRows = obfuscationRegionHeightCells + 1;
+				int arrCols = obfuscationRegionWidthCells + 1;
+				LatLng[][] mapGrid = Utils.generateMapGrid(arrRows, arrCols,
+						obfuscationRegionTopLeftPoint);
 
 				//Remove old grid from map
 				Utils.removeOldMapGrid(polylines, polygon);

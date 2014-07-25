@@ -41,7 +41,9 @@ public class ObfRegionActivity extends ActionBarActivity implements
 	LocationClient locationClient;
 	ArrayList<Polyline> polylines = new ArrayList<Polyline>();
 	Polygon polygon = null;
-	int currGridSize = 1;
+	//	int currGridSize = 1;
+	int currGridHeightCells = 1;
+	int currGridWidthCells = 1;
 	LatLng[][] mapGrid;
 
 	@Override
@@ -123,6 +125,9 @@ public class ObfRegionActivity extends ActionBarActivity implements
 		Location currentLocation = locationClient.getLastLocation();
 		if (currentLocation != null) {
 
+			currentLocation.setLatitude(46.526092);
+			currentLocation.setLongitude(6.584415);
+
 			//Animate
 			LatLng latLng = new LatLng(currentLocation.getLatitude(),
 					currentLocation.getLongitude());
@@ -136,8 +141,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 			googleMap.addMarker(markerOptions);
 
 			//Draw Grid
-			int gridSize = 1; //must be odd number [1,3,5,...,15]
-			refreshMapGrid(gridSize, currentLocation);
+			refreshMapGrid(currGridHeightCells, currGridWidthCells, currentLocation);
 
 		} else {
 			Toast.makeText(this, "Current Location is not available", Toast.LENGTH_SHORT).show();
@@ -160,12 +164,14 @@ public class ObfRegionActivity extends ActionBarActivity implements
 			intent.putExtra("fineLocationLat", locationClient.getLastLocation().getLatitude());
 			intent.putExtra("fineLocationLng", locationClient.getLastLocation().getLongitude());
 
-			int obfuscationRegionSize = currGridSize / 2 + 1;
-			intent.putExtra("obfuscationRegionSize", obfuscationRegionSize);
+			int obfuscationRegionHeightCells = currGridHeightCells / 2 + 1;
+			int obfuscationRegionWidthCells = currGridWidthCells / 2 + 1;
+			intent.putExtra("obfuscationRegionHeightCells", obfuscationRegionHeightCells);
+			intent.putExtra("obfuscationRegionWidthCells", obfuscationRegionWidthCells);
 
 			//generate random obfuscation region
-			int randomRow = Utils.getRandom(0, currGridSize / 2);
-			int randomCol = Utils.getRandom(0, currGridSize / 2);
+			int randomRow = Utils.getRandom(0, currGridHeightCells / 2);
+			int randomCol = Utils.getRandom(0, currGridWidthCells / 2);
 			intent.putExtra("obfuscationRegionTopLeftLat", mapGrid[randomRow][randomCol].latitude);
 			intent.putExtra("obfuscationRegionTopLeftLng", mapGrid[randomRow][randomCol].longitude);
 
@@ -177,15 +183,16 @@ public class ObfRegionActivity extends ActionBarActivity implements
 
 	//==============================================================================
 
-	private void refreshMapGrid(int gridSize, Location currentLocation) {
+	private void refreshMapGrid(int gridHeightCells, int gridWidthCells, Location currentLocation) {
 		// top Left corner
 		LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
 				currentLocation.getLongitude());
-		LatLng topLeftPoint = Utils.findTopLeftPoint(centerPoint, gridSize);
+		LatLng topLeftPoint = Utils.findTopLeftPoint(centerPoint, gridHeightCells, gridWidthCells);
 
 		// generate Map Grid
-		int arrSize = gridSize + 1;
-		mapGrid = Utils.generateMapGrid(arrSize, topLeftPoint);
+		int arrRows = gridHeightCells + 1;
+		int arrCols = gridWidthCells + 1;
+		mapGrid = Utils.generateMapGrid(arrRows, arrCols, topLeftPoint);
 
 		//Remove old grid from map
 		Utils.removeOldMapGrid(polylines, polygon);
@@ -207,7 +214,8 @@ public class ObfRegionActivity extends ActionBarActivity implements
 	@Override
 	public void onStopTrackingTouch(SeekBar seekBar) {
 		//Toast.makeText(this, "Seek bar value " + seekBar.getProgress(), Toast.LENGTH_SHORT).show();
-		currGridSize = 2 * seekBar.getProgress() + 1;
-		refreshMapGrid(currGridSize, locationClient.getLastLocation());
+		currGridWidthCells = 2 * seekBar.getProgress() + 1;
+		currGridHeightCells = 2 * seekBar.getProgress() + 1;
+		refreshMapGrid(currGridHeightCells, currGridWidthCells, locationClient.getLastLocation());
 	}
 }
