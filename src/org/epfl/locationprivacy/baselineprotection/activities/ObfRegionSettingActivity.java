@@ -170,6 +170,8 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 			editor.putInt("ObfRegionHeightCells", currObfRegionHeightCells).apply();
 			editor.putInt("ObfRegionWidthCells", currObfRegionWidthCells).apply();
 
+			Toast.makeText(this, "Successfully Saved", Toast.LENGTH_SHORT).show();
+
 			//return to pervious activity
 			Intent intent = new Intent();
 			intent.putExtra("ObfRegionHeightCells", currObfRegionHeightCells);

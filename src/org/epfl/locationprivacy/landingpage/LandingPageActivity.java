@@ -9,6 +9,7 @@ import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.privacyprofile.activities.PrivacyProfileActivity;
 import org.epfl.locationprivacy.spatialitedb.SampleSpatialiteQueryActivity;
+import org.epfl.locationprivacy.userhistory.UserHistoryActivity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -39,7 +40,9 @@ public class LandingPageActivity extends Activity {
 	}
 
 	public void onClickTrackEvents(View view) {
-		Toast.makeText(this, "Not Implemented Yet", Toast.LENGTH_SHORT).show();
+		//		Toast.makeText(this, "Not Implemented Yet", Toast.LENGTH_SHORT).show();
+		Intent intent = new Intent(this, UserHistoryActivity.class);
+		startActivity(intent);
 	}
 
 	public void onClickBaselineProtection(View view) {

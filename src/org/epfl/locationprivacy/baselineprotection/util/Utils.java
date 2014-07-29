@@ -3,6 +3,8 @@ package org.epfl.locationprivacy.baselineprotection.util;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.epfl.locationprivacy.map.models.MyPolygon;
+
 import android.app.Activity;
 import android.app.Dialog;
 import android.graphics.Color;
@@ -81,6 +83,13 @@ public class Utils {
 			polygon.remove();
 	}
 
+	public static void removePolygons(ArrayList<Polygon> polygons) {
+		for (Polygon p : polygons) {
+			p.remove();
+		}
+		polygons.clear();
+	}
+
 	public static ArrayList<Polyline> drawMapGrid(LatLng[][] mapGrid, GoogleMap googleMap) {
 		ArrayList<Polyline> polylines = new ArrayList<Polyline>();
 		int arrRows = mapGrid.length;
@@ -103,11 +112,20 @@ public class Utils {
 		return polylines;
 	}
 
+	public static Polygon drawPolygon(MyPolygon polygon, GoogleMap googleMap) {
+		PolygonOptions polygonOptions = new PolygonOptions().fillColor(0x33FF0000)
+				.strokeColor(Color.BLUE).strokeWidth(1);
+		for (LatLng p : polygon.getPoints()) {
+			polygonOptions.add(p);
+		}
+		return googleMap.addPolygon(polygonOptions);
+	}
+
 	public static Polygon drawObfuscationArea(LatLng[][] mapGrid, GoogleMap googleMap) {
 
 		int arrRows = mapGrid.length;
 		int arrCols = mapGrid[0].length;
-		Log.d(LOGTAG, "Rows:"+arrRows+"  Cols:"+arrCols);
+		Log.d(LOGTAG, "Rows:" + arrRows + "  Cols:" + arrCols);
 
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(0x330000FF)
 				.strokeColor(Color.BLUE).strokeWidth(1);

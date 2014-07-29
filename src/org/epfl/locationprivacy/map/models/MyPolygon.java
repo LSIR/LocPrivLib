@@ -2,6 +2,8 @@ package org.epfl.locationprivacy.map.models;
 
 import java.util.ArrayList;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.model.LatLng;
 
 public class MyPolygon {
@@ -19,6 +21,7 @@ public class MyPolygon {
 
 	public static ArrayList<LatLng> parseSpatialPolygon(String geometry) {
 
+		Log.d("parseSpatialPolygon", geometry);
 		geometry = geometry.trim().replaceAll("POLYGON", "");
 
 		while (geometry.startsWith("("))
@@ -26,6 +29,7 @@ public class MyPolygon {
 		while (geometry.endsWith(")"))
 			geometry = geometry.substring(0, geometry.length() - 1);
 
+		Log.d("parseSpatialPolygon", geometry);
 		String[] points = geometry.split(",");
 		ArrayList<LatLng> latLngPoints = new ArrayList<LatLng>();
 		for (String point : points) {

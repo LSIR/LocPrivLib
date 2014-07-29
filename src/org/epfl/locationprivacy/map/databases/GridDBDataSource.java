@@ -122,7 +122,8 @@ public class GridDBDataSource {
 	public long findRowsCount() {
 		long rowsCount = -1;
 		try {
-			String query = "select count("+GridDBOpenHelper.COLUMN_GEOMETRY+") from " + GridDBOpenHelper.TABLE_GRIDCELLS;
+			String query = "select count(" + GridDBOpenHelper.COLUMN_GEOMETRY + ") from "
+					+ GridDBOpenHelper.TABLE_GRIDCELLS;
 			Stmt stmt = spatialdb.prepare(query);
 			if (stmt.step()) {
 				rowsCount = stmt.column_int(0);
@@ -167,5 +168,36 @@ public class GridDBDataSource {
 			}
 			Log.d(LOGTAG, "Inserting Row:" + i);
 		}
+	}
+
+	// find a grid cell for specific Location 
+	public ArrayList<MyPolygon> findGridCell(double latitude, double longitude) {
+		ArrayList<MyPolygon> polygons = new ArrayList<MyPolygon>();
+		Log.e(LOGTAG, "start query");
+		try {
+			String query = "SELECT " + GridDBOpenHelper.COLUMN_ID + ", "
+					+ GridDBOpenHelper.COLUMN_Semantic + ", asText("
+					+ GridDBOpenHelper.COLUMN_GEOMETRY + ") "
+					+ " FROM gridcells  WHERE MBRContains( geometry, GeomFromText('POINT("
+					+ longitude + " " + latitude + ")'));";
+			Stmt stmt = spatialdb.prepare(query);
+			while (stmt.step()) {
+				int id = stmt.column_int(0);
+				String semantic = stmt.column_string(1);
+				String geometry = stmt.column_string(2);
+				MyPolygon polygon = new MyPolygon(id + "", semantic,
+						MyPolygon.parseSpatialPolygon(geometry));
+				polygons.add(polygon);
+				//				Log.d(LOGTAG, polygon.toString());
+			}
+			stmt.close();
+
+			Log.e(LOGTAG, "end query");
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.e(LOGTAG, e.getMessage());
+		}
+		Log.d(LOGTAG, "ROWs " + polygons.size());
+		return polygons;
 	}
 }
