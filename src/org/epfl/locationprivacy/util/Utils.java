@@ -1,6 +1,7 @@
-package org.epfl.locationprivacy.baselineprotection.util;
+package org.epfl.locationprivacy.util;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Random;
 
 import org.epfl.locationprivacy.map.models.MyPolygon;
@@ -22,7 +23,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 public class Utils {
 
-	public static String LOGTAG = "Utils";
+	public static final int LAUSSANE_GRID_HEIGHT_CELLS = 101;
+	public static final int LAUSSANE_GRID_WIDTH_CELLS = 301;
+	private static String LOGTAG = "Utils";
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
 	private static final float GRID_CELL_SIZE = 0.05f; //50 meters 
@@ -149,5 +152,50 @@ public class Utils {
 					.show();
 		}
 		return false;
+	}
+
+	public static int findDayPortionID(long currTime) {
+		Calendar c = Calendar.getInstance();
+		long now = c.getTimeInMillis();
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		long millisecondsSinceMidnight = now - c.getTimeInMillis();
+		long millisecondsInHalfHour = 1800000;
+		int dayPortionID = (int) (millisecondsSinceMidnight / millisecondsInHalfHour);
+		return dayPortionID;
+	}
+
+	/* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+	/* :: This function calculates the distance between 2 lat/lng points : */
+	/* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+	public static double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
+		double theta = lon1 - lon2;
+		double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1))
+				* Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+		dist = Math.acos(dist);
+		dist = rad2deg(dist);
+		dist = dist * 60 * 1.1515;
+		if (unit == 'K') {
+			dist = dist * 1.609344;
+		} else if (unit == 'N') {
+			dist = dist * 0.8684;
+		}
+		return (dist);
+	}
+
+	/* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+	/* :: This function converts decimal degrees to radians : */
+	/* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+	private static double deg2rad(double deg) {
+		return (deg * Math.PI / 180.0);
+	}
+
+	/* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+	/* :: This function converts radians to decimal degrees : */
+	/* ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: */
+	private static double rad2deg(double rad) {
+		return (rad * 180.0 / Math.PI);
 	}
 }

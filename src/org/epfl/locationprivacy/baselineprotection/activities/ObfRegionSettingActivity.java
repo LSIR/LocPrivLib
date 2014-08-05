@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import org.epfl.locationprivacy.R;
-import org.epfl.locationprivacy.baselineprotection.util.Utils;
+import org.epfl.locationprivacy.util.Utils;
 
 import android.content.Intent;
 import android.content.SharedPreferences;

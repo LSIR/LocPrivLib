@@ -6,8 +6,8 @@ import jsqlite.Database;
 import jsqlite.Exception;
 import jsqlite.Stmt;
 
-import org.epfl.locationprivacy.baselineprotection.util.Utils;
 import org.epfl.locationprivacy.map.models.MyPolygon;
+import org.epfl.locationprivacy.util.Utils;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -141,8 +141,8 @@ public class GridDBDataSource {
 
 	public void repopulateGridDB() {
 		// top Left corner
-		int gridHeightCells = 101;//must be odd number [1,3,5,...,15]
-		int gridWidthCells = 301; //must be odd number [1,3,5,...,15]
+		int gridHeightCells = Utils.LAUSSANE_GRID_HEIGHT_CELLS;//must be odd number [1,3,5,...,15]
+		int gridWidthCells = Utils.LAUSSANE_GRID_WIDTH_CELLS; //must be odd number [1,3,5,...,15]
 		LatLng centerPoint = new LatLng(46.526092, 6.584415);
 		LatLng topLeftPoint = Utils.findTopLeftPoint(centerPoint, gridHeightCells, gridWidthCells);
 
@@ -171,8 +171,8 @@ public class GridDBDataSource {
 	}
 
 	// find a grid cell for specific Location 
-	public ArrayList<MyPolygon> findGridCell(double latitude, double longitude) {
-		ArrayList<MyPolygon> polygons = new ArrayList<MyPolygon>();
+	public MyPolygon findGridCell(double latitude, double longitude) {
+		MyPolygon polygon = null;
 		Log.e(LOGTAG, "start query");
 		try {
 			String query = "SELECT " + GridDBOpenHelper.COLUMN_ID + ", "
@@ -185,10 +185,12 @@ public class GridDBDataSource {
 				int id = stmt.column_int(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
-				MyPolygon polygon = new MyPolygon(id + "", semantic,
-						MyPolygon.parseSpatialPolygon(geometry));
-				polygons.add(polygon);
-				//				Log.d(LOGTAG, polygon.toString());
+
+				if (polygon != null) {
+					throw new Exception("Multiple results for Lat/Lng:" + latitude + "/"
+							+ longitude);
+				}
+				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon(geometry));
 			}
 			stmt.close();
 
@@ -197,7 +199,28 @@ public class GridDBDataSource {
 			e.printStackTrace();
 			Log.e(LOGTAG, e.getMessage());
 		}
-		Log.d(LOGTAG, "ROWs " + polygons.size());
-		return polygons;
+		Log.d(LOGTAG, "ROWs 1");
+		return polygon;
+	}
+
+	public LatLng getCentroid(int locID) {
+		LatLng centroid = null;
+		try {
+			String query = "select X(Centroid(" + GridDBOpenHelper.COLUMN_GEOMETRY
+					+ ")), Y(Centroid(" + GridDBOpenHelper.COLUMN_GEOMETRY + ")) from "
+					+ GridDBOpenHelper.TABLE_GRIDCELLS + " where id =" + locID + " ;";
+			Stmt stmt = spatialdb.prepare(query);
+			while (stmt.step()) {
+				double longitude = stmt.column_double(0);
+				double latitude = stmt.column_double(1);
+				return new LatLng(latitude, longitude);
+			}
+			stmt.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.e(LOGTAG, e.getMessage());
+		}
+		return centroid;
 	}
 }

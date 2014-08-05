@@ -4,19 +4,17 @@ import java.util.ArrayList;
 
 import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.baselineprotection.activities.ObfRegionActivity;
-import org.epfl.locationprivacy.baselineprotection.activities.ObfRegionSettingActivity;
-import org.epfl.locationprivacy.map.databases.GridDBDataSource;
-import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.privacyprofile.activities.PrivacyProfileActivity;
 import org.epfl.locationprivacy.spatialitedb.SampleSpatialiteQueryActivity;
-import org.epfl.locationprivacy.userhistory.UserHistoryActivity;
+import org.epfl.locationprivacy.userhistory.activities.UserHistoryActivity;
+import org.epfl.locationprivacy.userhistory.databases.TransitionTableDataSource;
+import org.epfl.locationprivacy.userhistory.models.Transition;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 public class LandingPageActivity extends Activity {
 
@@ -28,10 +26,23 @@ public class LandingPageActivity extends Activity {
 		setContentView(R.layout.activity_landingpage);
 
 		//Test GridDB
-		GridDBDataSource gridDBDataSource = new GridDBDataSource(this);
-		gridDBDataSource.open();
-		Log.d(LOGTAG, "GridDB Rows: " + gridDBDataSource.findRowsCount());
-		gridDBDataSource.close();
+		//		GridDBDataSource gridDBDataSource = new GridDBDataSource(this);
+		//		gridDBDataSource.open();
+		//		Log.d(LOGTAG, "GridDB Rows: " + gridDBDataSource.findRowsCount());
+		//		gridDBDataSource.close();
+
+		//Test UserHistoryDB
+		TransitionTableDataSource transitionTableDataSource = new TransitionTableDataSource(this);
+		transitionTableDataSource.open();
+		Log.d(LOGTAG, "UserHistoryDB Rows: " + transitionTableDataSource.countRows());
+		ArrayList<Transition> transitions = transitionTableDataSource.findAll();
+		for (Transition t : transitions)
+			Log.d(LOGTAG, "" + t.toString());
+		Log.d(LOGTAG, "tran prop  0 - > 1 "+ transitionTableDataSource.getTransitionProbability(0, 1) );
+		Log.d(LOGTAG, "tran prop  0 - > 2 "+ transitionTableDataSource.getTransitionProbability(0, 2) );
+		
+		transitionTableDataSource.close();
+
 	}
 
 	public void onClickPrivacySensitivity(View view) {

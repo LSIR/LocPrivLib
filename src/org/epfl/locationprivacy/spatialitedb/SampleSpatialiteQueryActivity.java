@@ -7,9 +7,9 @@ import jsqlite.Database;
 import jsqlite.Stmt;
 
 import org.epfl.locationprivacy.R;
-import org.epfl.locationprivacy.baselineprotection.util.Utils;
 import org.epfl.locationprivacy.map.databases.VenuesDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
+import org.epfl.locationprivacy.util.Utils;
 
 import android.app.Activity;
 import android.graphics.Color;

@@ -1,4 +1,4 @@
-package org.epfl.locationprivacy.userhistory;
+package org.epfl.locationprivacy.userhistory.activities;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -6,14 +6,20 @@ import java.util.Date;
 import java.util.Random;
 
 import org.epfl.locationprivacy.R;
-import org.epfl.locationprivacy.baselineprotection.util.Utils;
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
+import org.epfl.locationprivacy.privacyestimation.MyPrivacyEstimator;
+import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator;
+import org.epfl.locationprivacy.userhistory.databases.LocationTableDataSource;
+import org.epfl.locationprivacy.userhistory.databases.TransitionTableDataSource;
+import org.epfl.locationprivacy.userhistory.models.Transition;
+import org.epfl.locationprivacy.util.Utils;
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -34,6 +40,7 @@ public class UserHistoryActivity extends Activity implements
 		GooglePlayServicesClient.ConnectionCallbacks,
 		GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
 
+	private static final String LOGTAG = "UserHistoryActivity";
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 
@@ -42,6 +49,12 @@ public class UserHistoryActivity extends Activity implements
 	LocationClient locationClient;
 	Random random;
 	GridDBDataSource gridDBDataSource;
+	TransitionTableDataSource transitionTableDataSource;
+	LocationTableDataSource locationTableDataSource;
+	PrivacyEstimator privacyEstimator;
+
+	int previousLocID = -1;
+	int previousTimeID = -1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +66,17 @@ public class UserHistoryActivity extends Activity implements
 		// grid DB
 		gridDBDataSource = new GridDBDataSource(this);
 		gridDBDataSource.open();
+
+		// Transition Table
+		transitionTableDataSource = new TransitionTableDataSource(this);
+		transitionTableDataSource.open();
+
+		// Location Table;
+		locationTableDataSource = new LocationTableDataSource(this);
+		locationTableDataSource.open();
+
+		//privacy estimator
+		privacyEstimator = new MyPrivacyEstimator(this);
 
 		// Make sure that google play services are OK
 		if (servicesOK()) {
@@ -102,6 +126,8 @@ public class UserHistoryActivity extends Activity implements
 		Toast.makeText(this, "On Destroy", Toast.LENGTH_SHORT).show();
 		locationClient.removeLocationUpdates(this);
 		gridDBDataSource.close();
+		transitionTableDataSource.close();
+		locationTableDataSource.close();
 	}
 
 	@Override
@@ -186,12 +212,39 @@ public class UserHistoryActivity extends Activity implements
 		mMap.moveCamera(cameraUpdate);
 
 		// Query Grid
-		ArrayList<MyPolygon> polygons = gridDBDataSource.findGridCell(randomLatitude,
-				randomLongitude);
-		Toast.makeText(this, msg , Toast.LENGTH_SHORT).show();
-		Utils.drawPolygon(polygons.get(0), mMap);
+		MyPolygon currLocPolygon = gridDBDataSource.findGridCell(randomLatitude, randomLongitude);
+		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+		Utils.drawPolygon(currLocPolygon, mMap);
 
 		// Query nearby locations
+
+		// Adding location sample to Location table
+		long currTime = System.currentTimeMillis();
+		org.epfl.locationprivacy.userhistory.models.Location newLocation = new org.epfl.locationprivacy.userhistory.models.Location(
+				location.getLatitude(), location.getLongitude(), currTime);
+		locationTableDataSource.create(newLocation);
+
+		//==== Testing
+		Log.d(LOGTAG, "No of locations: " + locationTableDataSource.countRows() + " Rows");
+		for (org.epfl.locationprivacy.userhistory.models.Location l : locationTableDataSource
+				.findAll())
+			Log.d(LOGTAG, l.toString());
+
+		// Adding transition to transition table
+		int currLocID = Integer.parseInt(currLocPolygon.getName());
+		int currTimeID = Utils.findDayPortionID(currTime);
+		if (previousLocID != -1) {
+			Transition newTransition = new Transition(previousLocID, currLocID, previousTimeID,
+					currTimeID, 1);
+			transitionTableDataSource.updateOrInsert(newTransition);
+
+			//==== Testing
+			Log.d(LOGTAG, "No of transitios: " + transitionTableDataSource.countRows() + " Rows");
+			for (Transition t : transitionTableDataSource.findAll())
+				Log.d(LOGTAG, t.toString());
+		}
+		previousLocID = currLocID;
+		previousTimeID = currTimeID;
 
 		//Adding Marker
 		String timeStamp = dateFormat.format(new Date());
@@ -203,7 +256,7 @@ public class UserHistoryActivity extends Activity implements
 
 	private void refreshMapGrid(int heightCells, int widthCells, LatLng topLeftPoint) {
 
-		// generate Map Grid
+		// Generate Map Grid
 		int arrRows = heightCells + 1;
 		int arrCols = widthCells + 1;
 		LatLng[][] mapGrid = Utils.generateMapGrid(arrRows, arrCols, topLeftPoint);
