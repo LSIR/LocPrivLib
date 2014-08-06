@@ -1,16 +1,39 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:map="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
     tools:context="${relativePackage}.${activityClass}" >
 
+    
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:text="Location Tracking"
+        android:textSize="20sp" />
+    
+    <ToggleButton
+        android:id="@+id/toggleButton1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+		android:layout_alignParentRight="true"
+        android:text="ToggleButton"
+        android:textOn="On"
+        android:textOff="Off"
+        android:checked="false"
+        android:onClick="toggleButtonClicked" />
+
     <com.google.android.gms.maps.MapView
-        android:id="@+id/map"
+        android:id="@+id/userhistorymap"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@+id/toggleButton1"
         map:cameraTargetLat="46.519760"
         map:cameraTargetLng="6.566538"
-        map:cameraZoom="12" />
+        map:cameraZoom="12" >
+    </com.google.android.gms.maps.MapView>
 
 </RelativeLayout>

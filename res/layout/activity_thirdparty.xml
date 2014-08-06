@@ -1,0 +1,27 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="${relativePackage}.${activityClass}" >
+
+    <Button
+        android:id="@+id/thirdpartygetlocation"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:onClick="getLocation"
+        android:text="Get Location" />
+
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/thirdpartymapview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/thirdpartygetlocation"
+        map:cameraTargetLat="46.519760"
+        map:cameraTargetLng="6.566538"
+        map:cameraZoom="12" >
+    </com.google.android.gms.maps.MapView>
+
+</RelativeLayout>

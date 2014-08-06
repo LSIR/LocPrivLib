@@ -6,6 +6,7 @@ import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.baselineprotection.activities.ObfRegionActivity;
 import org.epfl.locationprivacy.privacyprofile.activities.PrivacyProfileActivity;
 import org.epfl.locationprivacy.spatialitedb.SampleSpatialiteQueryActivity;
+import org.epfl.locationprivacy.thirdpartyemulator.ThirdPartyActivity;
 import org.epfl.locationprivacy.userhistory.activities.UserHistoryActivity;
 import org.epfl.locationprivacy.userhistory.databases.TransitionTableDataSource;
 import org.epfl.locationprivacy.userhistory.models.Transition;
@@ -32,16 +33,16 @@ public class LandingPageActivity extends Activity {
 		//		gridDBDataSource.close();
 
 		//Test UserHistoryDB
-		TransitionTableDataSource transitionTableDataSource = new TransitionTableDataSource(this);
-		transitionTableDataSource.open();
-		Log.d(LOGTAG, "UserHistoryDB Rows: " + transitionTableDataSource.countRows());
-		ArrayList<Transition> transitions = transitionTableDataSource.findAll();
-		for (Transition t : transitions)
-			Log.d(LOGTAG, "" + t.toString());
-		Log.d(LOGTAG, "tran prop  0 - > 1 "+ transitionTableDataSource.getTransitionProbability(0, 1) );
-		Log.d(LOGTAG, "tran prop  0 - > 2 "+ transitionTableDataSource.getTransitionProbability(0, 2) );
-		
-		transitionTableDataSource.close();
+		//		TransitionTableDataSource transitionTableDataSource = new TransitionTableDataSource(this);
+		//		transitionTableDataSource.open();
+		//		Log.d(LOGTAG, "UserHistoryDB Rows: " + transitionTableDataSource.countRows());
+		//		ArrayList<Transition> transitions = transitionTableDataSource.findAll();
+		//		for (Transition t : transitions)
+		//			Log.d(LOGTAG, "" + t.toString());
+		//		Log.d(LOGTAG, "tran prop  0 - > 1 "+ transitionTableDataSource.getTransitionProbability(0, 1) );
+		//		Log.d(LOGTAG, "tran prop  0 - > 2 "+ transitionTableDataSource.getTransitionProbability(0, 2) );
+		//		
+		//		transitionTableDataSource.close();
 
 	}
 
@@ -63,6 +64,11 @@ public class LandingPageActivity extends Activity {
 
 	public void onClickSpatialiteDB(View view) {
 		Intent intent = new Intent(this, SampleSpatialiteQueryActivity.class);
+		startActivity(intent);
+	}
+	
+	public void onClickThirdPartyEmulator(View view) {
+		Intent intent = new Intent(this, ThirdPartyActivity.class);
 		startActivity(intent);
 	}
 }

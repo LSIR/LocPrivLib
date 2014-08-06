@@ -1,10 +1,13 @@
 package org.epfl.locationprivacy.map.databases;
 
 import java.util.ArrayList;
+import java.util.Vector;
 
+import jsqlite.Callback;
 import jsqlite.Database;
 import jsqlite.Exception;
 import jsqlite.Stmt;
+import jsqlite.TableResult;
 
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.util.Utils;
@@ -12,6 +15,7 @@ import org.epfl.locationprivacy.util.Utils;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.hardware.GeomagneticField;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -170,18 +174,52 @@ public class GridDBDataSource {
 		}
 	}
 
+	public MyPolygon findGridCell(Integer cellID) {
+		MyPolygon polygon = null;
+		try {
+			String query = "select  " + GridDBOpenHelper.COLUMN_ID + ", "
+					+ GridDBOpenHelper.COLUMN_Semantic + ", asText("
+					+ GridDBOpenHelper.COLUMN_GEOMETRY + ") " + " from "
+					+ GridDBOpenHelper.TABLE_GRIDCELLS + " where " + GridDBOpenHelper.COLUMN_ID
+					+ " = " + cellID + " ;";
+			Stmt stmt = spatialdb.prepare(query);
+			while (stmt.step()) {
+				int id = stmt.column_int(0);
+				String semantic = stmt.column_string(1);
+				String geometry = stmt.column_string(2);
+				if (polygon != null)
+					throw new Exception("Multiple results for cellID:" + cellID);
+				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon(geometry));
+			}
+			stmt.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.e(LOGTAG, e.getMessage());
+		}
+		Log.d(LOGTAG, "ROWs 1");
+		return polygon;
+	}
+
 	// find a grid cell for specific Location 
 	public MyPolygon findGridCell(double latitude, double longitude) {
 		MyPolygon polygon = null;
-		Log.e(LOGTAG, "start query");
+		Log.d(LOGTAG, "start query");
 		try {
+
 			String query = "SELECT " + GridDBOpenHelper.COLUMN_ID + ", "
 					+ GridDBOpenHelper.COLUMN_Semantic + ", asText("
 					+ GridDBOpenHelper.COLUMN_GEOMETRY + ") "
-					+ " FROM gridcells  WHERE MBRContains( geometry, GeomFromText('POINT("
-					+ longitude + " " + latitude + ")'));";
+					+ " FROM gridcells  WHERE MBRContains( geometry, BuildMBR( " + longitude
+					+ "  ," + latitude + ", " + longitude + "  , " + latitude + " ) );";
+			Log.d(LOGTAG, query);
+
+			long s1 = System.currentTimeMillis();
 			Stmt stmt = spatialdb.prepare(query);
+			Log.d(LOGTAG, "prepare time: " + (System.currentTimeMillis() - s1) + "ms ");
+
+			long s2 = System.currentTimeMillis();
 			while (stmt.step()) {
+				Log.d(LOGTAG, "step time: " + (System.currentTimeMillis() - s2) + "ms ");
 				int id = stmt.column_int(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
@@ -194,7 +232,7 @@ public class GridDBDataSource {
 			}
 			stmt.close();
 
-			Log.e(LOGTAG, "end query");
+			Log.d(LOGTAG, "end query");
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e(LOGTAG, e.getMessage());
@@ -223,4 +261,5 @@ public class GridDBDataSource {
 		}
 		return centroid;
 	}
+
 }

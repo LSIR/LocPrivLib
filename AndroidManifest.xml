@@ -66,9 +66,18 @@
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name="org.epfl.locationprivacy.userhistory.activities.UserHistoryActivity"
-            android:label="@string/title_activity_user_history" >
+            android:name=".userhistory.activities.UserHistoryActivity"
+            android:label="@string/title_activity_user_history"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"  >
         </activity>
+        <activity
+            android:name="org.epfl.locationprivacy.thirdpartyemulator.ThirdPartyActivity"
+            android:label="@string/title_activity_third_party" >
+        </activity>
+
+        <service
+            android:name="org.epfl.locationprivacy.userhistory.services.LocationTrackingService"
+            android:enabled="true" />
     </application>
 
 </manifest>
