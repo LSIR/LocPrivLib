@@ -19,24 +19,22 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	private static final int MAX_USER_SPEED_IN_KM_PER_HOUR = 30;
 	private static final int MELLISECONDS_IN_HOUR = 3600000;
 	Queue<ArrayList<Event>> levels;
-	TransitionTableDataSource userHistoryDBDataSource;
-	GridDBDataSource gridDBDataSource;
 	Context context;
 
 	public PrivacyEstimator(Context c) {
 		super();
 		this.levels = new LinkedList<ArrayList<Event>>();
-		this.context = context;
+		this.context = c;
 	}
 
 	public double calculatePrivacyEstimation(int fineLocationID,
 			ArrayList<Integer> obfRegionCellIDs, long timeStamp) {
 
 		// Phase 0: preparation
-		userHistoryDBDataSource = new TransitionTableDataSource(context);
-		userHistoryDBDataSource.open();
-		gridDBDataSource = new GridDBDataSource(context);
-		gridDBDataSource.open();
+		TransitionTableDataSource userHistoryDBDataSource = TransitionTableDataSource
+				.getInstance(context);
+		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(context);
+
 		int timeStampID = Utils.findDayPortionID(timeStamp);
 		ArrayList<Event> currLevelEvents = createNewEventList(obfRegionCellIDs, timeStampID,
 				timeStamp);
@@ -48,7 +46,8 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		if (previousLevelEvents != null)
 			for (Event e : currLevelEvents) {
 				//TODO[DONE]: implement reachability
-				ArrayList<Event> parentList = detectReachability(previousLevelEvents, e);
+				ArrayList<Event> parentList = detectReachability(previousLevelEvents, e,
+						gridDBDataSource);
 				if (parentList.isEmpty()) {
 					//TODO: implement Event removal from graph
 					removeEvent(e);
@@ -99,10 +98,6 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 			expectedDistortion += calculateEuclideanDistance(fineLocationID, e.locID)
 					* e.propability;
 
-		// Phase 6: close DB
-		userHistoryDBDataSource.close();
-		gridDBDataSource.close();
-
 		return expectedDistortion;
 	}
 
@@ -117,8 +112,8 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	}
 
 	private void removeEvents(ArrayList<Event> toBeDeleted) {
-		for(Event e : toBeDeleted){
-			for(Event child : e.children){
+		for (Event e : toBeDeleted) {
+			for (Event child : e.children) {
 				child.parents.remove(e);
 			}
 		}
@@ -128,7 +123,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	}
 
 	private ArrayList<Event> detectReachability(ArrayList<Event> previousLevelEvents,
-			Event currLevelEvent) {
+			Event currLevelEvent, GridDBDataSource gridDBDataSource) {
 		ArrayList<Event> parents = new ArrayList<Event>();
 
 		LatLng centroid1 = gridDBDataSource.getCentroid(currLevelEvent.locID);

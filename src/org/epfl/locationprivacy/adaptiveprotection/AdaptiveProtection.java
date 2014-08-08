@@ -1,10 +1,14 @@
 package org.epfl.locationprivacy.adaptiveprotection;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
+import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
+import org.epfl.locationprivacy.map.databases.VenuesDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator;
+import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.util.Utils;
 
 import android.content.Context;
@@ -28,6 +32,12 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	PrivacyEstimator privacyEstimator;
 	Context context;
 	LocationClient locationClient;
+	Random random;
+
+	public static Location logCurrentLocation;
+	public static MyPolygon logVenue;
+	public static String logVenueDistance;
+	public static Double logSensitivity;
 
 	public AdaptiveProtection(Context context) {
 		super();
@@ -35,6 +45,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		this.privacyEstimator = new PrivacyEstimator(context);
 		this.locationClient = new LocationClient(context, this, this);
 		locationClient.connect();
+		random = new Random();
 	}
 
 	@Override
@@ -43,9 +54,13 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		//preparation
 		Log.d(LOGTAG, "================================");
 		long startGetLocation = System.currentTimeMillis();
-		GridDBDataSource gridDBDataSource = new GridDBDataSource(context);
-		gridDBDataSource.open();
+		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(context);
+		VenuesCondensedDBDataSource venuesCondensedDBDataSource = VenuesCondensedDBDataSource
+				.getInstance(context);
+		SemanticLocationsDataSource semanticLocationsDataSource = SemanticLocationsDataSource
+				.getInstance(context);
 
+		//===========================================================================================
 		// get current location
 		Location location = locationClient.getLastLocation();
 		if (location == null) {
@@ -54,13 +69,51 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		}
 		Log.d(LOGTAG,
 				"Current Location : " + location.getLatitude() + ":" + location.getLongitude());
+		//--> overriding actual location with  random number
+		double minLat = 46.508463;
+		double maxLat = 46.529253;
+		double minLng = 6.606302;
+		double maxLng = 6.655912;
 
+		double randomLatitude = minLat + (maxLat - minLat) * random.nextDouble();
+		double randomLongitude = minLng + (maxLng - minLng) * random.nextDouble();
+		location.setLatitude(randomLatitude);
+		location.setLongitude(randomLongitude);
+		logCurrentLocation = location;
+
+		//===========================================================================================
+		// get semantics of current location
+		ArrayList<MyPolygon> currentLocationVenues = venuesCondensedDBDataSource
+				.findVenuesContainingLocation(location.getLatitude(), location.getLongitude());
+		String semantic = null;
+		if (!currentLocationVenues.isEmpty()) {
+			semantic = currentLocationVenues.get(0).getSemantic();
+			logVenue = currentLocationVenues.get(0);
+			logVenueDistance = "inside";
+		}
+
+		//--> what if no venues contains the current location ? get the nearest location
+		if (currentLocationVenues.isEmpty()) {
+			Pair<MyPolygon, Double> nearestVenueAndDistance = venuesCondensedDBDataSource
+					.findNearestVenue(location.getLatitude(), location.getLongitude());
+			semantic = nearestVenueAndDistance.first.getSemantic();
+			logVenue = nearestVenueAndDistance.first;
+			logVenueDistance = "nearest";
+		}
+
+		//===========================================================================================
+		// get user sensitivity of current location semantic
+		Double sensitivity = semanticLocationsDataSource.findSemanticSensitivity(semantic);
+		logSensitivity = sensitivity;
+		Log.d(LOGTAG, "Sensitivity: " + sensitivity);
+
+		//===========================================================================================
 		// Generate obfuscation Region
 		//--> current Location ID
 		long start = System.currentTimeMillis();
-		MyPolygon currLocPolygon = gridDBDataSource.findGridCell(location.getLatitude(),
+		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(location.getLatitude(),
 				location.getLongitude());
-		int fineLocationID = Integer.parseInt(currLocPolygon.getName());
+		int fineLocationID = Integer.parseInt(currLocGridCell.getName());
 		Log.d(LOGTAG, "Getting fine Location ID took: " + (System.currentTimeMillis() - start)
 				+ " ms");
 
@@ -73,19 +126,19 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 				ObfRegionHeightCells, ObfRegionWidthCells);
 		Log.d(LOGTAG, "ObfRegionSize" + obfRegionCellIDs.size());
 
+		//===========================================================================================
 		// Get feedback from the privacy estimator
 		long timeStamp = System.currentTimeMillis();
 		//		double privacyEstimation = privacyEstimator.calculatePrivacyEstimation(fineLocationID,
 		//				obfRegionCellIDs, timeStamp);
 
+		//===========================================================================================
 		// Convert cellIDs to the polygons forming the obfRegion
 		ArrayList<MyPolygon> obfRegionPolygons = new ArrayList<MyPolygon>();
 		for (Integer cellID : obfRegionCellIDs) {
 			obfRegionPolygons.add(gridDBDataSource.findGridCell(cellID));
 		}
 
-		//free resources
-		gridDBDataSource.close();
 		Log.d(LOGTAG, "Total Adaptive Protection Time: "
 				+ (System.currentTimeMillis() - startGetLocation));
 

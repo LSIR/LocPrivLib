@@ -82,7 +82,6 @@ public class MyPolygon {
 		String ret = "";
 		ret += "name: " + name;
 		ret += " semantic: " + semantic;
-		ret += " points: " + points.toString();
 		return ret;
 	}
 

@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.epfl.locationprivacy.privacyprofile.models.SemanticLocation;
@@ -67,7 +68,7 @@ public class SemanticLocationsDataSource {
 		List<SemanticLocation> semanticLocations = new ArrayList<SemanticLocation>();
 
 		Cursor cursor = db.query(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, allColums, null,
-				null, null, null, null, null);
+				null, null, null, LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME+" ASC", null);
 		Log.i(LOGTAG, "Returned " + cursor.getCount() + " rows");
 		if (cursor.getCount() > 0) {
 			while (cursor.moveToNext()) {
@@ -88,9 +89,23 @@ public class SemanticLocationsDataSource {
 		return semanticLocations;
 	}
 
+	public Double findSemanticSensitivity(String semanticTag) {
+
+		Cursor cursor = db.query(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, allColums,
+				LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME + " ='" + semanticTag + "'",
+				null, null, null, null, null);
+		Log.i(LOGTAG, "Returned " + cursor.getCount() + " rows");
+		if (cursor.getCount() > 0 && cursor.moveToNext()) {
+			int semanticLocationUserSensitivity = cursor.getInt(cursor
+					.getColumnIndex(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY));
+			return (double) semanticLocationUserSensitivity / 100.0;
+		}
+		return null; // problem
+	}
+
 	public void populateDB() {
 		// read file
-		ArrayList<String> semanticLocations = new ArrayList<String>();
+		HashSet<String> semanticLocations = new HashSet<String>();
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new InputStreamReader(context.getAssets().open(

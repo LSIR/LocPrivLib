@@ -1,0 +1,30 @@
+Airport
+Bar
+Beach
+Cafeteria
+Casino
+Cemetery
+Coffee Shop
+College & University
+Embassy / Consulate
+Government Building
+Hotel
+Medical Center
+Military Base
+Movie Theater
+Museum
+Music Venue
+Nightclub
+Non-Profit
+Park
+Playground
+Plaza
+Post Office
+Restaurant
+School
+Shop & Service
+Spiritual Center
+Sports Venue
+Stadium
+Voting Booth
+Zoo

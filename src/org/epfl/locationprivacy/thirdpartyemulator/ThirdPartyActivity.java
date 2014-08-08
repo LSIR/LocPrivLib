@@ -12,14 +12,15 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 
@@ -30,6 +31,7 @@ public class ThirdPartyActivity extends Activity {
 	GoogleMap googleMap;
 	MapView mapView;
 	ArrayList<Polygon> polygons;
+	ArrayList<Marker> markers;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +57,7 @@ public class ThirdPartyActivity extends Activity {
 
 		// Initialize Polygons
 		polygons = new ArrayList<Polygon>();
+		markers = new ArrayList<Marker>();
 	}
 
 	private boolean initMap() {
@@ -101,9 +104,34 @@ public class ThirdPartyActivity extends Activity {
 		//testing
 		Log.d(LOGTAG, "polygons returned: " + obfRegionCells.size());
 		Utils.removePolygons(polygons);
+		Utils.removeMarkers(markers);
 		for (MyPolygon obfRegionCell : obfRegionCells) {
-			polygons.add(Utils.drawPolygon(obfRegionCell, googleMap));
+			polygons.add(Utils.drawPolygon(obfRegionCell, googleMap, 0x33FF0000));
 		}
+
+		// adding marker for the current Location
+		MarkerOptions markerOptions = new MarkerOptions().title("CurrentLocation").position(
+				new LatLng(AdaptiveProtection.logCurrentLocation.getLatitude(),
+						AdaptiveProtection.logCurrentLocation.getLongitude()));
+		markers.add(googleMap.addMarker(markerOptions));
+
+		// draw nearest venue
+		polygons.add(Utils.drawPolygon(AdaptiveProtection.logVenue, googleMap, 0x5500FF00));
+		MarkerOptions markerOptions2 = new MarkerOptions()
+				.title("Name: " + AdaptiveProtection.logVenue.getName())
+				.snippet(
+						"Tag: " + AdaptiveProtection.logVenue.getSemantic() + " Sensitivity: "
+								+ AdaptiveProtection.logSensitivity)
+				.position(
+						new LatLng(AdaptiveProtection.logVenue.getPoints().get(0).latitude,
+								AdaptiveProtection.logVenue.getPoints().get(0).longitude));
+		markers.add(googleMap.addMarker(markerOptions2));
+
+		//move camera
+		CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(
+				AdaptiveProtection.logCurrentLocation.getLatitude(),
+				AdaptiveProtection.logCurrentLocation.getLongitude()), 15);
+		googleMap.moveCamera(cameraUpdate);
 
 	}
 }

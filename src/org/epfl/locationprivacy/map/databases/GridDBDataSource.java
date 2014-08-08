@@ -10,6 +10,7 @@ import jsqlite.Stmt;
 import jsqlite.TableResult;
 
 import org.epfl.locationprivacy.map.models.MyPolygon;
+import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.util.Utils;
 
 import android.content.Context;
@@ -22,18 +23,26 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class GridDBDataSource {
 	private static final String LOGTAG = "GridDBDataSource";
+	private static GridDBDataSource instance;
 
 	SQLiteOpenHelper dbHelper;
 	SQLiteDatabase db; // this db is just used to copy the db from assets folder to the application data on the first time
 	Database spatialdb;
 	Context context;
 
-	public GridDBDataSource(Context context) {
-		this.context = context;
-		dbHelper = GridDBOpenHelper.getInstance(context);
+	public static GridDBDataSource getInstance(Context context) {
+		if (instance == null)
+			instance = new GridDBDataSource(context);
+		return instance;
 	}
 
-	public void open() {
+	private GridDBDataSource(Context context) {
+		this.context = context;
+		dbHelper = GridDBOpenHelper.getInstance(context);
+		open();
+	}
+
+	private void open() {
 		// on first time, the db will be copied to the application data from assets folder
 		db = dbHelper.getWritableDatabase();
 

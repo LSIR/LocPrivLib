@@ -2,6 +2,7 @@ package org.epfl.locationprivacy.userhistory.databases;
 
 import java.util.ArrayList;
 
+import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.userhistory.models.Transition;
 
 import android.content.ContentValues;
@@ -13,6 +14,7 @@ import android.util.Log;
 
 public class TransitionTableDataSource {
 	private static final String LOGTAG = "TransitionTableDataSource";
+	private static TransitionTableDataSource instance;
 
 	SQLiteOpenHelper dbHelper;
 	SQLiteDatabase db;
@@ -25,12 +27,19 @@ public class TransitionTableDataSource {
 			UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_TOTIMEID,
 			UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_COUNT };
 
-	public TransitionTableDataSource(Context context) {
-		this.context = context;
-		dbHelper = UserHistoryDBOpenHelper.getInstance(context);
+	public static TransitionTableDataSource getInstance(Context context) {
+		if (instance == null)
+			instance = new TransitionTableDataSource(context);
+		return instance;
 	}
 
-	public void open() {
+	private TransitionTableDataSource(Context context) {
+		this.context = context;
+		dbHelper = UserHistoryDBOpenHelper.getInstance(context);
+		open();
+	}
+
+	private void open() {
 		Log.i(LOGTAG, "DataBase userhistory opened");
 		db = dbHelper.getWritableDatabase();
 	}

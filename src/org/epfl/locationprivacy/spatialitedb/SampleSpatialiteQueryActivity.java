@@ -1,10 +1,6 @@
 package org.epfl.locationprivacy.spatialitedb;
 
-import java.io.File;
 import java.util.ArrayList;
-
-import jsqlite.Database;
-import jsqlite.Stmt;
 
 import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.map.databases.VenuesDBDataSource;
@@ -14,7 +10,6 @@ import org.epfl.locationprivacy.util.Utils;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -35,14 +30,12 @@ public class SampleSpatialiteQueryActivity extends Activity {
 	GoogleMap googleMap;
 	MapView mapView;
 	LocationClient locationClient;
-	VenuesDBDataSource venuesDBDataSource;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		venuesDBDataSource = new VenuesDBDataSource(this);
-		venuesDBDataSource.open();
+		VenuesDBDataSource venuesDBDataSource = VenuesDBDataSource.getInstance(this);
 
 		// Make sure that google play services are OK
 		if (Utils.googlePlayServicesOK(this)) {
@@ -102,7 +95,6 @@ public class SampleSpatialiteQueryActivity extends Activity {
 	public void onLowMemory() {
 		super.onLowMemory();
 		mapView.onLowMemory();
-		venuesDBDataSource.close();
 	}
 
 	@Override

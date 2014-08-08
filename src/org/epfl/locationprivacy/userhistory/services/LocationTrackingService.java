@@ -33,9 +33,6 @@ public class LocationTrackingService extends Service implements
 	Random random;
 	int previousLocID = -1;
 	int previousTimeID = -1;
-	GridDBDataSource gridDBDataSource;
-	TransitionTableDataSource transitionTableDataSource;
-	LocationTableDataSource locationTableDataSource;
 
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -51,17 +48,6 @@ public class LocationTrackingService extends Service implements
 		//Random Number
 		random = new Random();
 
-		// grid DB
-		gridDBDataSource = new GridDBDataSource(this);
-		gridDBDataSource.open();
-
-		// Transition Table
-		transitionTableDataSource = new TransitionTableDataSource(this);
-		transitionTableDataSource.open();
-
-		// Location Table;
-		locationTableDataSource = new LocationTableDataSource(this);
-		locationTableDataSource.open();
 	}
 
 	@Override
@@ -78,9 +64,6 @@ public class LocationTrackingService extends Service implements
 		Toast.makeText(this, "MyService Stopped", Toast.LENGTH_SHORT).show();
 		Log.d(LOGTAG, "onDestroy");
 		locationClient.removeLocationUpdates(this);
-		gridDBDataSource.close();
-		transitionTableDataSource.close();
-		locationTableDataSource.close();
 	}
 
 	//===================================================
@@ -104,6 +87,13 @@ public class LocationTrackingService extends Service implements
 	//===================================================
 	@Override
 	public void onLocationChanged(Location location) {
+
+		// open DBs
+		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(this);
+		TransitionTableDataSource transitionTableDataSource = TransitionTableDataSource
+				.getInstance(this);
+		LocationTableDataSource locationTableDataSource = LocationTableDataSource.getInstance(this);
+
 		// random number
 		double minLat = 46.508463;
 		double maxLat = 46.529253;

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import org.epfl.locationprivacy.R;
-import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.userhistory.databases.LocationTableDataSource;
 import org.epfl.locationprivacy.userhistory.databases.TransitionTableDataSource;
 import org.epfl.locationprivacy.userhistory.services.LocationTrackingService;
@@ -160,10 +159,9 @@ public class UserHistoryActivity extends ActionBarActivity implements
 	private void refreshMap() {
 
 		// open dbs
-		TransitionTableDataSource transitionTableDataSource = new TransitionTableDataSource(this);
-		transitionTableDataSource.open();
-		LocationTableDataSource locationTableDataSource = new LocationTableDataSource(this);
-		locationTableDataSource.open();
+		TransitionTableDataSource transitionTableDataSource = TransitionTableDataSource
+				.getInstance(this);
+		LocationTableDataSource locationTableDataSource = LocationTableDataSource.getInstance(this);
 
 		// remove old markers
 		for (Marker m : markers) {

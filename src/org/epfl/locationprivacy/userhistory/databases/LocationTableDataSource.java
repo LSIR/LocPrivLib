@@ -2,6 +2,7 @@ package org.epfl.locationprivacy.userhistory.databases;
 
 import java.util.ArrayList;
 
+import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.userhistory.models.Location;
 
 import android.content.ContentValues;
@@ -13,6 +14,7 @@ import android.util.Log;
 
 public class LocationTableDataSource {
 	private static final String LOGTAG = "LocationTableDataSource";
+	private static LocationTableDataSource instance;
 
 	SQLiteOpenHelper dbHelper;
 	SQLiteDatabase db;
@@ -23,12 +25,19 @@ public class LocationTableDataSource {
 			UserHistoryDBOpenHelper.COLUMN_LOCATIONS_LONGITUDE,
 			UserHistoryDBOpenHelper.COLUMN_LOCATIONS_TIMESTAMP };
 
-	public LocationTableDataSource(Context context) {
-		this.context = context;
-		dbHelper = UserHistoryDBOpenHelper.getInstance(context);
+	public static LocationTableDataSource getInstance(Context context) {
+		if (instance == null)
+			instance = new LocationTableDataSource(context);
+		return instance;
 	}
 
-	public void open() {
+	private LocationTableDataSource(Context context) {
+		this.context = context;
+		dbHelper = UserHistoryDBOpenHelper.getInstance(context);
+		open();
+	}
+
+	private void open() {
 		Log.i(LOGTAG, "DataBase userhistory opened");
 		db = dbHelper.getWritableDatabase();
 	}
