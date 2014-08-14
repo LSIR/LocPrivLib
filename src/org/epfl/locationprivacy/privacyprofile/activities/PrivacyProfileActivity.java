@@ -23,12 +23,7 @@ public class PrivacyProfileActivity extends Activity {
 
 		// Data
 		semanticLocationsDataSource = SemanticLocationsDataSource.getInstance(this);
-		semanticLocationsDataSource.open();
 		List<SemanticLocation> semanticLocations = semanticLocationsDataSource.finaAll();
-		if (semanticLocations.size() == 0) {
-			semanticLocationsDataSource.populateDB();
-			semanticLocations = semanticLocationsDataSource.finaAll();
-		}
 		Toast.makeText(this, "Number of semantic locations are " + semanticLocations.size(),
 				Toast.LENGTH_LONG).show();
 

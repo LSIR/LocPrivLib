@@ -1,6 +1,7 @@
 package org.epfl.locationprivacy.userhistory.databases;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.userhistory.models.Transition;
@@ -11,6 +12,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.util.Pair;
 
 public class TransitionTableDataSource {
 	private static final String LOGTAG = "TransitionTableDataSource";
@@ -19,6 +21,7 @@ public class TransitionTableDataSource {
 	SQLiteOpenHelper dbHelper;
 	SQLiteDatabase db;
 	Context context;
+	Random random;
 
 	private static final String[] allColums = {
 			UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_FROMLOCID,
@@ -37,6 +40,7 @@ public class TransitionTableDataSource {
 		this.context = context;
 		dbHelper = UserHistoryDBOpenHelper.getInstance(context);
 		open();
+		random = new Random();
 	}
 
 	private void open() {
@@ -97,12 +101,15 @@ public class TransitionTableDataSource {
 	}
 
 	public double getTransitionProbability(int fromLocID, int toLocID) {
-		int numerator = getTransitionCount(fromLocID, toLocID);
-		int denominator = getTransitionCount(fromLocID);
-		if (denominator == 0)
-			return 0;
-		else
-			return (double) numerator / (double) denominator;
+		// TODO [remove comment]
+		//		double eta = Math.pow(1, -5);
+		//		int numerator = getTransitionCount(fromLocID, toLocID);
+		//		Pair<Integer, Integer> transitionInfo = getTransitionCount(fromLocID);
+		//		int totalTransitionCount = transitionInfo.first;
+		//		int possibleDestinationsCount = transitionInfo.second;
+		//
+		//		return ((double) numerator + eta) / ((double) toLocID + possibleDestinationsCount * eta);
+		return random.nextDouble();
 	}
 
 	private Transition parseDBRow(Cursor cursor) {
@@ -140,23 +147,28 @@ public class TransitionTableDataSource {
 			return 0; // means this transition doesn't exist
 	}
 
-	private int getTransitionCount(int fromID) {
+	private Pair<Integer, Integer> getTransitionCount(int fromID) {
 		final Cursor cursor = db.rawQuery("SELECT sum("
-				+ UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_COUNT + ")  FROM "
+				+ UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_COUNT + "), count("
+				+ UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_TOLOCID + ")  FROM "
 				+ UserHistoryDBOpenHelper.TABLE_TRANSITIONS + " where "
 				+ UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_FROMLOCID + " = " + fromID + " ;",
 				null);
-		int count = 0;
+		int possibleDestinationsCount = 0;
+		int totalTransitionCount = 0;
 		if (cursor != null) {
 			try {
 				if (cursor.moveToFirst()) {
-					count = cursor.getInt(0);
+					totalTransitionCount = cursor.getInt(0);
+					possibleDestinationsCount = cursor.getInt(1);
 				}
 			} finally {
 				cursor.close();
 			}
 		}
-		return count;
+		Pair<Integer, Integer> transitionInformation = new Pair<Integer, Integer>(
+				totalTransitionCount, possibleDestinationsCount);
+		return transitionInformation;
 	}
 
 }

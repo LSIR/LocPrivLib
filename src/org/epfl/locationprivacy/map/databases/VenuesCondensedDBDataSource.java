@@ -101,16 +101,11 @@ public class VenuesCondensedDBDataSource {
 		ArrayList<MyPolygon> polygons = new ArrayList<MyPolygon>();
 		String table = VenuesCondensedDBOpenHelper.TABLE_POLYGONS;
 		// query table
-		String sql = "select "
-				+ VenuesCondensedDBOpenHelper.COLUMN_NAME
-				+ ","
-				+ VenuesCondensedDBOpenHelper.COLUMN_SUBTYPE
-				+ ",AsText("
-				+ VenuesCondensedDBOpenHelper.COLUMN_GEOMETRY
-				+ ") from "
-				+ table
-				+ " where sub_type != 'yes' and sub_type != 'NULL' and MBRContains( Geometry,  BuildMBR( "
-				+ longitude + " , " + latitude + " , " + longitude + " , " + latitude + " ));";
+		String sql = "select " + VenuesCondensedDBOpenHelper.COLUMN_NAME + ","
+				+ VenuesCondensedDBOpenHelper.COLUMN_SUBTYPE + ",AsText("
+				+ VenuesCondensedDBOpenHelper.COLUMN_GEOMETRY + ") from " + table
+				+ " where sub_type!='yes' and MBRContains( Geometry,  BuildMBR( " + longitude
+				+ " , " + latitude + " , " + longitude + " , " + latitude + " ));";
 		//			Log.d(LOGTAG, "SQL: " + sql);
 
 		TableResult tableResult = null;
@@ -146,8 +141,7 @@ public class VenuesCondensedDBDataSource {
 		Double minDistance = Double.MAX_VALUE;
 		MyPolygon minPolygon = null;
 
-		String[] tables = { VenuesCondensedDBOpenHelper.TABLE_POLYGONS,
-				VenuesCondensedDBOpenHelper.TABLE_LINES, VenuesCondensedDBOpenHelper.TABLE_POINTS };
+		String[] tables = { VenuesCondensedDBOpenHelper.TABLE_POLYGONS };
 		for (String table : tables) {
 			Log.d(LOGTAG, "table:" + table);
 			Pair<MyPolygon, Double> nearest = findNearestVenueInTable(latitude, longitude, table);
@@ -174,8 +168,7 @@ public class VenuesCondensedDBDataSource {
 		// query table
 		String sql = "select name,sub_type,Distance (" + distanceFromLocation + " , "
 				+ distanceToLocation + " ) as distance,AsText(Geometry)  " + "from " + table
-				+ " where sub_type != 'yes' and sub_type != 'NULL' and Geometry != 'NULL' "
-				+ "Order By distance asc " + "Limit 1;";
+				+ " where sub_type != 'yes' " + "Order By distance asc " + "Limit 1;";
 		TableResult tableResult = null;
 		try {
 			tableResult = spatialdb.get_table(sql);

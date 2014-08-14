@@ -15,6 +15,8 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
+	private static final String LOGTAG = "PrivacyEstimator";
+
 	private static final int MAX_QUEUE_SIZE = 20;
 	private static final int MAX_USER_SPEED_IN_KM_PER_HOUR = 30;
 	private static final int MELLISECONDS_IN_HOUR = 3600000;
@@ -27,8 +29,21 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		this.context = c;
 	}
 
-	public double calculatePrivacyEstimation(int fineLocationID,
-			ArrayList<Integer> obfRegionCellIDs, long timeStamp) {
+	@Override
+	public void updateLinkabilityGraph(ArrayList<Event> currLevelEvents) {
+		levels.add(currLevelEvents);
+		if (levels.size() > MAX_QUEUE_SIZE) {
+			ArrayList<Event> toBeDeleted = levels.poll();
+			//TODO[Validate]: implement Event removal from graph
+			removeEvents(toBeDeleted);
+		}
+
+		//Logging
+		Utils.logLinkabilityGraph(levels);
+	}
+
+	public Pair<Double, ArrayList<Event>> calculatePrivacyEstimation(LatLng fineLocation,
+			int fineLocationID, ArrayList<Integer> obfRegionCellIDs, long timeStamp) {
 
 		// Phase 0: preparation
 		TransitionTableDataSource userHistoryDBDataSource = TransitionTableDataSource
@@ -84,32 +99,33 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		}
 
 		// Phase 4: update Levels
-		levels.add(currLevelEvents);
-		if (levels.size() > MAX_QUEUE_SIZE) {
-			ArrayList<Event> toBeDeleted = levels.poll();
-			//TODO[Validate]: implement Event removal from graph
-			removeEvents(toBeDeleted);
-		}
+		// [removed to another interface method to be called by adaptive mechanism after choosing the appropriate obf region]
 
 		// Phase 5: calculate expected distortion
 		double expectedDistortion = 0;
 		for (Event e : currLevelEvents)
-			//TODO[Done]: implement calculate Distance
-			expectedDistortion += calculateEuclideanDistance(fineLocationID, e.locID)
+			//TODO[Validate]: implement calculate Distance
+			expectedDistortion += calculateDistance(fineLocation,
+					gridDBDataSource.getCentroid(e.locID))
 					* e.propability;
 
-		return expectedDistortion;
+		return new Pair<Double, ArrayList<Event>>(expectedDistortion, currLevelEvents);
 	}
 
-	private double calculateEuclideanDistance(int fineLocationID, int obfLocID) {
-		int row1 = fineLocationID / Utils.LAUSSANE_GRID_WIDTH_CELLS;
-		int col1 = fineLocationID % Utils.LAUSSANE_GRID_WIDTH_CELLS;
-
-		int row2 = obfLocID / Utils.LAUSSANE_GRID_WIDTH_CELLS;
-		int col2 = obfLocID % Utils.LAUSSANE_GRID_WIDTH_CELLS;
-
-		return Math.sqrt(Math.pow(Math.abs(row1 - row2), 2) + Math.pow(Math.abs(col1 - col2), 2));
+	private double calculateDistance(LatLng fineLocation, LatLng coarseLocation) {
+		return Utils.distance(fineLocation.latitude, fineLocation.longitude,
+				coarseLocation.latitude, coarseLocation.longitude, 'K');
 	}
+
+	//	private double calculateEuclideanDistance(int fineLocationID, int obfLocID) {
+	//		int row1 = fineLocationID / Utils.LAUSSANE_GRID_WIDTH_CELLS;
+	//		int col1 = fineLocationID % Utils.LAUSSANE_GRID_WIDTH_CELLS;
+	//
+	//		int row2 = obfLocID / Utils.LAUSSANE_GRID_WIDTH_CELLS;
+	//		int col2 = obfLocID % Utils.LAUSSANE_GRID_WIDTH_CELLS;
+	//
+	//		return Math.sqrt(Math.pow(Math.abs(row1 - row2), 2) + Math.pow(Math.abs(col1 - col2), 2));
+	//	}
 
 	private void removeEvents(ArrayList<Event> toBeDeleted) {
 		for (Event e : toBeDeleted) {
@@ -124,20 +140,21 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 	private ArrayList<Event> detectReachability(ArrayList<Event> previousLevelEvents,
 			Event currLevelEvent, GridDBDataSource gridDBDataSource) {
-		ArrayList<Event> parents = new ArrayList<Event>();
-
-		LatLng centroid1 = gridDBDataSource.getCentroid(currLevelEvent.locID);
-		for (Event previousLevelEvent : previousLevelEvents) {
-			LatLng centroid2 = gridDBDataSource.getCentroid(previousLevelEvent.locID);
-			double travelDistanceInKm = Utils.distance(centroid1.latitude, centroid1.longitude,
-					centroid2.latitude, centroid2.longitude, 'K');
-			double travelTimeInHr = (double) (currLevelEvent.timeStamp - previousLevelEvent.timeStamp)
-					/ (double) MELLISECONDS_IN_HOUR;
-			double travelSpeedInKmPerHr = travelDistanceInKm / travelTimeInHr;
-			if (travelSpeedInKmPerHr <= MAX_USER_SPEED_IN_KM_PER_HOUR)
-				parents.add(previousLevelEvent);
-		}
-		return parents;
+		//		ArrayList<Event> parents = new ArrayList<Event>();
+		//
+		//		LatLng centroid1 = gridDBDataSource.getCentroid(currLevelEvent.locID);
+		//		for (Event previousLevelEvent : previousLevelEvents) {
+		//			LatLng centroid2 = gridDBDataSource.getCentroid(previousLevelEvent.locID);
+		//			double travelDistanceInKm = Utils.distance(centroid1.latitude, centroid1.longitude,
+		//					centroid2.latitude, centroid2.longitude, 'K');
+		//			double travelTimeInHr = (double) (currLevelEvent.timeStamp - previousLevelEvent.timeStamp)
+		//					/ (double) MELLISECONDS_IN_HOUR;
+		//			double travelSpeedInKmPerHr = travelDistanceInKm / travelTimeInHr;
+		//			if (travelSpeedInKmPerHr <= MAX_USER_SPEED_IN_KM_PER_HOUR)
+		//				parents.add(previousLevelEvent);
+		//		}
+		//		return parents;
+		return previousLevelEvents;
 	}
 
 	private ArrayList<Event> createNewEventList(ArrayList<Integer> obfRegionCellIDs,
@@ -148,19 +165,23 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		return eventList;
 	}
 
-	private class Event {
-		int locID;
-		int timeStampID;
-		long timeStamp;
-		ArrayList<Event> children;
-		ArrayList<Pair<Event, Double>> parents;
-		double propability;
+	public class Event {
+		public int logID; //for logging
+		public int locID;
+		public int timeStampID;
+		public long timeStamp;
+		public ArrayList<Event> children;
+		public ArrayList<Pair<Event, Double>> parents;
+		public double propability;
 
 		public Event(int locID, int timeStampID, long timeStamp) {
 			super();
 			this.locID = locID;
 			this.timeStampID = timeStampID;
 			this.timeStamp = timeStamp;
+			children = new ArrayList<PrivacyEstimator.Event>();
+			parents = new ArrayList<Pair<Event, Double>>();
 		}
 	}
+
 }

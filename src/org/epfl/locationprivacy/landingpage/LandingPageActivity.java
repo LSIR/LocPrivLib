@@ -12,6 +12,7 @@ import org.epfl.locationprivacy.thirdpartyemulator.ThirdPartyActivity;
 import org.epfl.locationprivacy.userhistory.activities.UserHistoryActivity;
 import org.epfl.locationprivacy.userhistory.databases.LocationTableDataSource;
 import org.epfl.locationprivacy.userhistory.databases.TransitionTableDataSource;
+import org.epfl.locationprivacy.util.Utils;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -36,7 +37,7 @@ public class LandingPageActivity extends Activity {
 		LocationTableDataSource.getInstance(this);
 		TransitionTableDataSource.getInstance(this);
 		SemanticLocationsDataSource.getInstance(this);
-
+		
 		//Test GridDB
 		//		GridDBDataSource gridDBDataSource = new GridDBDataSource(this);
 		//		gridDBDataSource.open();
@@ -99,9 +100,6 @@ public class LandingPageActivity extends Activity {
 		Log.d(LOGTAG, "polygons: " + polygonsCount);
 		Log.d(LOGTAG, "lines: " + linesCount);
 		Log.d(LOGTAG, "points: " + pointsCount);
-
-		VenuesDBDataSource.getInstance(this).populateVenuesCondensedDB(
-				VenuesCondensedDBDataSource.getInstance(this));
 
 	}
 

@@ -1,13 +1,18 @@
 package org.epfl.locationprivacy.util;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Queue;
 import java.util.Random;
 
 import org.epfl.locationprivacy.map.models.MyPolygon;
+import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator.Event;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -18,6 +23,7 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.StrictMode;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -346,4 +352,103 @@ public class Utils {
 
 		return angle;
 	}
+
+	//===========================================================================
+	//========================= Logging Methods =================================
+	//===========================================================================
+
+	private static String filePathPart1 = "sdcard/LocationPrivacyLibrary";
+	private static String filePathPart2;
+	private static String filePathPart3;
+
+	public static void createNewLoggingFolder() {
+		filePathPart2 = System.currentTimeMillis() + "";
+		File dir = new File(filePathPart1 + "/" + filePathPart2);
+		dir.mkdir();
+	}
+
+	public static void createNewLoggingSubFolder() {
+		filePathPart3 = System.currentTimeMillis() + "";
+		File dir = new File(filePathPart1 + "/" + filePathPart2 + "/" + filePathPart3);
+		dir.mkdir();
+	}
+
+	public static void appendLog(String fileName, String text) {
+		File logFile = new File(filePathPart1 + "/" + filePathPart2 + "/" + filePathPart3 + "/"
+				+ fileName);
+		if (!logFile.exists()) {
+			try {
+				logFile.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		try {
+			//BufferedWriter for performance, true to set append to file flag
+			BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
+			buf.append(text);
+			buf.newLine();
+			buf.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public static void logLinkabilityGraph(Queue<ArrayList<Event>> levels) {
+		try {
+			// open nodes and edges files
+			File nodesFile = new File(filePathPart1 + "/" + filePathPart2 + "/" + filePathPart3
+					+ "/" + "nodes.txt");
+			File edgesFile = new File(filePathPart1 + "/" + filePathPart2 + "/" + filePathPart3
+					+ "/" + "edges.txt");
+			nodesFile.createNewFile();
+			edgesFile.createNewFile();
+			BufferedWriter bufNodes = new BufferedWriter(new FileWriter(nodesFile, true));
+			BufferedWriter bufEdges = new BufferedWriter(new FileWriter(edgesFile, true));
+
+			// logging
+			generateLogIDsForGraphNodes(levels);
+			//--> Nodes
+			bufNodes.append("Id,Label\n");
+			for (ArrayList<Event> level : levels) {
+				for (Event e : level) {
+					String nodeLabel = "cellID " + e.locID + " prop " + e.propability;
+					String nodeID = e.logID + "";
+					bufNodes.append(nodeID + "," + nodeLabel + "\n");
+				}
+			}
+			//--> Edges
+			bufEdges.append("Source,Target,Label\n");
+			for (ArrayList<Event> level : levels) {
+				for (Event e : level) {
+					ArrayList<Pair<Event, Double>> parents = e.parents;
+					for (Pair<Event, Double> parent : parents) {
+						String source = parent.first.logID + "";
+						String target = e.logID + "";
+						String transitionProp = parent.second + "";
+						bufEdges.append(source + "," + target + "," + transitionProp + "\n");
+					}
+				}
+			}
+
+			// close nodes and edges files
+			bufNodes.close();
+			bufEdges.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void generateLogIDsForGraphNodes(Queue<ArrayList<Event>> levels) {
+
+		int logIDCounter = 0;
+		for (ArrayList<Event> level : levels) {
+			for (Event e : level) {
+				e.logID = logIDCounter++;
+			}
+		}
+	}
+
 }

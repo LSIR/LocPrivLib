@@ -5,9 +5,9 @@ import java.util.Random;
 
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
-import org.epfl.locationprivacy.map.databases.VenuesDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator;
+import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator.Event;
 import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.util.Utils;
 
@@ -29,6 +29,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		GooglePlayServicesClient.OnConnectionFailedListener {
 
 	private static final String LOGTAG = "AdaptiveProtection";
+	private static final double THETA = 0.05; //500M
 	PrivacyEstimator privacyEstimator;
 	Context context;
 	LocationClient locationClient;
@@ -38,6 +39,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	public static MyPolygon logVenue;
 	public static String logVenueDistance;
 	public static Double logSensitivity;
+	public static Double logPrivacyEstimation;
 
 	public AdaptiveProtection(Context context) {
 		super();
@@ -49,10 +51,10 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	}
 
 	@Override
-	public ArrayList<MyPolygon> getLocation() {
+	public ArrayList<MyPolygon> getLocation(LatLng mockLocation) {
 
 		//preparation
-		Log.d(LOGTAG, "================================");
+		log("================================");
 		long startGetLocation = System.currentTimeMillis();
 		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(context);
 		VenuesCondensedDBDataSource venuesCondensedDBDataSource = VenuesCondensedDBDataSource
@@ -67,22 +69,35 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			Toast.makeText(context, "Location is NULL", Toast.LENGTH_SHORT).show();
 			return null;
 		}
-		Log.d(LOGTAG,
-				"Current Location : " + location.getLatitude() + ":" + location.getLongitude());
 		//--> overriding actual location with  random number
-		double minLat = 46.508463;
-		double maxLat = 46.529253;
-		double minLng = 6.606302;
-		double maxLng = 6.655912;
+		//		double minLat = 46.508463;
+		//		double maxLat = 46.529253;
+		//		double minLng = 6.606302;
+		//		double maxLng = 6.655912;
+		//
+		//		double randomLatitude = minLat + (maxLat - minLat) * random.nextDouble();
+		//		double randomLongitude = minLng + (maxLng - minLng) * random.nextDouble();
+		//		location.setLatitude(randomLatitude);
+		//		location.setLongitude(randomLongitude);
 
-		double randomLatitude = minLat + (maxLat - minLat) * random.nextDouble();
-		double randomLongitude = minLng + (maxLng - minLng) * random.nextDouble();
-		location.setLatitude(randomLatitude);
-		location.setLongitude(randomLongitude);
+		//--> overriding actual location with mock location
+		location.setLatitude(mockLocation.latitude);
+		location.setLongitude(mockLocation.longitude);
 		logCurrentLocation = location;
+		log("Current Location : " + location.getLatitude() + ":" + location.getLongitude());
+
+		//===========================================================================================
+		//current Location ID
+		long start = System.currentTimeMillis();
+		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(location.getLatitude(),
+				location.getLongitude());
+		int fineLocationID = Integer.parseInt(currLocGridCell.getName());
+		log("Getting fine Location ID took: " + (System.currentTimeMillis() - start) + " ms");
+		log("Current CellID" + fineLocationID);
 
 		//===========================================================================================
 		// get semantics of current location
+		long startGetNearVenues = System.currentTimeMillis();
 		ArrayList<MyPolygon> currentLocationVenues = venuesCondensedDBDataSource
 				.findVenuesContainingLocation(location.getLatitude(), location.getLongitude());
 		String semantic = null;
@@ -100,37 +115,68 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			logVenue = nearestVenueAndDistance.first;
 			logVenueDistance = "nearest";
 		}
+		log("Nearest Venue: " + logVenue.getName());
+		log("Relationship: " + logVenueDistance);
+		log("Nearest Venue Query took " + (System.currentTimeMillis() - startGetNearVenues) + " ms");
 
 		//===========================================================================================
 		// get user sensitivity of current location semantic
 		Double sensitivity = semanticLocationsDataSource.findSemanticSensitivity(semantic);
 		logSensitivity = sensitivity;
-		Log.d(LOGTAG, "Sensitivity: " + sensitivity);
+		log("Semantic: " + semantic);
+		log("Sensitivity: " + sensitivity);
+		log("Theta =  " + THETA);
+		log("Theta * Sen =  " + (THETA * sensitivity));
 
 		//===========================================================================================
-		// Generate obfuscation Region
-		//--> current Location ID
-		long start = System.currentTimeMillis();
-		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(location.getLatitude(),
-				location.getLongitude());
-		int fineLocationID = Integer.parseInt(currLocGridCell.getName());
-		Log.d(LOGTAG, "Getting fine Location ID took: " + (System.currentTimeMillis() - start)
-				+ " ms");
+		boolean finished = false;
+		int ObfRegionHeightCells = 1;
+		int ObfRegionWidthCells = 1;
+		ArrayList<Integer> obfRegionCellIDs = null;
+		while (!finished) {
 
-		//--> obf Location IDS
-		SharedPreferences prefs = context.getSharedPreferences("org.epfl.locationprivacy",
-				context.MODE_PRIVATE);
-		int ObfRegionHeightCells = prefs.getInt("ObfRegionHeightCells", 1);
-		int ObfRegionWidthCells = prefs.getInt("ObfRegionWidthCells", 1);
-		ArrayList<Integer> obfRegionCellIDs = generateRandomObfRegion(fineLocationID,
-				ObfRegionHeightCells, ObfRegionWidthCells);
-		Log.d(LOGTAG, "ObfRegionSize" + obfRegionCellIDs.size());
+			log("----------------------------");
+			long startLoopTime = System.currentTimeMillis();
 
-		//===========================================================================================
-		// Get feedback from the privacy estimator
-		long timeStamp = System.currentTimeMillis();
-		//		double privacyEstimation = privacyEstimator.calculatePrivacyEstimation(fineLocationID,
-		//				obfRegionCellIDs, timeStamp);
+			//--> Phase 1: 
+			// Generate obfuscation Region
+			obfRegionCellIDs = generateRandomObfRegion(fineLocationID, ObfRegionHeightCells,
+					ObfRegionWidthCells);
+			log("ObfRegionSize: " + ObfRegionHeightCells + "X" + ObfRegionWidthCells);
+
+			//--> Phase 2: 
+			// Get feedback from the privacy estimator
+			long timeStamp = System.currentTimeMillis();
+			LatLng fineLocation = new LatLng(location.getLatitude(), location.getLongitude());
+			Pair<Double, ArrayList<Event>> privacyEstimationPair = privacyEstimator
+					.calculatePrivacyEstimation(fineLocation, fineLocationID, obfRegionCellIDs,
+							timeStamp);
+			double privacyEstimation = privacyEstimationPair.first;
+			log("Expected Distorition = " + privacyEstimation);
+
+			//--> Phase3:
+			// Comparison
+			if (privacyEstimation > (THETA * sensitivity)) {
+				finished = true;
+			} else {
+				ObfRegionHeightCells += 2;
+				ObfRegionWidthCells += 2;
+				if (ObfRegionHeightCells * ObfRegionWidthCells > 150) {
+					finished = true;
+					log("Terminating because obf region is too large ");
+				}
+			}
+
+			//--> Phase4: 
+			// update likability graph
+			if (finished) {
+				privacyEstimator.updateLinkabilityGraph(privacyEstimationPair.second);
+			}
+
+			//--> Logging
+			logPrivacyEstimation = privacyEstimation;
+			log("This loop took: " + (System.currentTimeMillis() - startLoopTime) + " ms");
+		}
 
 		//===========================================================================================
 		// Convert cellIDs to the polygons forming the obfRegion
@@ -139,10 +185,15 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			obfRegionPolygons.add(gridDBDataSource.findGridCell(cellID));
 		}
 
-		Log.d(LOGTAG, "Total Adaptive Protection Time: "
-				+ (System.currentTimeMillis() - startGetLocation));
+		log("Total Adaptive Protection Time: " + (System.currentTimeMillis() - startGetLocation)
+				+ " ms");
 
 		return obfRegionPolygons;
+	}
+
+	private void log(String s) {
+		Log.d(LOGTAG, s);
+		Utils.appendLog(LOGTAG, s);
 	}
 
 	private ArrayList<Integer> generateRandomObfRegion(int fineLocationID,

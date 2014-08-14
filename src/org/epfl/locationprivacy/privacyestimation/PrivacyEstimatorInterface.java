@@ -2,9 +2,15 @@ package org.epfl.locationprivacy.privacyestimation;
 
 import java.util.ArrayList;
 
-import android.content.Context;
+import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator.Event;
+
+import android.util.Pair;
+
+import com.google.android.gms.maps.model.LatLng;
 
 public interface PrivacyEstimatorInterface {
-	double calculatePrivacyEstimation(int fineLocationID, ArrayList<Integer> obfRegionCellIDs,
-			long timeStamp);
+	Pair<Double, ArrayList<Event>> calculatePrivacyEstimation(LatLng fineLocation,
+			int fineLocationID, ArrayList<Integer> obfRegionCellIDs, long timeStamp);
+
+	void updateLinkabilityGraph(ArrayList<Event> events);
 }

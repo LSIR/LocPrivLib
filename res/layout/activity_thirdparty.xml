@@ -11,8 +11,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:onClick="getLocation"
-        android:text="Get Location" />
+        android:onClick="emulateThirdParty"
+        android:text="Emulate Third Party" />
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/thirdpartymapview"

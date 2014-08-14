@@ -39,9 +39,15 @@ public class SemanticLocationsDataSource {
 	private SemanticLocationsDataSource(Context context) {
 		this.context = context;
 		dbHelper = LocationDBOpenHelper.getInstance(context);
+		open();
+		
+		List<SemanticLocation> semanticLocations = finaAll();
+		if (semanticLocations.size() == 0) {
+			populateDB();
+		}
 	}
 
-	public void open() {
+	private void open() {
 		Log.i(LOGTAG, "DataBase opened");
 		db = dbHelper.getWritableDatabase();
 	}
@@ -68,7 +74,7 @@ public class SemanticLocationsDataSource {
 		List<SemanticLocation> semanticLocations = new ArrayList<SemanticLocation>();
 
 		Cursor cursor = db.query(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, allColums, null,
-				null, null, null, LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME+" ASC", null);
+				null, null, null, LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY+" DESC", null);
 		Log.i(LOGTAG, "Returned " + cursor.getCount() + " rows");
 		if (cursor.getCount() > 0) {
 			while (cursor.moveToNext()) {
@@ -91,6 +97,7 @@ public class SemanticLocationsDataSource {
 
 	public Double findSemanticSensitivity(String semanticTag) {
 
+		
 		Cursor cursor = db.query(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, allColums,
 				LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME + " ='" + semanticTag + "'",
 				null, null, null, null, null);

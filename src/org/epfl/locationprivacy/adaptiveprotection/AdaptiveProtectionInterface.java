@@ -10,5 +10,5 @@ import com.google.android.gms.maps.model.LatLng;
 
 public interface AdaptiveProtectionInterface {
 
-	ArrayList<MyPolygon> getLocation();
+	ArrayList<MyPolygon> getLocation(LatLng mockLocation);
 }

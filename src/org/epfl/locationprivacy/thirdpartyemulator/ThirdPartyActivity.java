@@ -97,41 +97,63 @@ public class ThirdPartyActivity extends Activity {
 	}
 
 	//==================================================
-	public void getLocation(View view) {
+	public void emulateThirdParty(View view) {
+		// Mock Data
+		ArrayList<LatLng> mockLocations = new ArrayList<LatLng>();
+		mockLocations.add(new LatLng(46.5192, 6.5661));
+		mockLocations.add(new LatLng(46.5253, 6.6421));
+		mockLocations.add(new LatLng(46.5212, 6.6320));
 
-		ArrayList<MyPolygon> obfRegionCells = adaptiveProtectionInterface.getLocation();
+		// create Logging folder
+		Utils.createNewLoggingFolder();
 
-		//testing
-		Log.d(LOGTAG, "polygons returned: " + obfRegionCells.size());
-		Utils.removePolygons(polygons);
-		Utils.removeMarkers(markers);
-		for (MyPolygon obfRegionCell : obfRegionCells) {
-			polygons.add(Utils.drawPolygon(obfRegionCell, googleMap, 0x33FF0000));
+		for (int index = 0; index < mockLocations.size(); index++) {
+
+			//create logging folder for this location
+			Utils.createNewLoggingSubFolder();
+
+			// get location
+			LatLng mockLocation = mockLocations.get(index);
+			ArrayList<MyPolygon> obfRegionCells = adaptiveProtectionInterface
+					.getLocation(mockLocation);
+
+			//testing
+			Log.d(LOGTAG, "polygons returned: " + obfRegionCells.size());
+			//			Utils.removePolygons(polygons);
+			//			Utils.removeMarkers(markers);
+			for (MyPolygon obfRegionCell : obfRegionCells) {
+				polygons.add(Utils.drawPolygon(obfRegionCell, googleMap, 0x33FF0000));
+			}
+
+			// adding marker for the current Location
+			MarkerOptions markerOptions = new MarkerOptions()
+					.title("CurrentLocation")
+					.snippet("Privacy Estimation: " + AdaptiveProtection.logPrivacyEstimation)
+					.position(
+							new LatLng(AdaptiveProtection.logCurrentLocation.getLatitude(),
+									AdaptiveProtection.logCurrentLocation.getLongitude()));
+			markers.add(googleMap.addMarker(markerOptions));
+
+			// draw nearest venue
+			polygons.add(Utils.drawPolygon(AdaptiveProtection.logVenue, googleMap, 0x5500FF00));
+			MarkerOptions markerOptions2 = new MarkerOptions()
+					.title("Name: " + AdaptiveProtection.logVenue.getName())
+					.snippet(
+							"Tag: " + AdaptiveProtection.logVenue.getSemantic() + " Sensitivity: "
+									+ AdaptiveProtection.logSensitivity)
+					.position(
+							new LatLng(AdaptiveProtection.logVenue.getPoints().get(0).latitude,
+									AdaptiveProtection.logVenue.getPoints().get(0).longitude));
+			markers.add(googleMap.addMarker(markerOptions2));
+
+			//move camera
+			//			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(
+			//					AdaptiveProtection.logCurrentLocation.getLatitude(),
+			//					AdaptiveProtection.logCurrentLocation.getLongitude()), 15);
+			//			googleMap.moveCamera(cameraUpdate);
+
+			Log.d(LOGTAG, "Finished mock location number: " + (index + 1));
 		}
-
-		// adding marker for the current Location
-		MarkerOptions markerOptions = new MarkerOptions().title("CurrentLocation").position(
-				new LatLng(AdaptiveProtection.logCurrentLocation.getLatitude(),
-						AdaptiveProtection.logCurrentLocation.getLongitude()));
-		markers.add(googleMap.addMarker(markerOptions));
-
-		// draw nearest venue
-		polygons.add(Utils.drawPolygon(AdaptiveProtection.logVenue, googleMap, 0x5500FF00));
-		MarkerOptions markerOptions2 = new MarkerOptions()
-				.title("Name: " + AdaptiveProtection.logVenue.getName())
-				.snippet(
-						"Tag: " + AdaptiveProtection.logVenue.getSemantic() + " Sensitivity: "
-								+ AdaptiveProtection.logSensitivity)
-				.position(
-						new LatLng(AdaptiveProtection.logVenue.getPoints().get(0).latitude,
-								AdaptiveProtection.logVenue.getPoints().get(0).longitude));
-		markers.add(googleMap.addMarker(markerOptions2));
-
-		//move camera
-		CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(
-				AdaptiveProtection.logCurrentLocation.getLatitude(),
-				AdaptiveProtection.logCurrentLocation.getLongitude()), 15);
-		googleMap.moveCamera(cameraUpdate);
-
+		Toast.makeText(this, "Finished experiment", Toast.LENGTH_SHORT).show();
 	}
 }
