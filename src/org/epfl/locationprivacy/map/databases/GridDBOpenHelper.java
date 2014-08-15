@@ -15,6 +15,7 @@ public class GridDBOpenHelper extends SQLiteAssetHelper {
 	public static final String COLUMN_ID = "id";
 	public static final String COLUMN_GEOMETRY = "geometry";
 	public static final String COLUMN_Semantic = "semantic";
+	public static final String COLUMN_SENSITIVITY = "sensitivity";
 
 	private static GridDBOpenHelper gridDBOpenHelper;
 

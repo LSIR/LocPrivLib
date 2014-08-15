@@ -84,15 +84,17 @@ public class GridDBDataSource {
 		try {
 			String query = "select  " + GridDBOpenHelper.COLUMN_ID + ", "
 					+ GridDBOpenHelper.COLUMN_Semantic + ", asText("
-					+ GridDBOpenHelper.COLUMN_GEOMETRY + ") " + " from "
+					+ GridDBOpenHelper.COLUMN_GEOMETRY + ") , "
+					+ GridDBOpenHelper.COLUMN_SENSITIVITY + " from "
 					+ GridDBOpenHelper.TABLE_GRIDCELLS;
 			Stmt stmt = spatialdb.prepare(query);
 			while (stmt.step()) {
 				int id = stmt.column_int(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
+				Double sensitivity = stmt.column_double(3);
 				MyPolygon polygon = new MyPolygon(id + "", semantic,
-						MyPolygon.parseSpatialPolygon(geometry));
+						MyPolygon.parseSpatialPolygon(geometry), sensitivity);
 				polygons.add(polygon);
 				//				Log.d(LOGTAG, polygon.toString());
 			}
@@ -188,17 +190,22 @@ public class GridDBDataSource {
 		try {
 			String query = "select  " + GridDBOpenHelper.COLUMN_ID + ", "
 					+ GridDBOpenHelper.COLUMN_Semantic + ", asText("
-					+ GridDBOpenHelper.COLUMN_GEOMETRY + ") " + " from "
+					+ GridDBOpenHelper.COLUMN_GEOMETRY + "), "
+					+ GridDBOpenHelper.COLUMN_SENSITIVITY + " from "
 					+ GridDBOpenHelper.TABLE_GRIDCELLS + " where " + GridDBOpenHelper.COLUMN_ID
 					+ " = " + cellID + " ;";
+
 			Stmt stmt = spatialdb.prepare(query);
 			while (stmt.step()) {
 				int id = stmt.column_int(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
+				Double sensitivity = stmt.column_double(3);
 				if (polygon != null)
 					throw new Exception("Multiple results for cellID:" + cellID);
-				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon(geometry));
+				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon(geometry),
+						sensitivity);
+
 			}
 			stmt.close();
 		} catch (Exception e) {
@@ -217,7 +224,8 @@ public class GridDBDataSource {
 
 			String query = "SELECT " + GridDBOpenHelper.COLUMN_ID + ", "
 					+ GridDBOpenHelper.COLUMN_Semantic + ", asText("
-					+ GridDBOpenHelper.COLUMN_GEOMETRY + ") "
+					+ GridDBOpenHelper.COLUMN_GEOMETRY + ") , "
+					+ GridDBOpenHelper.COLUMN_SENSITIVITY
 					+ " FROM gridcells  WHERE MBRContains( geometry, BuildMBR( " + longitude
 					+ "  ," + latitude + ", " + longitude + "  , " + latitude + " ) );";
 			Log.d(LOGTAG, query);
@@ -232,12 +240,14 @@ public class GridDBDataSource {
 				int id = stmt.column_int(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
+				Double sensitivity = stmt.column_double(3);
 
 				if (polygon != null) {
 					throw new Exception("Multiple results for Lat/Lng:" + latitude + "/"
 							+ longitude);
 				}
-				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon(geometry));
+				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon(geometry),
+						sensitivity);
 			}
 			stmt.close();
 
@@ -271,4 +281,47 @@ public class GridDBDataSource {
 		return centroid;
 	}
 
+	public void updateGridCellSensititivity(int gridId, Double sensitivity) {
+		try {
+			String query = "UPDATE " + GridDBOpenHelper.TABLE_GRIDCELLS + " SET "
+					+ GridDBOpenHelper.COLUMN_SENSITIVITY + "=" + sensitivity + " WHERE "
+					+ GridDBOpenHelper.COLUMN_ID + "=" + gridId + ";";
+			spatialdb.exec(query, null);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.e(LOGTAG, e.getMessage());
+		}
+	}
+
+	public ArrayList<MyPolygon> findSensitiveGridCells() {
+		ArrayList<MyPolygon> polygons = new ArrayList<MyPolygon>();
+		try {
+			String query = "select  " + GridDBOpenHelper.COLUMN_ID + ", "
+					+ GridDBOpenHelper.COLUMN_Semantic + ", asText("
+					+ GridDBOpenHelper.COLUMN_GEOMETRY + ") , "
+					+ GridDBOpenHelper.COLUMN_SENSITIVITY + " from "
+					+ GridDBOpenHelper.TABLE_GRIDCELLS + " where "
+					+ GridDBOpenHelper.COLUMN_SENSITIVITY + " IS NOT NULL and "
+					+ GridDBOpenHelper.COLUMN_SENSITIVITY + " > 0";
+			Stmt stmt = spatialdb.prepare(query);
+			while (stmt.step()) {
+				int id = stmt.column_int(0);
+				String semantic = stmt.column_string(1);
+				String geometry = stmt.column_string(2);
+				Double sensitivity = stmt.column_double(3);
+				MyPolygon polygon = new MyPolygon(id + "", semantic,
+						MyPolygon.parseSpatialPolygon(geometry), sensitivity);
+				polygons.add(polygon);
+				//				Log.d(LOGTAG, polygon.toString());
+			}
+			stmt.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.e(LOGTAG, e.getMessage());
+		}
+		Log.d(LOGTAG, "ROWs " + polygons.size());
+		return polygons;
+	}
 }

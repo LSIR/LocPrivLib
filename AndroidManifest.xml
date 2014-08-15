@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="10"
+        android:minSdkVersion="11"
         android:targetSdkVersion="19" />
 
     <permission
@@ -41,7 +41,8 @@
         </activity>
         <activity
             android:name=".privacyprofile.activities.PrivacyProfileActivity"
-            android:label="@string/title_activity_privacyprofile" >
+            android:label="@string/title_activity_privacyprofile"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" >
         </activity>
         <activity
             android:name=".baselineprotection.activities.ObfRegionActivity"

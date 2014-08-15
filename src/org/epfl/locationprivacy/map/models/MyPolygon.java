@@ -11,12 +11,22 @@ public class MyPolygon {
 	String name;
 	String semantic;
 	ArrayList<LatLng> points;
+	Double sensitivity;
 
 	public MyPolygon(String name, String semantic, ArrayList<LatLng> points) {
 		super();
 		this.name = name;
 		this.semantic = semantic;
 		this.points = points;
+	}
+
+	public MyPolygon(String name, String semantic, ArrayList<LatLng> points,
+			Double sensitivity) {
+		super();
+		this.name = name;
+		this.semantic = semantic;
+		this.points = points;
+		this.sensitivity = sensitivity;
 	}
 
 	public static ArrayList<LatLng> parseSpatialPolygon(String geometry) {
@@ -82,6 +92,7 @@ public class MyPolygon {
 		String ret = "";
 		ret += "name: " + name;
 		ret += " semantic: " + semantic;
+		ret += " sensit "+ sensitivity;
 		return ret;
 	}
 
@@ -107,6 +118,14 @@ public class MyPolygon {
 
 	public void setPoints(ArrayList<LatLng> points) {
 		this.points = points;
+	}
+
+	public Double getSensitivity() {
+		return sensitivity;
+	}
+
+	public void setSensitivity(Double sensitivity) {
+		this.sensitivity = sensitivity;
 	}
 
 }
