@@ -93,13 +93,19 @@ public class LandingPageActivity extends Activity {
 		//		semanticLocationsDataSource.close();
 
 		//test case 2
-		long linesCount = VenuesCondensedDBDataSource.getInstance(this).findRowsCount("lines");
-		long polygonsCount = VenuesCondensedDBDataSource.getInstance(this)
-				.findRowsCount("polygons");
-		long pointsCount = VenuesCondensedDBDataSource.getInstance(this).findRowsCount("points");
-		Log.d(LOGTAG, "polygons: " + polygonsCount);
-		Log.d(LOGTAG, "lines: " + linesCount);
-		Log.d(LOGTAG, "points: " + pointsCount);
+//		long linesCount = VenuesCondensedDBDataSource.getInstance(this).findRowsCount("lines");
+//		long polygonsCount = VenuesCondensedDBDataSource.getInstance(this)
+//				.findRowsCount("polygons");
+//		long pointsCount = VenuesCondensedDBDataSource.getInstance(this).findRowsCount("points");
+//		Log.d(LOGTAG, "polygons: " + polygonsCount);
+//		Log.d(LOGTAG, "lines: " + linesCount);
+//		Log.d(LOGTAG, "points: " + pointsCount);
+		
+		//mock data
+		//semantic mock sensitivities
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("hospital", 30);
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("bar", 40);
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("university", 50);
 
 	}
 

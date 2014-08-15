@@ -29,7 +29,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		GooglePlayServicesClient.OnConnectionFailedListener {
 
 	private static final String LOGTAG = "AdaptiveProtection";
-	private static final double THETA = 0.05; //500M
+	private static final double THETA = 0.5; //500M
 	PrivacyEstimator privacyEstimator;
 	Context context;
 	LocationClient locationClient;

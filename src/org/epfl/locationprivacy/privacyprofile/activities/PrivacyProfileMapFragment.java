@@ -140,7 +140,7 @@ public class PrivacyProfileMapFragment extends Fragment {
 							privacyBar.setProgress(currSensitivity);
 
 							// test sensititivy
-							Toast.makeText(getActivity(),
+							Toast.makeText(getActivity(),"CellID: "+currSelectedGridCell.getName()+
 									"Sensitivity : " + currSelectedGridCell.getSensitivity(),
 									Toast.LENGTH_SHORT).show();
 

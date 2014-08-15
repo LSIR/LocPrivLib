@@ -1,9 +1,7 @@
 package org.epfl.locationprivacy.userhistory.databases;
 
 import java.util.ArrayList;
-import java.util.Random;
 
-import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.userhistory.models.Transition;
 
 import android.content.ContentValues;
@@ -21,7 +19,6 @@ public class TransitionTableDataSource {
 	SQLiteOpenHelper dbHelper;
 	SQLiteDatabase db;
 	Context context;
-	Random random;
 
 	private static final String[] allColums = {
 			UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_FROMLOCID,
@@ -40,7 +37,6 @@ public class TransitionTableDataSource {
 		this.context = context;
 		dbHelper = UserHistoryDBOpenHelper.getInstance(context);
 		open();
-		random = new Random();
 	}
 
 	private void open() {
@@ -101,15 +97,14 @@ public class TransitionTableDataSource {
 	}
 
 	public double getTransitionProbability(int fromLocID, int toLocID) {
-		// TODO [remove comment]
-		//		double eta = Math.pow(1, -5);
-		//		int numerator = getTransitionCount(fromLocID, toLocID);
-		//		Pair<Integer, Integer> transitionInfo = getTransitionCount(fromLocID);
-		//		int totalTransitionCount = transitionInfo.first;
-		//		int possibleDestinationsCount = transitionInfo.second;
-		//
-		//		return ((double) numerator + eta) / ((double) toLocID + possibleDestinationsCount * eta);
-		return random.nextDouble();
+		double eta = Math.pow(1, -5);
+		int numerator = getTransitionCount(fromLocID, toLocID);
+		Pair<Integer, Integer> transitionInfo = getTransitionCount(fromLocID);
+		int totalTransitionCount = transitionInfo.first;
+		int possibleDestinationsCount = transitionInfo.second;
+
+		return ((double) numerator + eta)
+				/ ((double) totalTransitionCount + possibleDestinationsCount * eta);
 	}
 
 	private Transition parseDBRow(Cursor cursor) {

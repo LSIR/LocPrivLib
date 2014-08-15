@@ -142,4 +142,11 @@ public class SemanticLocationsDataSource {
 
 		db.execSQL(strSQL);
 	}
+	public void updateSemanticLocation(String name, int progress) {
+		String strSQL = "UPDATE " + LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS + " SET "
+				+ LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY + " = " + progress
+				+ " WHERE " + LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME + " = '" + name+"'";
+
+		db.execSQL(strSQL);
+	}
 }

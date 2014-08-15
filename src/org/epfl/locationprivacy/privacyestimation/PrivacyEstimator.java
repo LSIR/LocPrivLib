@@ -69,7 +69,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 					continue;
 				}
 				for (Event parent : parentList) {
-					//TODO[Done+Question]: How to get transition probability form DB
+					//TODO[Done+PopulateDATA]: How to get transition probability form DB
 					double transitionPropability = userHistoryDBDataSource
 							.getTransitionProbability(parent.locID, e.locID);
 					parent.children.add(e);
@@ -90,11 +90,13 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 			if (previousLevelEvents == null) {
 				e.propability = 1.0 / (double) obfRegionCellIDs.size();
 			} else {
-				for (Pair<Event, Double> parentRelation : e.parents) {
-					Event parent = parentRelation.first;
-					Double transitionProbability = parentRelation.second;
-					e.propability += transitionProbability * parent.propability;
-				}
+				//TODO remove comment
+//				for (Pair<Event, Double> parentRelation : e.parents) {
+//					Event parent = parentRelation.first;
+//					Double transitionProbability = parentRelation.second;
+//					e.propability += transitionProbability * parent.propability;
+//				}
+				e.propability = 1.0 / (double) obfRegionCellIDs.size();
 			}
 		}
 

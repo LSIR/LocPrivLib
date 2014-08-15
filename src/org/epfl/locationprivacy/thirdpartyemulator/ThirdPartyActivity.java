@@ -6,6 +6,7 @@ import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.adaptiveprotection.AdaptiveProtection;
 import org.epfl.locationprivacy.adaptiveprotection.AdaptiveProtectionInterface;
 import org.epfl.locationprivacy.map.models.MyPolygon;
+import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.util.Utils;
 
 import android.app.Activity;
@@ -103,6 +104,11 @@ public class ThirdPartyActivity extends Activity {
 		mockLocations.add(new LatLng(46.5192, 6.5661));
 		mockLocations.add(new LatLng(46.5253, 6.6421));
 		mockLocations.add(new LatLng(46.5212, 6.6320));
+		
+		
+		
+		//location mock sensitivities
+		
 
 		// create Logging folder
 		Utils.createNewLoggingFolder();
