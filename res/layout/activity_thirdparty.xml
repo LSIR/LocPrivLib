@@ -1,24 +1,38 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="${relativePackage}.${activityClass}" >
 
-    <Button
-        android:id="@+id/thirdpartygetlocation"
-        android:layout_width="fill_parent"
+    <LinearLayout
+        android:id="@+id/experimentsbar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:onClick="emulateThirdParty"
-        android:text="Emulate Third Party" />
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/thirdpartytestsemantics"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:onClick="emulateThirdParty"
+            android:text="Test Semantic Sensitivities" />
+
+        <Button
+            android:id="@+id/thirdpartytestlocations"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:onClick="emulateThirdParty"
+            android:text="Test Location Sensitvities" />
+    </LinearLayout>
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/thirdpartymapview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/thirdpartygetlocation"
+        android:layout_below="@+id/experimentsbar"
         map:cameraTargetLat="46.519760"
         map:cameraTargetLng="6.566538"
         map:cameraZoom="12" >

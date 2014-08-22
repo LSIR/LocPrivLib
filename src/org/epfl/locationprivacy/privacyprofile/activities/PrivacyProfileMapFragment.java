@@ -10,6 +10,7 @@ import org.epfl.locationprivacy.util.Utils;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -113,8 +114,11 @@ public class PrivacyProfileMapFragment extends Fragment {
 				googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
 					@Override
 					public void onMapClick(LatLng point) {
+						Log.d("test", point.toString());
+						
 						currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude,
 								point.longitude);
+						Log.d("test", currSelectedGridCell.getName());
 						if (currSelectedGridCell == null) {
 							Toast.makeText(getActivity(), "Chose a loction inside the Grid",
 									Toast.LENGTH_SHORT).show();

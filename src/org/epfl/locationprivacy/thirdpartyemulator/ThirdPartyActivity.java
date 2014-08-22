@@ -99,18 +99,23 @@ public class ThirdPartyActivity extends Activity {
 
 	//==================================================
 	public void emulateThirdParty(View view) {
-		// Mock Data
+		// Mock Data1
 		ArrayList<LatLng> mockLocations = new ArrayList<LatLng>();
-		mockLocations.add(new LatLng(46.5192, 6.5661));
-		mockLocations.add(new LatLng(46.5253, 6.6421));
-		mockLocations.add(new LatLng(46.5212, 6.6320));
-		
-		
-		
-		//location mock sensitivities
-		
 
-		// create Logging folder
+		if (view.getId() == R.id.thirdpartytestlocations) {
+			// cell ids : 10367, 17609, 11003
+			mockLocations.add(new LatLng(46.533114299838836, 6.573491469025612));
+			mockLocations.add(new LatLng(46.522422470139205, 6.585019938647747));
+			mockLocations.add(new LatLng(46.53251253519775, 6.595497317612171));
+		} else if (view.getId() == R.id.thirdpartytestsemantics) {
+			mockLocations.add(new LatLng(46.5192, 6.5661)); // university
+			mockLocations.add(new LatLng(46.5212, 6.6320)); // bar
+			mockLocations.add(new LatLng(46.5253, 6.6421)); // hospital
+		}
+
+		//location mock sensitivities
+
+		//		 create Logging folder
 		Utils.createNewLoggingFolder();
 
 		for (int index = 0; index < mockLocations.size(); index++) {

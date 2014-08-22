@@ -29,7 +29,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		GooglePlayServicesClient.OnConnectionFailedListener {
 
 	private static final String LOGTAG = "AdaptiveProtection";
-	private static final double THETA = 0.5; //500M
+	private static final double THETA = 0.2; //200M
 	PrivacyEstimator privacyEstimator;
 	Context context;
 	LocationClient locationClient;
@@ -93,38 +93,49 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 				location.getLongitude());
 		int fineLocationID = Integer.parseInt(currLocGridCell.getName());
 		log("Getting fine Location ID took: " + (System.currentTimeMillis() - start) + " ms");
-		log("Current CellID" + fineLocationID);
+		log("Current CellID: " + fineLocationID);
 
 		//===========================================================================================
-		// get semantics of current location
-		long startGetNearVenues = System.currentTimeMillis();
-		ArrayList<MyPolygon> currentLocationVenues = venuesCondensedDBDataSource
-				.findVenuesContainingLocation(location.getLatitude(), location.getLongitude());
-		String semantic = null;
-		if (!currentLocationVenues.isEmpty()) {
-			semantic = currentLocationVenues.get(0).getSemantic();
-			logVenue = currentLocationVenues.get(0);
-			logVenueDistance = "inside";
-		}
+		// getting sensitivity preference of location, if not existing then sensitivity of semantic of nearest venue
+		Double sensitivity = currLocGridCell.getSensitivity();
+		double epsilon = Math.pow(10, -5);
+		log("Current Cell Sensitivity: " + sensitivity);
+		if (Math.abs(sensitivity - 0.0) < epsilon) { // current grid cell is not sensitive,then get nearest venue semantic sensitivity 
 
-		//--> what if no venues contains the current location ? get the nearest location
-		if (currentLocationVenues.isEmpty()) {
-			Pair<MyPolygon, Double> nearestVenueAndDistance = venuesCondensedDBDataSource
-					.findNearestVenue(location.getLatitude(), location.getLongitude());
-			semantic = nearestVenueAndDistance.first.getSemantic();
-			logVenue = nearestVenueAndDistance.first;
-			logVenueDistance = "nearest";
-		}
-		log("Nearest Venue: " + logVenue.getName());
-		log("Relationship: " + logVenueDistance);
-		log("Nearest Venue Query took " + (System.currentTimeMillis() - startGetNearVenues) + " ms");
+			//--> get semantics of current location
+			long startGetNearVenues = System.currentTimeMillis();
+			ArrayList<MyPolygon> currentLocationVenues = venuesCondensedDBDataSource
+					.findVenuesContainingLocation(location.getLatitude(), location.getLongitude());
+			String semantic = null;
+			if (!currentLocationVenues.isEmpty()) {
+				semantic = currentLocationVenues.get(0).getSemantic();
+				logVenue = currentLocationVenues.get(0);
+				logVenueDistance = "inside";
+			}
 
-		//===========================================================================================
-		// get user sensitivity of current location semantic
-		Double sensitivity = semanticLocationsDataSource.findSemanticSensitivity(semantic);
+			//--> what if no venues contains the current location ? get the nearest location
+			if (currentLocationVenues.isEmpty()) {
+				Pair<MyPolygon, Double> nearestVenueAndDistance = venuesCondensedDBDataSource
+						.findNearestVenue(location.getLatitude(), location.getLongitude());
+				semantic = nearestVenueAndDistance.first.getSemantic();
+				logVenue = nearestVenueAndDistance.first;
+				logVenueDistance = "nearest";
+			}
+
+			//--> get user sensitivity of current location semantic
+			sensitivity = semanticLocationsDataSource.findSemanticSensitivity(semantic);
+
+			//--> logging
+			log("No Location Sensitivity");
+			log("Nearest Venue: " + logVenue.getName());
+			log("Relationship: " + logVenueDistance);
+			log("Nearest Venue Query took " + (System.currentTimeMillis() - startGetNearVenues)
+					+ " ms");
+			log("Semantic: " + semantic);
+			log("Semantic Sensitivity: " + sensitivity);
+		}
 		logSensitivity = sensitivity;
-		log("Semantic: " + semantic);
-		log("Sensitivity: " + sensitivity);
+
 		log("Theta =  " + THETA);
 		log("Theta * Sen =  " + (THETA * sensitivity));
 
