@@ -191,4 +191,30 @@ public class VenuesCondensedDBDataSource {
 		}
 		return polygonWithDistance;
 	}
+
+	public Pair<MyPolygon, LatLng> findRandomPolygonWithItsCentroid() {
+		// query table
+		String sql = "SELECT name,sub_type,Y(Centroid(ExteriorRing(Geometry))),X(Centroid(ExteriorRing(Geometry))),"
+				+ "AsText(ExteriorRing(Geometry)) FROM polygons where sub_type !='yes' ORDER BY RANDOM() LIMIT 1";
+
+		TableResult tableResult = null;
+		try {
+			tableResult = spatialdb.get_table(sql);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// parse the results
+		if (tableResult != null) {
+			Vector<String[]> rows = tableResult.rows;
+			String[] row = rows.get(0);
+			String name = row[0];
+			String semantic = row[1];
+			LatLng centroid = new LatLng(Double.parseDouble(row[2]), Double.parseDouble(row[3]));
+			ArrayList<LatLng> points = MyPolygon.parseSpatialPolygon("LINESTRING", row[4]);
+			MyPolygon polygon = new MyPolygon(name, semantic, points);
+			return new Pair<MyPolygon, LatLng>(polygon, centroid);
+		}
+		return null;
+	}
 }

@@ -2,8 +2,6 @@ package org.epfl.locationprivacy.privacyestimation;
 
 import java.util.ArrayList;
 
-import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator.Event;
-
 import android.util.Pair;
 
 import com.google.android.gms.maps.model.LatLng;

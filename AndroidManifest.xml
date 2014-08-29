@@ -69,16 +69,21 @@
         <activity
             android:name=".userhistory.activities.UserHistoryActivity"
             android:label="@string/title_activity_user_history"
-            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"  >
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" >
         </activity>
         <activity
-            android:name="org.epfl.locationprivacy.thirdpartyemulator.ThirdPartyActivity"
+            android:name=".thirdpartyemulator.ThirdPartyActivity"
             android:label="@string/title_activity_third_party" >
         </activity>
 
         <service
-            android:name="org.epfl.locationprivacy.userhistory.services.LocationTrackingService"
+            android:name=".userhistory.services.LocationTrackingService"
             android:enabled="true" />
+
+        <activity
+            android:name="org.epfl.locationprivacy.virtualtransitiongenerator.activities.VirtualTransitionGeneratorActivity"
+            android:label="@string/title_activity_virtual_route_generator" >
+        </activity>
     </application>
 
 </manifest>

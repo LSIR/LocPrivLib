@@ -6,7 +6,6 @@ import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.adaptiveprotection.AdaptiveProtection;
 import org.epfl.locationprivacy.adaptiveprotection.AdaptiveProtectionInterface;
 import org.epfl.locationprivacy.map.models.MyPolygon;
-import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.util.Utils;
 
 import android.app.Activity;
@@ -15,8 +14,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
@@ -99,6 +96,7 @@ public class ThirdPartyActivity extends Activity {
 
 	//==================================================
 	public void emulateThirdParty(View view) {
+
 		// Mock Data1
 		ArrayList<LatLng> mockLocations = new ArrayList<LatLng>();
 
@@ -113,11 +111,14 @@ public class ThirdPartyActivity extends Activity {
 			mockLocations.add(new LatLng(46.5253, 6.6421)); // hospital
 		}
 
-		//location mock sensitivities
+		// Clean the previous experiment if exists
+		Utils.removePolygons(polygons);
+		Utils.removeMarkers(markers);
 
-		//		 create Logging folder
+		//Create Logging folder
 		Utils.createNewLoggingFolder();
 
+		long startExperiment = System.currentTimeMillis();
 		for (int index = 0; index < mockLocations.size(); index++) {
 
 			//create logging folder for this location
@@ -130,8 +131,6 @@ public class ThirdPartyActivity extends Activity {
 
 			//testing
 			Log.d(LOGTAG, "polygons returned: " + obfRegionCells.size());
-			//			Utils.removePolygons(polygons);
-			//			Utils.removeMarkers(markers);
 			for (MyPolygon obfRegionCell : obfRegionCells) {
 				polygons.add(Utils.drawPolygon(obfRegionCell, googleMap, 0x33FF0000));
 			}
@@ -146,16 +145,18 @@ public class ThirdPartyActivity extends Activity {
 			markers.add(googleMap.addMarker(markerOptions));
 
 			// draw nearest venue
-			polygons.add(Utils.drawPolygon(AdaptiveProtection.logVenue, googleMap, 0x5500FF00));
-			MarkerOptions markerOptions2 = new MarkerOptions()
-					.title("Name: " + AdaptiveProtection.logVenue.getName())
-					.snippet(
-							"Tag: " + AdaptiveProtection.logVenue.getSemantic() + " Sensitivity: "
-									+ AdaptiveProtection.logSensitivity)
-					.position(
-							new LatLng(AdaptiveProtection.logVenue.getPoints().get(0).latitude,
-									AdaptiveProtection.logVenue.getPoints().get(0).longitude));
-			markers.add(googleMap.addMarker(markerOptions2));
+			if (view.getId() == R.id.thirdpartytestsemantics) {
+				polygons.add(Utils.drawPolygon(AdaptiveProtection.logVenue, googleMap, 0x5500FF00));
+				MarkerOptions markerOptions2 = new MarkerOptions()
+						.title("Name: " + AdaptiveProtection.logVenue.getName())
+						.snippet(
+								"Tag: " + AdaptiveProtection.logVenue.getSemantic()
+										+ " Sensitivity: " + AdaptiveProtection.logSensitivity)
+						.position(
+								new LatLng(AdaptiveProtection.logVenue.getPoints().get(0).latitude,
+										AdaptiveProtection.logVenue.getPoints().get(0).longitude));
+				markers.add(googleMap.addMarker(markerOptions2));
+			}
 
 			//move camera
 			//			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(
@@ -165,6 +166,9 @@ public class ThirdPartyActivity extends Activity {
 
 			Log.d(LOGTAG, "Finished mock location number: " + (index + 1));
 		}
-		Toast.makeText(this, "Finished experiment", Toast.LENGTH_SHORT).show();
+		Toast.makeText(
+				this,
+				"Finished experiment in " + (System.currentTimeMillis() - startExperiment) / 1000
+						+ " sec", Toast.LENGTH_SHORT).show();
 	}
 }

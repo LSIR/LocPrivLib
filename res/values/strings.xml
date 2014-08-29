@@ -14,5 +14,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_user_history">User History</string>
     <string name="title_activity_third_party">Third Party</string>
+    <string name="title_activity_virtual_route_generator">Virtual Transitions</string>
 
 </resources>

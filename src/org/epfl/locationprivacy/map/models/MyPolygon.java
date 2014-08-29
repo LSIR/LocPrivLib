@@ -20,8 +20,7 @@ public class MyPolygon {
 		this.points = points;
 	}
 
-	public MyPolygon(String name, String semantic, ArrayList<LatLng> points,
-			Double sensitivity) {
+	public MyPolygon(String name, String semantic, ArrayList<LatLng> points, Double sensitivity) {
 		super();
 		this.name = name;
 		this.semantic = semantic;
@@ -29,10 +28,10 @@ public class MyPolygon {
 		this.sensitivity = sensitivity;
 	}
 
-	public static ArrayList<LatLng> parseSpatialPolygon(String geometry) {
+	public static ArrayList<LatLng> parseSpatialPolygon(String geometryType, String geometry) {
 
 		Log.d("parseSpatialPolygon", geometry);
-		geometry = geometry.trim().replaceAll("POLYGON", "");
+		geometry = geometry.trim().replaceAll(geometryType, "");
 
 		while (geometry.startsWith("("))
 			geometry = geometry.substring(1);
@@ -92,7 +91,7 @@ public class MyPolygon {
 		String ret = "";
 		ret += "name: " + name;
 		ret += " semantic: " + semantic;
-		ret += " sensit "+ sensitivity;
+		ret += " sensit " + sensitivity;
 		return ret;
 	}
 

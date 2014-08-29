@@ -6,13 +6,12 @@ import java.util.Random;
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
+import org.epfl.locationprivacy.privacyestimation.Event;
 import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator;
-import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator.Event;
 import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.util.Utils;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,7 +28,10 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		GooglePlayServicesClient.OnConnectionFailedListener {
 
 	private static final String LOGTAG = "AdaptiveProtection";
-	private static final double THETA = 0.2; //200M
+	private long totalLoggingTime;
+	private static final double THETA = 0.4; //400 meters
+	private static final int ALPHA = 2; // try 2 different obf regions with same size before enlarging the obf region
+	private static final int MAX_OBF_REG_AREA = 81; // 81 grid cells (9X9)
 	PrivacyEstimator privacyEstimator;
 	Context context;
 	LocationClient locationClient;
@@ -54,6 +56,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	public ArrayList<MyPolygon> getLocation(LatLng mockLocation) {
 
 		//preparation
+		totalLoggingTime = 0;
 		log("================================");
 		long startGetLocation = System.currentTimeMillis();
 		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(context);
@@ -143,6 +146,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		boolean finished = false;
 		int ObfRegionHeightCells = 1;
 		int ObfRegionWidthCells = 1;
+		int numOfTrialsWithSameObfSize = 0;
 		ArrayList<Integer> obfRegionCellIDs = null;
 		while (!finished) {
 
@@ -170,9 +174,13 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			if (privacyEstimation > (THETA * sensitivity)) {
 				finished = true;
 			} else {
-				ObfRegionHeightCells += 2;
-				ObfRegionWidthCells += 2;
-				if (ObfRegionHeightCells * ObfRegionWidthCells > 150) {
+				numOfTrialsWithSameObfSize++;
+				if (numOfTrialsWithSameObfSize >= ALPHA) {
+					numOfTrialsWithSameObfSize = 0;
+					ObfRegionHeightCells += 2;
+					ObfRegionWidthCells += 2;
+				}
+				if (ObfRegionHeightCells * ObfRegionWidthCells > MAX_OBF_REG_AREA) {
 					finished = true;
 					log("Terminating because obf region is too large ");
 				}
@@ -196,15 +204,20 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			obfRegionPolygons.add(gridDBDataSource.findGridCell(cellID));
 		}
 
-		log("Total Adaptive Protection Time: " + (System.currentTimeMillis() - startGetLocation)
+		log("Total Adaptive Protection Time : " + (System.currentTimeMillis() - startGetLocation)
 				+ " ms");
+		log("Total logging time: " + totalLoggingTime + "ms");
+		log("Total Adaptive Protection Time without logging : "
+				+ (System.currentTimeMillis() - startGetLocation - totalLoggingTime) + " ms");
 
 		return obfRegionPolygons;
 	}
 
 	private void log(String s) {
+		long startlogging = System.currentTimeMillis();
 		Log.d(LOGTAG, s);
 		Utils.appendLog(LOGTAG, s);
+		totalLoggingTime += (System.currentTimeMillis() - startlogging);
 	}
 
 	private ArrayList<Integer> generateRandomObfRegion(int fineLocationID,
@@ -216,9 +229,12 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		int currCol = fineLocationID % Utils.LAUSSANE_GRID_WIDTH_CELLS;
 
 		// top left cell id
-		int topLeftRow = currRow - (obfRegionHeightCells / 2);
+		int topLeftRowDelta = random.nextInt(obfRegionHeightCells);
+		int topLeftRow = currRow - topLeftRowDelta;
 		topLeftRow = topLeftRow < 0 ? 0 : topLeftRow;
-		int topLeftCol = currCol - (obfRegionWidthCells / 2);
+
+		int topLeftColDelta = random.nextInt(obfRegionWidthCells);
+		int topLeftCol = currCol - topLeftColDelta;
 		topLeftCol = topLeftCol < 0 ? 0 : topLeftCol;
 
 		// bottom right cell id

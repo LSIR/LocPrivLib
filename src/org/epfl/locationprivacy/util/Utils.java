@@ -12,7 +12,7 @@ import java.util.Queue;
 import java.util.Random;
 
 import org.epfl.locationprivacy.map.models.MyPolygon;
-import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator.Event;
+import org.epfl.locationprivacy.privacyestimation.Event;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -409,13 +409,12 @@ public class Utils {
 			BufferedWriter bufEdges = new BufferedWriter(new FileWriter(edgesFile, true));
 
 			// logging
-			generateLogIDsForGraphNodes(levels);
 			//--> Nodes
 			bufNodes.append("Id,Label\n");
 			for (ArrayList<Event> level : levels) {
 				for (Event e : level) {
 					String nodeLabel = "cellID " + e.locID + " prop " + e.propability;
-					String nodeID = e.logID + "";
+					String nodeID = e.id + "";
 					bufNodes.append(nodeID + "," + nodeLabel + "\n");
 				}
 			}
@@ -424,12 +423,13 @@ public class Utils {
 			for (ArrayList<Event> level : levels) {
 				for (Event e : level) {
 					ArrayList<Pair<Event, Double>> parents = e.parents;
-					for (Pair<Event, Double> parent : parents) {
-						String source = parent.first.logID + "";
-						String target = e.logID + "";
-						String transitionProp = parent.second + "";
-						bufEdges.append(source + "," + target + "," + transitionProp + "\n");
-					}
+					if (parents != null)
+						for (Pair<Event, Double> parent : parents) {
+							String source = parent.first.id + "";
+							String target = e.id + "";
+							String transitionProp = parent.second + "";
+							bufEdges.append(source + "," + target + "," + transitionProp + "\n");
+						}
 				}
 			}
 
@@ -440,15 +440,4 @@ public class Utils {
 			e.printStackTrace();
 		}
 	}
-
-	private static void generateLogIDsForGraphNodes(Queue<ArrayList<Event>> levels) {
-
-		int logIDCounter = 0;
-		for (ArrayList<Event> level : levels) {
-			for (Event e : level) {
-				e.logID = logIDCounter++;
-			}
-		}
-	}
-
 }

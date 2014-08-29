@@ -5,6 +5,7 @@ import org.epfl.locationprivacy.baselineprotection.activities.ObfRegionActivity;
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
 import org.epfl.locationprivacy.map.databases.VenuesDBDataSource;
+import org.epfl.locationprivacy.privacyestimation.databases.LinkabilityGraphDataSource;
 import org.epfl.locationprivacy.privacyprofile.activities.PrivacyProfileActivity;
 import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.spatialitedb.SampleSpatialiteQueryActivity;
@@ -13,6 +14,7 @@ import org.epfl.locationprivacy.userhistory.activities.UserHistoryActivity;
 import org.epfl.locationprivacy.userhistory.databases.LocationTableDataSource;
 import org.epfl.locationprivacy.userhistory.databases.TransitionTableDataSource;
 import org.epfl.locationprivacy.util.Utils;
+import org.epfl.locationprivacy.virtualtransitiongenerator.activities.VirtualTransitionGeneratorActivity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -37,6 +39,18 @@ public class LandingPageActivity extends Activity {
 		LocationTableDataSource.getInstance(this);
 		TransitionTableDataSource.getInstance(this);
 		SemanticLocationsDataSource.getInstance(this);
+		LinkabilityGraphDataSource.getInstance(this);
+
+		//mock sensitivities
+		//--> semantic sensitivities
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("university", 10);
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("bar", 50);
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("hospital", 90);
+
+		//--> semantic sensitivities
+		GridDBDataSource.getInstance(this).updateGridCellSensititivity(10367, 0.1);
+		GridDBDataSource.getInstance(this).updateGridCellSensititivity(17609, 0.5);
+		GridDBDataSource.getInstance(this).updateGridCellSensititivity(11003, 0.9);
 
 		//Test GridDB
 		//		GridDBDataSource gridDBDataSource = new GridDBDataSource(this);
@@ -101,16 +115,13 @@ public class LandingPageActivity extends Activity {
 		//		Log.d(LOGTAG, "lines: " + linesCount);
 		//		Log.d(LOGTAG, "points: " + pointsCount);
 
-		//mock sensitivities
-		//--> semantic sensitivities
-		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("university", 10);
-		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("bar", 50);
-		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("hospital", 90);
-		
-		//--> semantic sensitivities
-		GridDBDataSource.getInstance(this).updateGridCellSensititivity(10367, 0.1);
-		GridDBDataSource.getInstance(this).updateGridCellSensititivity(17609, 0.5);
-		GridDBDataSource.getInstance(this).updateGridCellSensititivity(11003, 0.9);
+		//test case 3
+		//		LinkabilityGraphDataSource.getInstance(this).clearDB();
+		//		Log.d(LOGTAG, "Events: " + LinkabilityGraphDataSource.getInstance(this).countEventRows());
+		//		Log.d(LOGTAG, "ParentChilred: "
+		//				+ LinkabilityGraphDataSource.getInstance(this).countParentChildrenRows());
+		//		Log.d(LOGTAG, "Max Level: " + LinkabilityGraphDataSource.getInstance(this).findMaxLevelID());
+		//		Log.d(LOGTAG, "Max Event: " + LinkabilityGraphDataSource.getInstance(this).findMaxEventID());
 
 	}
 
@@ -137,6 +148,11 @@ public class LandingPageActivity extends Activity {
 
 	public void onClickThirdPartyEmulator(View view) {
 		Intent intent = new Intent(this, ThirdPartyActivity.class);
+		startActivity(intent);
+	}
+
+	public void onClickVirtualRouteGenerator(View view) {
+		Intent intent = new Intent(this, VirtualTransitionGeneratorActivity.class);
 		startActivity(intent);
 	}
 
