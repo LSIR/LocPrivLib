@@ -410,12 +410,14 @@ public class Utils {
 
 			// logging
 			//--> Nodes
-			bufNodes.append("Id,Label\n");
+			bufNodes.append("Id,Label,Level\n");
+			int currLevel = 0;
 			for (ArrayList<Event> level : levels) {
+				currLevel++;
 				for (Event e : level) {
 					String nodeLabel = "cellID " + e.locID + " prop " + e.propability;
 					String nodeID = e.id + "";
-					bufNodes.append(nodeID + "," + nodeLabel + "\n");
+					bufNodes.append(nodeID + "," + nodeLabel +","+currLevel+ "\n");
 				}
 			}
 			//--> Edges

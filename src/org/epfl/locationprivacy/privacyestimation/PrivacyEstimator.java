@@ -23,7 +23,9 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 	private static final String LOGTAG = "PrivacyEstimator";
 
-	private static final int MAX_QUEUE_SIZE = 3;
+	private static final boolean SAVE_LINKABILITYGRAPH_IN_DB = false;
+	private static final int MAX_INMEMORY_GRAPH_LEVELS = 3;
+	private static final int MAX_INDB_GRAPH_LEVELS = 3;
 	private static final int MAX_USER_SPEED_IN_KM_PER_HOUR = 30;
 	private static final int MELLISECONDS_IN_HOUR = 3600000;
 	private Queue<ArrayList<Event>> levels;
@@ -46,31 +48,33 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		currEventID = linkabilityGraphDataSource.findMaxEventID() + 1;
 		logLG("currEventID: " + currEventID + "");
 
-		// TODO remove comments
 		//load previously saved linkability graph
-		//		if (currLevelID != 0) {
-		//			long startLoading = System.currentTimeMillis();
-		//			logLG("Loading LG from DB");
-		//			loadLinkabilityGraphFromDB();
-		//			Utils.createNewLoggingFolder();
-		//			Utils.createNewLoggingSubFolder();
-		//			Utils.logLinkabilityGraph(levels);
-		//			logLG("Finished Loading LG from DB in " + (System.currentTimeMillis() - startLoading)
-		//					+ " ms");
-		//		}
+		if (SAVE_LINKABILITYGRAPH_IN_DB) {
+			if (currLevelID != 0) {
+				long startLoading = System.currentTimeMillis();
+				logLG("Loading LG from DB");
+				loadLinkabilityGraphFromDB();
+				Utils.createNewLoggingFolder();
+				Utils.createNewLoggingSubFolder();
+				Utils.logLinkabilityGraph(levels);
+				logLG("Finished Loading LG from DB in "
+						+ (System.currentTimeMillis() - startLoading) + " ms");
+			}
+		}
 	}
 
 	private void loadLinkabilityGraphFromDB() {
 
 		//--> phase One: load events
 		HashMap<Long, Event> storedEvents = new HashMap<Long, Event>();
-		for (long level = currLevelID - MAX_QUEUE_SIZE; level < currLevelID; level++) {
+		for (long level = currLevelID - MAX_INMEMORY_GRAPH_LEVELS; level < currLevelID; level++) {
 			logLG("Loading Level: " + level);
 			ArrayList<Event> currLevelEvents = linkabilityGraphDataSource.findLevelEvents(level);
 			levels.add(currLevelEvents);
 
-			for (Event e : currLevelEvents)
+			for (Event e : currLevelEvents) {
 				storedEvents.put(e.id, e);
+			}
 		}
 
 		//--> phase Two: load parent child relations
@@ -86,6 +90,9 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 			for (Pair<Long, Double> parentInfo : parentInformation) {
 				Long parentID = parentInfo.first;
 				Event parent = storedEvents.get(parentID);
+				// special case for first level
+				if (parent == null)
+					continue;
 				double transProp = parentInfo.second;
 
 				parent.children.add(child);
@@ -101,20 +108,29 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//--> update graph
 		levels.add(currLevelEvents);
 
-		//--> check graph size
-		if (levels.size() > MAX_QUEUE_SIZE) {
+		//--> check in-memory graph size
+		if (levels.size() > MAX_INMEMORY_GRAPH_LEVELS) {
 			ArrayList<Event> toBeDeletedLevel = levels.poll();
 			//TODO[Validate]: implement Event removal from graph
 			removeLevel(toBeDeletedLevel);
 		}
 
-		// TODO remove comments 
-		//--? Add currLevelEvents in DB
-		//		long startSaving = System.currentTimeMillis();
-		//		logLG("start saving");
-		//		linkabilityGraphDataSource.saveLinkabilityGraphLevel(currLevelEvents, currLevelID);
-		//		logLG("end saving " + currLevelEvents.size() + " events  in "
-		//				+ (System.currentTimeMillis() - startSaving) + " ms");
+		//--> check in-db graph size
+		if (SAVE_LINKABILITYGRAPH_IN_DB) {
+			linkabilityGraphDataSource.removeGraphEventsWithLevelLowerThanOrEqual(currLevelID
+					- MAX_INDB_GRAPH_LEVELS);
+			linkabilityGraphDataSource.removeGraphEdgesWithLevelLowerThanOrEqual(currLevelID
+					- MAX_INDB_GRAPH_LEVELS);
+		}
+
+		//--> Add currLevelEvents in DB
+		if (SAVE_LINKABILITYGRAPH_IN_DB) {
+			long startSaving = System.currentTimeMillis();
+			logLG("start saving");
+			linkabilityGraphDataSource.saveLinkabilityGraphLevel(currLevelEvents, currLevelID);
+			logLG("end saving " + currLevelEvents.size() + " events  in "
+					+ (System.currentTimeMillis() - startSaving) + " ms");
+		}
 
 		//--> update variables [must be after saving into the db]
 		currEventID = maxEventID(currLevelEvents) + 1;
@@ -148,10 +164,12 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		long startPhaseOne = System.currentTimeMillis();
 		if (previousLevelEvents != null) {
 			ArrayList<Event> unReachableEvents = new ArrayList<Event>();
-			for (Event e : currLevelEvents) {
+			for (int i = 0; i < currLevelEvents.size(); i++) {
+				Event e = currLevelEvents.get(i);
 				//TODO[DONE]: implement reachability
 				ArrayList<Event> parentList = detectReachability(previousLevelEvents, e,
 						gridDBDataSource);
+
 				if (parentList.isEmpty()) {
 					//TODO[Validate]: implement Event removal from graph
 					unReachableEvents.add(e);

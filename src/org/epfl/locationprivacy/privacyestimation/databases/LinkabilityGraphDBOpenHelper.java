@@ -23,6 +23,7 @@ public class LinkabilityGraphDBOpenHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_PARENTCHILDREN_PARENTID = "parentid";
 	public static final String COLUMN_PARENTCHILDREN_CHILDID = "childid";
 	public static final String COLUMN_PARENTCHILDREN_TRANSPROBABILITY = "transitionprobability";
+	public static final String COLUMN_PARENTCHILDREN_LEVELID = "levelid";
 
 	private static final String TABLE_EVENTS_CREATE = "CREATE TABLE " + TABLE_EVENTS + " ("
 			+ COLUMN_EVENTS_ID + " INTEGER PRIMARY KEY  " + " , " + COLUMN_EVENTS_LEVELID
@@ -33,6 +34,7 @@ public class LinkabilityGraphDBOpenHelper extends SQLiteOpenHelper {
 	private static final String TABLE_PARENTCHILDREN_CREATE = "CREATE TABLE "
 			+ TABLE_PARENTCHILDREN + " (" + COLUMN_PARENTCHILDREN_PARENTID + " INTEGER NOT NULL"
 			+ " , " + COLUMN_PARENTCHILDREN_CHILDID + " INTEGER NOT NULL" + " , "
+			+ COLUMN_PARENTCHILDREN_LEVELID + " INTEGER NOT NULL" + " , "
 			+ COLUMN_PARENTCHILDREN_TRANSPROBABILITY + " FLOAT " + " , PRIMARY KEY ("
 			+ COLUMN_PARENTCHILDREN_PARENTID + ", " + COLUMN_PARENTCHILDREN_CHILDID + ") " + ")";
 

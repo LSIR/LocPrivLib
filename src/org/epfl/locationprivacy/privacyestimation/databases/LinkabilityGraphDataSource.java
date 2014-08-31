@@ -1,7 +1,6 @@
 package org.epfl.locationprivacy.privacyestimation.databases;
 
 import java.util.ArrayList;
-import java.util.Currency;
 
 import org.epfl.locationprivacy.privacyestimation.Event;
 
@@ -55,13 +54,15 @@ public class LinkabilityGraphDataSource {
 		db.insert(LinkabilityGraphDBOpenHelper.TABLE_EVENTS, null, values);
 	}
 
-	private void createParentChildRelation(long parentID, long childID, double transitionProp) {
+	private void createParentChildRelation(long parentID, long childID, double transitionProp,
+			long levelID) {
 
 		ContentValues values = new ContentValues();
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_PARENTCHILDREN_PARENTID, parentID);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_PARENTCHILDREN_CHILDID, childID);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_PARENTCHILDREN_TRANSPROBABILITY,
 				transitionProp);
+		values.put(LinkabilityGraphDBOpenHelper.COLUMN_PARENTCHILDREN_LEVELID, levelID);
 		db.insert(LinkabilityGraphDBOpenHelper.TABLE_PARENTCHILDREN, null, values);
 	}
 
@@ -74,7 +75,7 @@ public class LinkabilityGraphDataSource {
 				for (Pair<Event, Double> parentRelation : e.parents) {
 					long parentID = parentRelation.first.id;
 					double transProp = parentRelation.second;
-					createParentChildRelation(parentID, e.id, transProp);
+					createParentChildRelation(parentID, e.id, transProp, levelID - 1);
 				}
 
 			}
@@ -204,5 +205,16 @@ public class LinkabilityGraphDataSource {
 	public void clearDB() {
 		db.delete(LinkabilityGraphDBOpenHelper.TABLE_EVENTS, null, null);
 		db.delete(LinkabilityGraphDBOpenHelper.TABLE_PARENTCHILDREN, null, null);
+	}
+
+	public void removeGraphEventsWithLevelLowerThanOrEqual(long levelID) {
+		String whereClause = LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_LEVELID + " <= " + levelID;
+		db.delete(LinkabilityGraphDBOpenHelper.TABLE_EVENTS, whereClause, null);
+	}
+
+	public void removeGraphEdgesWithLevelLowerThanOrEqual(long levelID) {
+		String whereClause = LinkabilityGraphDBOpenHelper.COLUMN_PARENTCHILDREN_LEVELID + " <= "
+				+ levelID;
+		db.delete(LinkabilityGraphDBOpenHelper.TABLE_PARENTCHILDREN, whereClause, null);
 	}
 }

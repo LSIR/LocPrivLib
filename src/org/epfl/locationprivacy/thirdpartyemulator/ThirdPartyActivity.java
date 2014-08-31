@@ -6,6 +6,7 @@ import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.adaptiveprotection.AdaptiveProtection;
 import org.epfl.locationprivacy.adaptiveprotection.AdaptiveProtectionInterface;
 import org.epfl.locationprivacy.map.models.MyPolygon;
+import org.epfl.locationprivacy.privacyestimation.databases.LinkabilityGraphDataSource;
 import org.epfl.locationprivacy.util.Utils;
 
 import android.app.Activity;
@@ -131,6 +132,11 @@ public class ThirdPartyActivity extends Activity {
 
 			//testing
 			Log.d(LOGTAG, "polygons returned: " + obfRegionCells.size());
+			Log.d(LOGTAG, "LG Events: "
+					+ LinkabilityGraphDataSource.getInstance(this).countEventRows() + "LG Edges: "
+					+ LinkabilityGraphDataSource.getInstance(this).countParentChildrenRows());
+
+			// Draw obfuscation Region
 			for (MyPolygon obfRegionCell : obfRegionCells) {
 				polygons.add(Utils.drawPolygon(obfRegionCell, googleMap, 0x33FF0000));
 			}

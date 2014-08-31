@@ -29,7 +29,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 	private static final String LOGTAG = "AdaptiveProtection";
 	private long totalLoggingTime;
-	private static final double THETA = 0.4; //400 meters
+	private static final double THETA = 0.2; //200 meters
 	private static final int ALPHA = 2; // try 2 different obf regions with same size before enlarging the obf region
 	private static final int MAX_OBF_REG_AREA = 81; // 81 grid cells (9X9)
 	PrivacyEstimator privacyEstimator;
@@ -144,8 +144,9 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 		//===========================================================================================
 		boolean finished = false;
-		int ObfRegionHeightCells = 1;
-		int ObfRegionWidthCells = 1;
+		int lamda = 0;
+		int ObfRegionHeightCells = getObfRegionHeightCells(lamda);
+		int ObfRegionWidthCells = getObfRegionWidthCells(lamda);
 		int numOfTrialsWithSameObfSize = 0;
 		ArrayList<Integer> obfRegionCellIDs = null;
 		while (!finished) {
@@ -157,7 +158,8 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			// Generate obfuscation Region
 			obfRegionCellIDs = generateRandomObfRegion(fineLocationID, ObfRegionHeightCells,
 					ObfRegionWidthCells);
-			log("ObfRegionSize: " + ObfRegionHeightCells + "X" + ObfRegionWidthCells);
+			log("Lamda: " + lamda);
+			log("ObfRegionSize: " + ObfRegionWidthCells + "X" + ObfRegionHeightCells);
 
 			//--> Phase 2: 
 			// Get feedback from the privacy estimator
@@ -177,8 +179,9 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 				numOfTrialsWithSameObfSize++;
 				if (numOfTrialsWithSameObfSize >= ALPHA) {
 					numOfTrialsWithSameObfSize = 0;
-					ObfRegionHeightCells += 2;
-					ObfRegionWidthCells += 2;
+					lamda++;
+					ObfRegionHeightCells = getObfRegionHeightCells(lamda);
+					ObfRegionWidthCells = getObfRegionWidthCells(lamda);
 				}
 				if (ObfRegionHeightCells * ObfRegionWidthCells > MAX_OBF_REG_AREA) {
 					finished = true;
@@ -211,6 +214,16 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 				+ (System.currentTimeMillis() - startGetLocation - totalLoggingTime) + " ms");
 
 		return obfRegionPolygons;
+	}
+
+	private int getObfRegionWidthCells(int lamda) {
+		//sx = 1+ Ceil(lamda/2)
+		return 1 + (int) Math.ceil(lamda / 2.0);
+	}
+
+	private int getObfRegionHeightCells(int lamda) {
+		//sy = 1+ Floor(lamda/2)
+		return 1 + (int) Math.floor(lamda / 2.0);
 	}
 
 	private void log(String s) {
