@@ -43,9 +43,9 @@ public class LandingPageActivity extends Activity {
 
 		//mock sensitivities
 		//--> semantic sensitivities
-		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("university", 20);
-		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("bar", 20);
-		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("hospital", 20);
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("university", 30);
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("bar", 10);
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("hospital", 40);
 
 		//--> semantic sensitivities
 		GridDBDataSource.getInstance(this).updateGridCellSensititivity(10367, 0.2);
@@ -116,7 +116,7 @@ public class LandingPageActivity extends Activity {
 		//		Log.d(LOGTAG, "points: " + pointsCount);
 
 		//test case 3
-		//		LinkabilityGraphDataSource.getInstance(this).clearDB();
+		//				LinkabilityGraphDataSource.getInstance(this).clearDB();
 		//		Log.d(LOGTAG, "Events: " + LinkabilityGraphDataSource.getInstance(this).countEventRows());
 		//		Log.d(LOGTAG, "ParentChilred: "
 		//				+ LinkabilityGraphDataSource.getInstance(this).countParentChildrenRows());

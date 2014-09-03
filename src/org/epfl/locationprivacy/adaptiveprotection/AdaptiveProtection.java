@@ -6,7 +6,6 @@ import java.util.Random;
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
-import org.epfl.locationprivacy.privacyestimation.Event;
 import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator;
 import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.util.Utils;
@@ -28,14 +27,16 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		GooglePlayServicesClient.OnConnectionFailedListener {
 
 	private static final String LOGTAG = "AdaptiveProtection";
-	private long totalLoggingTime;
+
 	private static final double THETA = 0.2; //200 meters
 	private static final int ALPHA = 2; // try 2 different obf regions with same size before enlarging the obf region
 	private static final int MAX_OBF_REG_AREA = 81; // 81 grid cells (9X9)
-	PrivacyEstimator privacyEstimator;
-	Context context;
-	LocationClient locationClient;
-	Random random;
+
+	private PrivacyEstimator privacyEstimator;
+	private Context context;
+	private LocationClient locationClient;
+	private Random random;
+	private long totalLoggingTime;
 
 	public static Location logCurrentLocation;
 	public static MyPolygon logVenue;
@@ -165,10 +166,8 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			// Get feedback from the privacy estimator
 			long timeStamp = System.currentTimeMillis();
 			LatLng fineLocation = new LatLng(location.getLatitude(), location.getLongitude());
-			Pair<Double, ArrayList<Event>> privacyEstimationPair = privacyEstimator
-					.calculatePrivacyEstimation(fineLocation, fineLocationID, obfRegionCellIDs,
-							timeStamp);
-			double privacyEstimation = privacyEstimationPair.first;
+			double privacyEstimation = privacyEstimator.calculatePrivacyEstimation(fineLocation,
+					fineLocationID, obfRegionCellIDs, timeStamp);
 			log("Expected Distorition = " + privacyEstimation);
 
 			//--> Phase3:
@@ -192,7 +191,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			//--> Phase4: 
 			// update likability graph
 			if (finished) {
-				privacyEstimator.updateLinkabilityGraph(privacyEstimationPair.second);
+				privacyEstimator.saveLastLinkabilityGraphCopy();
 			}
 
 			//--> Logging

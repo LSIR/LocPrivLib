@@ -50,6 +50,8 @@ public class LinkabilityGraphDataSource {
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMP, e.timeStamp);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMPID, e.timeStampID);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_PROBABILITY, e.propability);
+		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_CHILDRENTRANSPROBSUM,
+				e.childrenTransProbSum);
 
 		db.insert(LinkabilityGraphDBOpenHelper.TABLE_EVENTS, null, values);
 	}
@@ -131,8 +133,9 @@ public class LinkabilityGraphDataSource {
 			LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_ID,
 			LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_LOCID,
 			LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_PROBABILITY,
+			LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_CHILDRENTRANSPROBSUM,
 			LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMP,
-			LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMPID, };
+			LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMPID };
 
 	public ArrayList<Event> findLevelEvents(long level) {
 		Cursor cursor = db.query(LinkabilityGraphDBOpenHelper.TABLE_EVENTS, eventTableColums,
@@ -180,13 +183,14 @@ public class LinkabilityGraphDataSource {
 				.getColumnIndex(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_LOCID));
 		double prop = cursor.getDouble(cursor
 				.getColumnIndex(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_PROBABILITY));
+		double childrenTransProbSum = cursor.getDouble(cursor
+				.getColumnIndex(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_CHILDRENTRANSPROBSUM));
 		long timeStamp = cursor.getLong(cursor
 				.getColumnIndex(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMP));
 		int timeStampID = cursor.getInt(cursor
 				.getColumnIndex(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMPID));
 
-		Event event = new Event(eventID, locID, timeStampID, timeStamp);
-		event.propability = prop;
+		Event event = new Event(eventID, locID, timeStampID, timeStamp, prop, childrenTransProbSum);
 		return event;
 	}
 

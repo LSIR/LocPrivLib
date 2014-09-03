@@ -2,6 +2,7 @@ package org.epfl.locationprivacy.privacyestimation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
@@ -24,11 +25,13 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	private static final String LOGTAG = "PrivacyEstimator";
 
 	private static final boolean SAVE_LINKABILITYGRAPH_IN_DB = false;
-	private static final int MAX_INMEMORY_GRAPH_LEVELS = 3;
+	private static final int MAX_INMEMORY_GRAPH_LEVELS = 6;
 	private static final int MAX_INDB_GRAPH_LEVELS = 3;
 	private static final int MAX_USER_SPEED_IN_KM_PER_HOUR = 30;
 	private static final int MELLISECONDS_IN_HOUR = 3600000;
-	private Queue<ArrayList<Event>> levels;
+
+	private Queue<ArrayList<Event>> linkabilityGraphLevels;
+	private Queue<ArrayList<Event>> lastLinkabilityGraphCopy;
 	private Context context;
 	private LinkabilityGraphDataSource linkabilityGraphDataSource;
 	private long currLevelID;
@@ -36,7 +39,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 	public PrivacyEstimator(Context c) {
 		super();
-		this.levels = new LinkedList<ArrayList<Event>>();
+		this.linkabilityGraphLevels = new LinkedList<ArrayList<Event>>();
 		this.context = c;
 		linkabilityGraphDataSource = LinkabilityGraphDataSource.getInstance(context);
 
@@ -56,7 +59,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 				loadLinkabilityGraphFromDB();
 				Utils.createNewLoggingFolder();
 				Utils.createNewLoggingSubFolder();
-				Utils.logLinkabilityGraph(levels);
+				Utils.logLinkabilityGraph(linkabilityGraphLevels);
 				logLG("Finished Loading LG from DB in "
 						+ (System.currentTimeMillis() - startLoading) + " ms");
 			}
@@ -70,7 +73,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		for (long level = currLevelID - MAX_INMEMORY_GRAPH_LEVELS; level < currLevelID; level++) {
 			logLG("Loading Level: " + level);
 			ArrayList<Event> currLevelEvents = linkabilityGraphDataSource.findLevelEvents(level);
-			levels.add(currLevelEvents);
+			linkabilityGraphLevels.add(currLevelEvents);
 
 			for (Event e : currLevelEvents) {
 				storedEvents.put(e.id, e);
@@ -103,14 +106,14 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	}
 
 	@Override
-	public void updateLinkabilityGraph(ArrayList<Event> currLevelEvents) {
+	public void saveLastLinkabilityGraphCopy() {
 
-		//--> update graph
-		levels.add(currLevelEvents);
+		//--> override original linkability graph with the last copy generated
+		linkabilityGraphLevels = lastLinkabilityGraphCopy;
 
 		//--> check in-memory graph size
-		if (levels.size() > MAX_INMEMORY_GRAPH_LEVELS) {
-			ArrayList<Event> toBeDeletedLevel = levels.poll();
+		if (linkabilityGraphLevels.size() > MAX_INMEMORY_GRAPH_LEVELS) {
+			ArrayList<Event> toBeDeletedLevel = linkabilityGraphLevels.poll();
 			//TODO[Validate]: implement Event removal from graph
 			removeLevel(toBeDeletedLevel);
 		}
@@ -124,29 +127,32 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		}
 
 		//--> Add currLevelEvents in DB
+		ArrayList<Event> lastLevelEvents = ((LinkedList<ArrayList<Event>>) linkabilityGraphLevels)
+				.getLast();
 		if (SAVE_LINKABILITYGRAPH_IN_DB) {
 			long startSaving = System.currentTimeMillis();
 			logLG("start saving");
-			linkabilityGraphDataSource.saveLinkabilityGraphLevel(currLevelEvents, currLevelID);
-			logLG("end saving " + currLevelEvents.size() + " events  in "
+			linkabilityGraphDataSource.saveLinkabilityGraphLevel(lastLevelEvents, currLevelID);
+			logLG("end saving " + lastLevelEvents.size() + " events  in "
 					+ (System.currentTimeMillis() - startSaving) + " ms");
 		}
 
 		//--> update variables [must be after saving into the db]
-		currEventID = maxEventID(currLevelEvents) + 1;
+		currEventID = maxEventID(lastLevelEvents) + 1;
 		currLevelID++;
 
 		//--?Logging
-		Utils.logLinkabilityGraph(levels);
+		Utils.logLinkabilityGraph(linkabilityGraphLevels);
 	}
 
-	public Pair<Double, ArrayList<Event>> calculatePrivacyEstimation(LatLng fineLocation,
-			int fineLocationID, ArrayList<Integer> obfRegionCellIDs, long timeStamp) {
+	public double calculatePrivacyEstimation(LatLng fineLocation, int fineLocationID,
+			ArrayList<Integer> obfRegionCellIDs, long timeStamp) {
 
+		//--> logging
 		long startPrivacyEstimation = System.currentTimeMillis();
 		log("=========================");
 		log("obfRegionSize: " + obfRegionCellIDs.size());
-		log("Graph Levels: " + levels.size());
+		log("Graph Levels: " + linkabilityGraphLevels.size());
 
 		// Phase 0: preparation
 		TransitionTableDataSource userHistoryDBDataSource = TransitionTableDataSource
@@ -154,67 +160,63 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(context);
 
 		int timeStampID = Utils.findDayPortionID(timeStamp);
+		LinkedList<ArrayList<Event>> linkabilityGraphCopy = getLinkabilityGraphCopy();
+		// TODO[NaiveImplementation]: what if levels.size = 0
+		ArrayList<Event> previousLevelEvents = (!linkabilityGraphCopy.isEmpty()) ? linkabilityGraphCopy
+				.getLast() : null;
 		ArrayList<Event> currLevelEvents = createNewEventList(obfRegionCellIDs, timeStampID,
 				timeStamp);
-		// TODO[NaiveImplementation]: what if levels.size = 0
-		ArrayList<Event> previousLevelEvents = (!levels.isEmpty()) ? ((LinkedList<ArrayList<Event>>) levels)
-				.getLast() : null;
 
 		// Phase 1: transition probabilities
 		long startPhaseOne = System.currentTimeMillis();
 		if (previousLevelEvents != null) {
-			ArrayList<Event> unReachableEvents = new ArrayList<Event>();
-			for (int i = 0; i < currLevelEvents.size(); i++) {
-				Event e = currLevelEvents.get(i);
+			Iterator<Event> currLevelEventsIterator = currLevelEvents.iterator();
+			while (currLevelEventsIterator.hasNext()) {
+				Event e = currLevelEventsIterator.next();
 				//TODO[DONE]: implement reachability
 				ArrayList<Event> parentList = detectReachability(previousLevelEvents, e,
 						gridDBDataSource);
 
 				if (parentList.isEmpty()) {
 					//TODO[Validate]: implement Event removal from graph
-					unReachableEvents.add(e);
+					currLevelEventsIterator.remove();
 				} else {
 					for (Event parent : parentList) {
 						//TODO[Done+PopulateDATA]: How to get transition probability form DB
 						double transitionPropability = userHistoryDBDataSource
 								.getTransitionProbability(parent.locID, e.locID);
+						parent.childrenTransProbSum += transitionPropability;
 						parent.children.add(e);
 						e.parents.add(new Pair<Event, Double>(parent, transitionPropability));
 					}
 				}
 			}
-
-			//--> remove unReachableEvents
-			for (Event unReachableEvent : unReachableEvents)
-				currLevelEvents.remove(unReachableEvent);
 		}
 		log("phase one took: " + (System.currentTimeMillis() - startPhaseOne) + " ms");
 
-		// Phase 2: propagate graph updates
-		if (previousLevelEvents != null)
-			for (Event e : previousLevelEvents)
-				if (e.children.isEmpty()) {
-					//TODO: implement Event removal from graph
-					removeEvent(e);
-				}
+		// Phase 2: Add last level events to the linkability graph
+		linkabilityGraphCopy.add(currLevelEvents);
 
-		// Phase 3: event probabilities
+		// Phase 3: propagate graph updates
+		if (previousLevelEvents != null)
+			propagateGraphUpdates(linkabilityGraphCopy);
+
+		// Phase 4: event probabilities
 		for (Event e : currLevelEvents) {
+			e.propability = 0;
 			if (previousLevelEvents == null) {
-				e.propability = 1.0 / (double) obfRegionCellIDs.size();
+				e.propability = 1.0 / (double) currLevelEvents.size();
 			} else {
-				//TODO remove comment
-				//				for (Pair<Event, Double> parentRelation : e.parents) {
-				//					Event parent = parentRelation.first;
-				//					Double transitionProbability = parentRelation.second;
-				//					e.propability += transitionProbability * parent.propability;
-				//				}
-				e.propability = 1.0 / (double) obfRegionCellIDs.size();
+				for (Pair<Event, Double> parentRelation : e.parents) {
+					Event parent = parentRelation.first;
+					Double transitionProbability = parentRelation.second;
+					Double normalizedTransitionProbability = transitionProbability
+							/ parent.childrenTransProbSum;
+					e.propability += normalizedTransitionProbability * parent.propability;
+
+				}
 			}
 		}
-
-		// Phase 4: update Levels
-		// [removed to another interface method to be called by adaptive mechanism after choosing the appropriate obf region]
 
 		// Phase 5: calculate expected distortion
 		long startPhase5 = System.currentTimeMillis();
@@ -226,10 +228,20 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 					* e.propability;
 		log("Phase 5 took: " + (System.currentTimeMillis() - startPhase5) + " ms");
 
+		// Phase 6: save linkability graph copy 
+		/*
+		 * so that if adaptive protection is satisfied with the ED of this
+		 * obfuscation region, then
+		 * the privacy Estimator uses replaces the original linkability graph
+		 * with this copy
+		 */
+		lastLinkabilityGraphCopy = linkabilityGraphCopy;
+
+		//--> logging time
 		log("Privacy Estimation took: " + (System.currentTimeMillis() - startPrivacyEstimation)
 				+ " ms");
 
-		return new Pair<Double, ArrayList<Event>>(expectedDistortion, currLevelEvents);
+		return expectedDistortion;
 	}
 
 	private double calculateDistance(LatLng fineLocation, LatLng coarseLocation) {
@@ -250,13 +262,10 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	private void removeLevel(ArrayList<Event> toBeDeletedLevel) {
 		for (Event e : toBeDeletedLevel) {
 			for (Event child : e.children) {
-				child.parents = null;
+				child.parents = new ArrayList<Pair<Event, Double>>(); // empty list (no parents)
 			}
 			e = null;
 		}
-	}
-
-	private void removeEvent(Event e) {
 	}
 
 	private ArrayList<Event> detectReachability(ArrayList<Event> previousLevelEvents,
@@ -283,7 +292,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		ArrayList<Event> eventList = new ArrayList<Event>();
 		long tempCurrEventID = currEventID;
 		for (int cellID : obfRegionCellIDs)
-			eventList.add(new Event(tempCurrEventID++, cellID, timeStampID, timeStamp));
+			eventList.add(new Event(tempCurrEventID++, cellID, timeStampID, timeStamp, 0, 0));
 		return eventList;
 	}
 
@@ -300,5 +309,108 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		for (Event e : currLevelEvents)
 			max = Math.max(max, e.id);
 		return max;
+	}
+
+	private LinkedList<ArrayList<Event>> getLinkabilityGraphCopy() {
+		long startCopying = System.currentTimeMillis();
+
+		//--> copy events
+		HashMap<Long, Event> copiedEvents = new HashMap<Long, Event>();
+		LinkedList<ArrayList<Event>> originalLevels = ((LinkedList<ArrayList<Event>>) linkabilityGraphLevels);
+		for (ArrayList<Event> level : originalLevels)
+			for (Event e : level) {
+				Event copiedEvent = e.copy();
+				copiedEvents.put(copiedEvent.id, copiedEvent);
+			}
+
+		//--> copy parent-child relationships
+		LinkedList<ArrayList<Event>> copiedLinkabilityGraph = new LinkedList<ArrayList<Event>>();
+		for (ArrayList<Event> originalLevel : originalLevels) {
+			ArrayList<Event> copiedLevel = new ArrayList<Event>();
+			for (Event originalChild : originalLevel) {
+				long childID = originalChild.id;
+				Event copiedChild = copiedEvents.get(childID);
+				copiedLevel.add(copiedChild);
+				ArrayList<Pair<Event, Double>> parentsInfo = originalChild.parents;
+				for (Pair<Event, Double> parentInfo : parentsInfo) {
+					long parentID = parentInfo.first.id;
+					Event copiedParent = copiedEvents.get(parentID);
+					double transProp = parentInfo.second;
+
+					copiedChild.parents.add(new Pair<Event, Double>(copiedParent, transProp));
+					copiedParent.children.add(copiedChild);
+				}
+			}
+			copiedLinkabilityGraph.add(copiedLevel);
+		}
+
+		Log.d(LOGTAG, "Copying took: " + (System.currentTimeMillis() - startCopying) + " ms");
+
+		return copiedLinkabilityGraph;
+	}
+
+	private void propagateGraphUpdates(LinkedList<ArrayList<Event>> linkabilityGraphCopy) {
+
+		//Phase 0: get events with no children
+		ArrayList<Event> beforeLastLevelEvents = linkabilityGraphCopy.get(linkabilityGraphCopy
+				.size() - 2);
+		Queue<Event> hasNoChildren = new LinkedList<Event>();
+		for (Event e : beforeLastLevelEvents) {
+			if (e.children.isEmpty()) {
+				hasNoChildren.add(e);
+			}
+		}
+
+		//Phase 1: propagate events removals up through the linkability graph
+		HashSet<Long> toBeRemovedEvents = new HashSet<Long>();
+		while (!hasNoChildren.isEmpty()) {
+			Event e = hasNoChildren.poll();
+			toBeRemovedEvents.add(e.id);
+			Iterator<Pair<Event, Double>> parentsIterator = e.parents.iterator();
+			while (parentsIterator.hasNext()) {
+				Pair<Event, Double> parentInfo = parentsIterator.next();
+				Event parent = parentInfo.first;
+				Double transProb = parentInfo.second;
+				parent.children.remove(e);
+				parent.childrenTransProbSum -= transProb;
+
+				//--> remove parent from parents list
+				parentsIterator.remove();
+
+				//--> check if parent now has no children
+				if (parent.children.isEmpty()) {
+					hasNoChildren.add(parent);
+				}
+			}
+		}
+
+		//Phase 2: traverse graph levels downwards and update probabilities
+		int levelNumber = 1;
+		for (ArrayList<Event> level : linkabilityGraphCopy) {
+			Iterator<Event> levelEventsIterator = level.iterator();
+			while (levelEventsIterator.hasNext()) {
+				Event e = levelEventsIterator.next();
+				if (toBeRemovedEvents.contains(e.id)) {
+					levelEventsIterator.remove();
+				} else {
+					//--> re-calculate the probability
+					e.propability = 0;
+					for (Pair<Event, Double> parentInfo : e.parents) {
+						Event parent = parentInfo.first;
+						Double transProp = parentInfo.second;
+						double normalizedTransProp = transProp / parent.childrenTransProbSum;
+						e.propability += normalizedTransProp * parent.propability;
+					}
+				}
+			}
+
+			//--> special case: the first level
+			if (levelNumber == 1)
+				for (Event e : level)
+					e.propability = 1.0 / (double) level.size();
+
+			levelNumber++;
+		}
+
 	}
 }

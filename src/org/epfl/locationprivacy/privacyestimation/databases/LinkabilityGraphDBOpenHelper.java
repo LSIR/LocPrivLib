@@ -19,6 +19,7 @@ public class LinkabilityGraphDBOpenHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_EVENTS_TIMESTAMP = "timestamp";
 	public static final String COLUMN_EVENTS_TIMESTAMPID = "timestampid";
 	public static final String COLUMN_EVENTS_PROBABILITY = "probability";
+	public static final String COLUMN_EVENTS_CHILDRENTRANSPROBSUM = "childrenTransPorbSum";
 
 	public static final String COLUMN_PARENTCHILDREN_PARENTID = "parentid";
 	public static final String COLUMN_PARENTCHILDREN_CHILDID = "childid";
@@ -29,7 +30,8 @@ public class LinkabilityGraphDBOpenHelper extends SQLiteOpenHelper {
 			+ COLUMN_EVENTS_ID + " INTEGER PRIMARY KEY  " + " , " + COLUMN_EVENTS_LEVELID
 			+ " INTEGER  " + " , " + COLUMN_EVENTS_LOCID + " INTEGER " + " , "
 			+ COLUMN_EVENTS_TIMESTAMP + " REAL " + " , " + COLUMN_EVENTS_TIMESTAMPID + " INTEGER "
-			+ " , " + COLUMN_EVENTS_PROBABILITY + " REAL " + ")";
+			+ " , " + COLUMN_EVENTS_PROBABILITY + " REAL " + " , "
+			+ COLUMN_EVENTS_CHILDRENTRANSPROBSUM + " REAL " + ")";
 
 	private static final String TABLE_PARENTCHILDREN_CREATE = "CREATE TABLE "
 			+ TABLE_PARENTCHILDREN + " (" + COLUMN_PARENTCHILDREN_PARENTID + " INTEGER NOT NULL"

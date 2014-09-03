@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.epfl.locationprivacy.userhistory.models.Transition;
+import org.epfl.locationprivacy.util.Utils;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -20,7 +21,7 @@ public class TransitionTableDataSource {
 	private static final String LOGTAG = "TransitionTableDataSource";
 	private static TransitionTableDataSource instance;
 	private HashMap<Integer, HashMap<Integer, Integer>> inMemoryTransitionTable;
-	private double eta = Math.pow(1, -5);
+	private double eta = Math.pow(10, -5);
 	SQLiteOpenHelper dbHelper;
 	SQLiteDatabase db;
 	Context context;
@@ -130,8 +131,13 @@ public class TransitionTableDataSource {
 		int totalTransitionCount = transitionInfo.first;
 		int possibleDestinationsCount = transitionInfo.second;
 
-		return ((double) numerator + eta)
-				/ ((double) totalTransitionCount + possibleDestinationsCount * eta);
+		if (possibleDestinationsCount != 0) //--> there is data
+			return ((double) numerator + eta)
+					/ ((double) totalTransitionCount + possibleDestinationsCount * eta);
+		else
+			//-->> thre is no data, then uniform probability
+			return 1 / (Utils.LAUSSANE_GRID_HEIGHT_CELLS * Utils.LAUSSANE_GRID_WIDTH_CELLS * 1.0);
+
 	}
 
 	private Transition parseDBRow(Cursor cursor) {

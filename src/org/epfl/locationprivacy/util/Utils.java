@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Queue;
@@ -46,6 +47,7 @@ public class Utils {
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
 	private static final float GRID_CELL_SIZE = 0.05f; //50 meters 
+	private static DecimalFormat formatter = new DecimalFormat(".##E0");
 
 	public static LatLng getLatLong(LatLng src, float distance, float bearing) {
 		double dist = distance / 6371.0;
@@ -410,14 +412,14 @@ public class Utils {
 
 			// logging
 			//--> Nodes
-			bufNodes.append("Id,Label,Level\n");
+			bufNodes.append("Id,Level,Label\n");
 			int currLevel = 0;
 			for (ArrayList<Event> level : levels) {
 				currLevel++;
 				for (Event e : level) {
-					String nodeLabel = "cellID " + e.locID + " prop " + e.propability;
+					String nodeLabel = "ID: " + e.id + " prob: " + formatter.format(e.propability);
 					String nodeID = e.id + "";
-					bufNodes.append(nodeID + "," + nodeLabel +","+currLevel+ "\n");
+					bufNodes.append(nodeID + "," + currLevel + "," + nodeLabel + "\n");
 				}
 			}
 			//--> Edges
@@ -425,13 +427,16 @@ public class Utils {
 			for (ArrayList<Event> level : levels) {
 				for (Event e : level) {
 					ArrayList<Pair<Event, Double>> parents = e.parents;
-					if (parents != null)
-						for (Pair<Event, Double> parent : parents) {
-							String source = parent.first.id + "";
-							String target = e.id + "";
-							String transitionProp = parent.second + "";
-							bufEdges.append(source + "," + target + "," + transitionProp + "\n");
-						}
+
+					for (Pair<Event, Double> parentInfo : parents) {
+						Event parent = parentInfo.first;
+						double transProp = parentInfo.second;
+						double normalizedTransProp = transProp / parent.childrenTransProbSum;
+						String source = parent.id + "";
+						String target = e.id + "";
+						String label = formatter.format(normalizedTransProp);
+						bufEdges.append(source + "," + target + "," + label + "\n");
+					}
 				}
 			}
 
