@@ -10,8 +10,10 @@ import org.epfl.locationprivacy.privacyestimation.databases.LinkabilityGraphData
 import org.epfl.locationprivacy.util.Utils;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Toast;
 
@@ -22,6 +24,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
 
 public class ThirdPartyActivity extends Activity {
 
@@ -125,34 +128,29 @@ public class ThirdPartyActivity extends Activity {
 			//create logging folder for this location
 			Utils.createNewLoggingSubFolder();
 
-			// get location
+			// get obf location
 			LatLng mockLocation = mockLocations.get(index);
-			ArrayList<MyPolygon> obfRegionCells = adaptiveProtectionInterface
-					.getLocation(mockLocation);
-
-			//testing
-			Log.d(LOGTAG, "polygons returned: " + obfRegionCells.size());
-			Log.d(LOGTAG, "LG Events: "
-					+ LinkabilityGraphDataSource.getInstance(this).countEventRows() + "LG Edges: "
-					+ LinkabilityGraphDataSource.getInstance(this).countParentChildrenRows());
+			Pair<LatLng, LatLng> obfRegionBoundries = adaptiveProtectionInterface
+					.getObfuscationLocation(mockLocation);
 
 			// Draw obfuscation Region
-			for (MyPolygon obfRegionCell : obfRegionCells) {
-				polygons.add(Utils.drawPolygon(obfRegionCell, googleMap, 0x33FF0000));
+			for (MyPolygon p : AdaptiveProtection.logObfRegion) {
+				polygons.add(Utils.drawPolygon(p, googleMap, 0x00000000));
 			}
+			drawObfRegion(obfRegionBoundries);
 
 			// adding marker for the current Location
 			MarkerOptions markerOptions = new MarkerOptions()
 					.title("CurrentLocation")
-					.snippet("Privacy Estimation: " + AdaptiveProtection.logPrivacyEstimation)
+					.snippet("ObfRegtion Size: " + AdaptiveProtection.logObfRegSize)
 					.position(
-							new LatLng(AdaptiveProtection.logCurrentLocation.getLatitude(),
-									AdaptiveProtection.logCurrentLocation.getLongitude()));
+							new LatLng(AdaptiveProtection.logCurrentLocation.latitude,
+									AdaptiveProtection.logCurrentLocation.longitude));
 			markers.add(googleMap.addMarker(markerOptions));
 
 			// draw nearest venue
 			if (view.getId() == R.id.thirdpartytestsemantics) {
-				polygons.add(Utils.drawPolygon(AdaptiveProtection.logVenue, googleMap, 0x5500FF00));
+				polygons.add(Utils.drawPolygon(AdaptiveProtection.logVenue, googleMap, 0x3300FF00));
 				MarkerOptions markerOptions2 = new MarkerOptions()
 						.title("Name: " + AdaptiveProtection.logVenue.getName())
 						.snippet(
@@ -170,11 +168,36 @@ public class ThirdPartyActivity extends Activity {
 			//					AdaptiveProtection.logCurrentLocation.getLongitude()), 15);
 			//			googleMap.moveCamera(cameraUpdate);
 
+			//testing
+			Log.d(LOGTAG, "LG Events: "
+					+ LinkabilityGraphDataSource.getInstance(this).countEventRows() + "LG Edges: "
+					+ LinkabilityGraphDataSource.getInstance(this).countParentChildrenRows());
+
 			Log.d(LOGTAG, "Finished mock location number: " + (index + 1));
 		}
 		Toast.makeText(
 				this,
 				"Finished experiment in " + (System.currentTimeMillis() - startExperiment) / 1000
 						+ " sec", Toast.LENGTH_SHORT).show();
+	}
+
+	private void drawObfRegion(Pair<LatLng, LatLng> obfRegionBoundries) {
+		LatLng topLeftPoint = obfRegionBoundries.first;
+		LatLng bottomRightPoint = obfRegionBoundries.second;
+		PolygonOptions polygonOptions = new PolygonOptions().fillColor(0x55FF0000)
+				.strokeColor(Color.BLUE).strokeWidth(1);
+		//--> top left
+		polygonOptions.add(topLeftPoint);
+
+		//--> top right
+		polygonOptions.add(new LatLng(topLeftPoint.latitude, bottomRightPoint.longitude));
+
+		//--> bottom right
+		polygonOptions.add(bottomRightPoint);
+
+		//--> bottom left
+		polygonOptions.add(new LatLng(bottomRightPoint.latitude, topLeftPoint.longitude));
+
+		polygons.add(googleMap.addPolygon(polygonOptions));
 	}
 }

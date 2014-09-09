@@ -38,11 +38,13 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	private Random random;
 	private long totalLoggingTime;
 
-	public static Location logCurrentLocation;
+	public static LatLng logCurrentLocation;
 	public static MyPolygon logVenue;
 	public static String logVenueDistance;
 	public static Double logSensitivity;
 	public static Double logPrivacyEstimation;
+	public static String logObfRegSize;
+	public static ArrayList<MyPolygon> logObfRegion;
 
 	public AdaptiveProtection(Context context) {
 		super();
@@ -54,12 +56,28 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	}
 
 	@Override
-	public ArrayList<MyPolygon> getLocation(LatLng mockLocation) {
+	public Pair<LatLng, LatLng> getObfuscationLocation() {
+		// get current location
+		Location location = locationClient.getLastLocation();
+		if (location == null) {
+			Toast.makeText(context, "Location is NULL", Toast.LENGTH_SHORT).show();
+			return null;
+		}
 
-		//preparation
+		return getObfuscationLocation(new LatLng(location.getLatitude(), location.getLongitude()));
+	}
+
+	@Override
+	public Pair<LatLng, LatLng> getObfuscationLocation(LatLng location) {
+
+		// Logging
+		long startGetLocationTimeStamp = System.currentTimeMillis();
 		totalLoggingTime = 0;
 		log("================================");
-		long startGetLocation = System.currentTimeMillis();
+		log("Current Location : " + location.latitude + "," + location.longitude);
+		logCurrentLocation = location;
+
+		// DBs preparation
 		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(context);
 		VenuesCondensedDBDataSource venuesCondensedDBDataSource = VenuesCondensedDBDataSource
 				.getInstance(context);
@@ -67,34 +85,10 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 				.getInstance(context);
 
 		//===========================================================================================
-		// get current location
-		Location location = locationClient.getLastLocation();
-		if (location == null) {
-			Toast.makeText(context, "Location is NULL", Toast.LENGTH_SHORT).show();
-			return null;
-		}
-		//--> overriding actual location with  random number
-		//		double minLat = 46.508463;
-		//		double maxLat = 46.529253;
-		//		double minLng = 6.606302;
-		//		double maxLng = 6.655912;
-		//
-		//		double randomLatitude = minLat + (maxLat - minLat) * random.nextDouble();
-		//		double randomLongitude = minLng + (maxLng - minLng) * random.nextDouble();
-		//		location.setLatitude(randomLatitude);
-		//		location.setLongitude(randomLongitude);
-
-		//--> overriding actual location with mock location
-		location.setLatitude(mockLocation.latitude);
-		location.setLongitude(mockLocation.longitude);
-		logCurrentLocation = location;
-		log("Current Location : " + location.getLatitude() + ":" + location.getLongitude());
-
-		//===========================================================================================
 		//current Location ID
 		long start = System.currentTimeMillis();
-		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(location.getLatitude(),
-				location.getLongitude());
+		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(location.latitude,
+				location.longitude);
 		int fineLocationID = Integer.parseInt(currLocGridCell.getName());
 		log("Getting fine Location ID took: " + (System.currentTimeMillis() - start) + " ms");
 		log("Current CellID: " + fineLocationID);
@@ -109,7 +103,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			//--> get semantics of current location
 			long startGetNearVenues = System.currentTimeMillis();
 			ArrayList<MyPolygon> currentLocationVenues = venuesCondensedDBDataSource
-					.findVenuesContainingLocation(location.getLatitude(), location.getLongitude());
+					.findVenuesContainingLocation(location.latitude, location.longitude);
 			String semantic = null;
 			if (!currentLocationVenues.isEmpty()) {
 				semantic = currentLocationVenues.get(0).getSemantic();
@@ -120,7 +114,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			//--> what if no venues contains the current location ? get the nearest location
 			if (currentLocationVenues.isEmpty()) {
 				Pair<MyPolygon, Double> nearestVenueAndDistance = venuesCondensedDBDataSource
-						.findNearestVenue(location.getLatitude(), location.getLongitude());
+						.findNearestVenue(location.latitude, location.longitude);
 				semantic = nearestVenueAndDistance.first.getSemantic();
 				logVenue = nearestVenueAndDistance.first;
 				logVenueDistance = "nearest";
@@ -161,12 +155,12 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 					ObfRegionWidthCells);
 			log("Lamda: " + lamda);
 			log("ObfRegionSize: " + ObfRegionWidthCells + "X" + ObfRegionHeightCells);
+			logObfRegSize = ObfRegionWidthCells + "X" + ObfRegionHeightCells;
 
 			//--> Phase 2: 
 			// Get feedback from the privacy estimator
 			long timeStamp = System.currentTimeMillis();
-			LatLng fineLocation = new LatLng(location.getLatitude(), location.getLongitude());
-			double privacyEstimation = privacyEstimator.calculatePrivacyEstimation(fineLocation,
+			double privacyEstimation = privacyEstimator.calculatePrivacyEstimation(location,
 					fineLocationID, obfRegionCellIDs, timeStamp);
 			log("Expected Distorition = " + privacyEstimation);
 
@@ -200,19 +194,31 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		}
 
 		//===========================================================================================
-		// Convert cellIDs to the polygons forming the obfRegion
-		ArrayList<MyPolygon> obfRegionPolygons = new ArrayList<MyPolygon>();
-		for (Integer cellID : obfRegionCellIDs) {
-			obfRegionPolygons.add(gridDBDataSource.findGridCell(cellID));
+		// The top left LngLat point is the first point of first gridcell
+		int topLeftGridCellID = obfRegionCellIDs.get(0);
+		LatLng obfRegionTopLeft = gridDBDataSource.findGridCell(topLeftGridCellID).getPoints()
+				.get(0);
+
+		// The bottom right LngLat point is the third point of the last gridcell
+		int bottomRightGridCellID = obfRegionCellIDs.get(obfRegionCellIDs.size() - 1);
+		LatLng obfRegtionBottomRight = gridDBDataSource.findGridCell(bottomRightGridCellID)
+				.getPoints().get(2);
+
+		//-->test
+		logObfRegion = new ArrayList<MyPolygon>();
+		for (int x : obfRegionCellIDs) {
+			logObfRegion.add(GridDBDataSource.getInstance(context).findGridCell(x));
 		}
 
-		log("Total Adaptive Protection Time : " + (System.currentTimeMillis() - startGetLocation)
-				+ " ms");
+		// Logging
+		log("Total Adaptive Protection Time : "
+				+ (System.currentTimeMillis() - startGetLocationTimeStamp) + " ms");
 		log("Total logging time: " + totalLoggingTime + "ms");
 		log("Total Adaptive Protection Time without logging : "
-				+ (System.currentTimeMillis() - startGetLocation - totalLoggingTime) + " ms");
+				+ (System.currentTimeMillis() - startGetLocationTimeStamp - totalLoggingTime)
+				+ " ms");
 
-		return obfRegionPolygons;
+		return new Pair<LatLng, LatLng>(obfRegionTopLeft, obfRegtionBottomRight);
 	}
 
 	private int getObfRegionWidthCells(int lamda) {
@@ -235,27 +241,37 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	private ArrayList<Integer> generateRandomObfRegion(int fineLocationID,
 			int obfRegionHeightCells, int obfRegionWidthCells) {
 		ArrayList<Integer> obfRegionCellIDs = new ArrayList<Integer>();
+		Log.d("test", "=================");
 
 		//curr row and col
 		int currRow = fineLocationID / Utils.LAUSSANE_GRID_WIDTH_CELLS;
 		int currCol = fineLocationID % Utils.LAUSSANE_GRID_WIDTH_CELLS;
+		Log.d("test", "size: " + obfRegionWidthCells + "X" + obfRegionHeightCells);
+		Log.d("test", "row,col: " + currRow + "," + currCol);
 
 		// top left cell id
-		int topLeftRowDelta = random.nextInt(obfRegionHeightCells);
+		int topLeftRowDelta = Math.abs(random.nextInt()) % obfRegionHeightCells;
 		int topLeftRow = currRow - topLeftRowDelta;
 		topLeftRow = topLeftRow < 0 ? 0 : topLeftRow;
+		Log.d("test", "topLeftRowDelta: " + topLeftRowDelta);
+		Log.d("test", "topLeftRow: " + topLeftRow);
 
-		int topLeftColDelta = random.nextInt(obfRegionWidthCells);
+		int topLeftColDelta = Math.abs(random.nextInt()) % obfRegionWidthCells;
 		int topLeftCol = currCol - topLeftColDelta;
 		topLeftCol = topLeftCol < 0 ? 0 : topLeftCol;
+		Log.d("test", "topLeftColDelta: " + topLeftColDelta);
+		Log.d("test", "topLeftCol: " + topLeftCol);
 
 		// bottom right cell id
 		int bottomRightRow = topLeftRow + obfRegionHeightCells - 1;
 		bottomRightRow = bottomRightRow >= Utils.LAUSSANE_GRID_HEIGHT_CELLS ? Utils.LAUSSANE_GRID_HEIGHT_CELLS - 1
 				: bottomRightRow;
+		Log.d("test", "bottomRightRow: " + bottomRightRow);
+
 		int bottomRightCol = topLeftCol + obfRegionWidthCells - 1;
 		bottomRightCol = bottomRightCol >= Utils.LAUSSANE_GRID_WIDTH_CELLS ? Utils.LAUSSANE_GRID_WIDTH_CELLS - 1
 				: bottomRightCol;
+		Log.d("test", "bottomRightCol: " + bottomRightCol);
 
 		// generate cell ids
 		for (int r = topLeftRow; r <= bottomRightRow; r++)
