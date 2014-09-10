@@ -1,5 +1,6 @@
 package org.epfl.locationprivacy.privacyestimation;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +37,8 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	private LinkabilityGraphDataSource linkabilityGraphDataSource;
 	private long currLevelID;
 	private long currEventID;
+	private static DecimalFormat formatter = new DecimalFormat(".##E0");
+	private static DecimalFormat formatter2 = new DecimalFormat("#.###");
 
 	public PrivacyEstimator(Context c) {
 		super();
@@ -221,11 +224,19 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		// Phase 5: calculate expected distortion
 		long startPhase5 = System.currentTimeMillis();
 		double expectedDistortion = 0;
-		for (Event e : currLevelEvents)
+		StringBuilder distanceLogString = new StringBuilder("");
+		for (Event e : currLevelEvents) {
 			//TODO[Validate]: implement calculate Distance
-			expectedDistortion += calculateDistance(fineLocation,
-					gridDBDataSource.getCentroid(e.locID))
-					* e.propability;
+			double distance = calculateDistance(fineLocation, gridDBDataSource.getCentroid(e.locID));
+			expectedDistortion += distance * e.propability;
+			distanceLogString.append(formatter2.format(distance) + ", ");
+		}
+		//--> logging
+		if (!currLevelEvents.isEmpty()) {
+			log("Prob of first event: " + formatter.format(currLevelEvents.get(0).propability));
+		}
+		log("Distances: " + distanceLogString.toString());
+		log("Expected Distortion: " + expectedDistortion);
 		log("Phase 5 took: " + (System.currentTimeMillis() - startPhase5) + " ms");
 
 		// Phase 6: save linkability graph copy 
@@ -248,16 +259,6 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		return Utils.distance(fineLocation.latitude, fineLocation.longitude,
 				coarseLocation.latitude, coarseLocation.longitude, 'K');
 	}
-
-	//	private double calculateEuclideanDistance(int fineLocationID, int obfLocID) {
-	//		int row1 = fineLocationID / Utils.LAUSSANE_GRID_WIDTH_CELLS;
-	//		int col1 = fineLocationID % Utils.LAUSSANE_GRID_WIDTH_CELLS;
-	//
-	//		int row2 = obfLocID / Utils.LAUSSANE_GRID_WIDTH_CELLS;
-	//		int col2 = obfLocID % Utils.LAUSSANE_GRID_WIDTH_CELLS;
-	//
-	//		return Math.sqrt(Math.pow(Math.abs(row1 - row2), 2) + Math.pow(Math.abs(col1 - col2), 2));
-	//	}
 
 	private void removeLevel(ArrayList<Event> toBeDeletedLevel) {
 		for (Event e : toBeDeletedLevel) {
@@ -298,6 +299,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 	private void log(String s) {
 		Log.d(LOGTAG, s);
+		Utils.appendLog(LOGTAG + ".txt", s);
 	}
 
 	private void logLG(String s) {

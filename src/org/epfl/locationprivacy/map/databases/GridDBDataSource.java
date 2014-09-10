@@ -92,9 +92,11 @@ public class GridDBDataSource {
 				int id = stmt.column_int(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
-				Double sensitivity = stmt.column_double(3);
-				MyPolygon polygon = new MyPolygon(id + "", semantic,
-						MyPolygon.parseSpatialPolygon("POLYGON",geometry), sensitivity);
+				String sensitivityString = stmt.column_string(3);
+				Integer sensitivity = sensitivityString == null ? null : Integer
+						.parseInt(sensitivityString);
+				MyPolygon polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon(
+						"POLYGON", geometry), sensitivity);
 				polygons.add(polygon);
 				//				Log.d(LOGTAG, polygon.toString());
 			}
@@ -200,11 +202,13 @@ public class GridDBDataSource {
 				int id = stmt.column_int(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
-				Double sensitivity = stmt.column_double(3);
+				String sensitivityString = stmt.column_string(3);
+				Integer sensitivity = sensitivityString == null ? null : Integer
+						.parseInt(sensitivityString);
 				if (polygon != null)
 					throw new Exception("Multiple results for cellID:" + cellID);
-				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon("POLYGON",geometry),
-						sensitivity);
+				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon("POLYGON",
+						geometry), sensitivity);
 
 			}
 			stmt.close();
@@ -240,14 +244,16 @@ public class GridDBDataSource {
 				int id = stmt.column_int(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
-				Double sensitivity = stmt.column_double(3);
+				String sensitivityString = stmt.column_string(3);
+				Integer sensitivity = sensitivityString == null ? null : Integer
+						.parseInt(sensitivityString);
 
 				if (polygon != null) {
 					throw new Exception("Multiple results for Lat/Lng:" + latitude + "/"
 							+ longitude);
 				}
-				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon("POLYGON",geometry),
-						sensitivity);
+				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon("POLYGON",
+						geometry), sensitivity);
 			}
 			stmt.close();
 
@@ -281,10 +287,11 @@ public class GridDBDataSource {
 		return centroid;
 	}
 
-	public void updateGridCellSensititivity(int gridId, Double sensitivity) {
+	public void updateGridCellSensititivity(int gridId, Integer sensitivity) {
 		try {
+			String sensitivityString = sensitivity == null ? "NULL" : sensitivity + "";
 			String query = "UPDATE " + GridDBOpenHelper.TABLE_GRIDCELLS + " SET "
-					+ GridDBOpenHelper.COLUMN_SENSITIVITY + "=" + sensitivity + " WHERE "
+					+ GridDBOpenHelper.COLUMN_SENSITIVITY + "=" + sensitivityString + " WHERE "
 					+ GridDBOpenHelper.COLUMN_ID + "=" + gridId + ";";
 			spatialdb.exec(query, null);
 
@@ -302,16 +309,17 @@ public class GridDBDataSource {
 					+ GridDBOpenHelper.COLUMN_GEOMETRY + ") , "
 					+ GridDBOpenHelper.COLUMN_SENSITIVITY + " from "
 					+ GridDBOpenHelper.TABLE_GRIDCELLS + " where "
-					+ GridDBOpenHelper.COLUMN_SENSITIVITY + " IS NOT NULL and "
-					+ GridDBOpenHelper.COLUMN_SENSITIVITY + " > 0";
+					+ GridDBOpenHelper.COLUMN_SENSITIVITY + " IS NOT NULL ";
 			Stmt stmt = spatialdb.prepare(query);
 			while (stmt.step()) {
 				int id = stmt.column_int(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
-				Double sensitivity = stmt.column_double(3);
-				MyPolygon polygon = new MyPolygon(id + "", semantic,
-						MyPolygon.parseSpatialPolygon("POLYGON",geometry), sensitivity);
+				String sensitivityString = stmt.column_string(3);
+				Integer sensitivity = sensitivityString == null ? null : Integer
+						.parseInt(sensitivityString);
+				MyPolygon polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon(
+						"POLYGON", geometry), sensitivity);
 				polygons.add(polygon);
 				//				Log.d(LOGTAG, polygon.toString());
 			}

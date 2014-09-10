@@ -48,9 +48,9 @@ public class LandingPageActivity extends Activity {
 		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("hospital", 40);
 
 		//--> semantic sensitivities
-		GridDBDataSource.getInstance(this).updateGridCellSensititivity(10367, 0.2);
-		GridDBDataSource.getInstance(this).updateGridCellSensititivity(17609, 0.2);
-		GridDBDataSource.getInstance(this).updateGridCellSensititivity(11003, 0.2);
+		GridDBDataSource.getInstance(this).updateGridCellSensititivity(10367, 20);
+		GridDBDataSource.getInstance(this).updateGridCellSensititivity(17609, 20);
+		GridDBDataSource.getInstance(this).updateGridCellSensititivity(11003, 20);
 
 		//Test GridDB
 		//		GridDBDataSource gridDBDataSource = new GridDBDataSource(this);

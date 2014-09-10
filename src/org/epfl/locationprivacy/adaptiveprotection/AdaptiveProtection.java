@@ -38,6 +38,9 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	private Random random;
 	private long totalLoggingTime;
 
+	// All the next variables which have the prefix log* are only used by ThirdPartyActivity for testing purposes, because
+	// the library returns only the obfuscation region. So, these variables can be removed safely without affecting the 
+	// adaptive protection mechanism
 	public static LatLng logCurrentLocation;
 	public static MyPolygon logVenue;
 	public static String logVenueDistance;
@@ -95,10 +98,9 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 		//===========================================================================================
 		// getting sensitivity preference of location, if not existing then sensitivity of semantic of nearest venue
-		Double sensitivity = currLocGridCell.getSensitivity();
-		double epsilon = Math.pow(10, -5);
+		Double sensitivity = currLocGridCell.getSensitivityAsDouble();
 		log("Current Cell Sensitivity: " + sensitivity);
-		if (Math.abs(sensitivity - 0.0) < epsilon) { // current grid cell is not sensitive,then get nearest venue semantic sensitivity 
+		if (sensitivity == null) { // current grid cell is not sensitive,then get nearest venue semantic sensitivity 
 
 			//--> get semantics of current location
 			long startGetNearVenues = System.currentTimeMillis();
@@ -234,49 +236,41 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	private void log(String s) {
 		long startlogging = System.currentTimeMillis();
 		Log.d(LOGTAG, s);
-		Utils.appendLog(LOGTAG, s);
+		Utils.appendLog(LOGTAG+".txt", s);
 		totalLoggingTime += (System.currentTimeMillis() - startlogging);
 	}
 
 	private ArrayList<Integer> generateRandomObfRegion(int fineLocationID,
 			int obfRegionHeightCells, int obfRegionWidthCells) {
 		ArrayList<Integer> obfRegionCellIDs = new ArrayList<Integer>();
-		Log.d("test", "=================");
 
 		//curr row and col
 		int currRow = fineLocationID / Utils.LAUSSANE_GRID_WIDTH_CELLS;
 		int currCol = fineLocationID % Utils.LAUSSANE_GRID_WIDTH_CELLS;
-		Log.d("test", "size: " + obfRegionWidthCells + "X" + obfRegionHeightCells);
-		Log.d("test", "row,col: " + currRow + "," + currCol);
 
 		// top left cell id
-		int topLeftRowDelta = Math.abs(random.nextInt()) % obfRegionHeightCells;
+		int topLeftRowDelta = random.nextInt(obfRegionHeightCells);
 		int topLeftRow = currRow - topLeftRowDelta;
 		topLeftRow = topLeftRow < 0 ? 0 : topLeftRow;
-		Log.d("test", "topLeftRowDelta: " + topLeftRowDelta);
-		Log.d("test", "topLeftRow: " + topLeftRow);
 
-		int topLeftColDelta = Math.abs(random.nextInt()) % obfRegionWidthCells;
+		int topLeftColDelta = random.nextInt(obfRegionWidthCells);
 		int topLeftCol = currCol - topLeftColDelta;
 		topLeftCol = topLeftCol < 0 ? 0 : topLeftCol;
-		Log.d("test", "topLeftColDelta: " + topLeftColDelta);
-		Log.d("test", "topLeftCol: " + topLeftCol);
 
 		// bottom right cell id
 		int bottomRightRow = topLeftRow + obfRegionHeightCells - 1;
 		bottomRightRow = bottomRightRow >= Utils.LAUSSANE_GRID_HEIGHT_CELLS ? Utils.LAUSSANE_GRID_HEIGHT_CELLS - 1
 				: bottomRightRow;
-		Log.d("test", "bottomRightRow: " + bottomRightRow);
 
 		int bottomRightCol = topLeftCol + obfRegionWidthCells - 1;
 		bottomRightCol = bottomRightCol >= Utils.LAUSSANE_GRID_WIDTH_CELLS ? Utils.LAUSSANE_GRID_WIDTH_CELLS - 1
 				: bottomRightCol;
-		Log.d("test", "bottomRightCol: " + bottomRightCol);
 
 		// generate cell ids
 		for (int r = topLeftRow; r <= bottomRightRow; r++)
 			for (int c = topLeftCol; c <= bottomRightCol; c++)
 				obfRegionCellIDs.add(r * Utils.LAUSSANE_GRID_WIDTH_CELLS + c);
+		log("Actual Location gridCellID: " + (topLeftColDelta + 1) + "X" + (topLeftRowDelta + 1));
 
 		return obfRegionCellIDs;
 	}

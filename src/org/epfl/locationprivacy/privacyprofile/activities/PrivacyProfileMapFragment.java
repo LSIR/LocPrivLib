@@ -10,13 +10,13 @@ import org.epfl.locationprivacy.util.Utils;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -28,7 +28,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 
-public class PrivacyProfileMapFragment extends Fragment {
+public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChangeListener {
 
 	GoogleMap googleMap;
 	MapView mapView;
@@ -38,6 +38,7 @@ public class PrivacyProfileMapFragment extends Fragment {
 	Polygon currDrawableGridCell = null;
 	MyPolygon currSelectedGridCell = null;
 	SeekBar privacyBar;
+	CheckBox checkBox;
 	HashMap<String, Polygon> idToDrawablePolygon = new HashMap<String, Polygon>();
 	GridDBDataSource gridDBDataSource;
 
@@ -51,37 +52,57 @@ public class PrivacyProfileMapFragment extends Fragment {
 
 		View rootView = inflater.inflate(R.layout.fragment_privacyprofile_map, container, false);
 
-		// seekbar & saveButton
+		//checkbox
+		checkBox = (CheckBox) rootView.findViewById(R.id.checkbox);
+		checkBox.setChecked(false);
+		checkBox.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+
+				if (currSelectedGridCell == null) {
+					Toast.makeText(getActivity(), "Select a gridcell first", Toast.LENGTH_SHORT)
+							.show();
+					checkBox.setChecked(false);
+					return;
+				}
+
+				Integer newSensitivity;
+				if (checkBox.isChecked()) {
+					//enable privacy bar
+					privacyBar.setEnabled(true);
+					privacyBar.setProgress(0);
+					newSensitivity = 0;
+
+					// draw new map red layer (sensitive grid cell)
+					Polygon newPolygon = Utils.drawPolygon(currSelectedGridCell, googleMap,
+							0x33FF0000);
+					idToDrawablePolygon.put(currSelectedGridCell.getName(), newPolygon);
+				} else {
+					//disable privacy bar
+					privacyBar.setEnabled(false);
+					newSensitivity = null;
+
+					// remove red layer
+					Polygon prev = idToDrawablePolygon.remove(currSelectedGridCell.getName());
+					prev.remove();
+				}
+
+				//save sensitivity to db
+				int gridId = Integer.parseInt(currSelectedGridCell.getName());
+				gridDBDataSource.updateGridCellSensititivity(gridId, newSensitivity);
+				Toast.makeText(getActivity(), "Successfully saved value: " + newSensitivity,
+						Toast.LENGTH_SHORT).show();
+
+			}
+		});
+
+		// seekbar
 		privacyBar = (SeekBar) rootView.findViewById(R.id.seekbar);
 		privacyBar.setProgressDrawable(getActivity().getResources().getDrawable(
 				R.drawable.seekbarbgimage));
 		privacyBar.setEnabled(false);
-		final Button saveButton = (Button) rootView.findViewById(R.id.savesensitivitybutton);
-		saveButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				// update gridcell
-				int seekBarValue = privacyBar.getProgress();
-				Double sensitivity = (seekBarValue * 1.0) / 100.0;
-				int gridId = Integer.parseInt(currSelectedGridCell.getName());
-				gridDBDataSource.updateGridCellSensititivity(gridId, sensitivity);
-
-				// draw or remove
-				if (sensitivity > 0) {
-					Polygon newPolygon = Utils.drawPolygon(currSelectedGridCell, googleMap,
-							0x33FF0000);
-					Polygon prev = idToDrawablePolygon.remove(currSelectedGridCell.getName());
-					if (prev != null)
-						prev.remove();
-					idToDrawablePolygon.put(currSelectedGridCell.getName(), newPolygon);
-
-				} else
-					idToDrawablePolygon.remove(currSelectedGridCell.getName()).remove();
-
-				Toast.makeText(getActivity(), "Successfully saved", Toast.LENGTH_SHORT).show();
-			}
-		});
+		privacyBar.setOnSeekBarChangeListener(this);
 
 		// Make sure that google play services are OK
 		if (Utils.googlePlayServicesOK(getActivity())) {
@@ -114,18 +135,16 @@ public class PrivacyProfileMapFragment extends Fragment {
 				googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
 					@Override
 					public void onMapClick(LatLng point) {
-						Log.d("test", point.toString());
-						
 						currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude,
 								point.longitude);
-						Log.d("test", currSelectedGridCell.getName());
+
 						if (currSelectedGridCell == null) {
 							Toast.makeText(getActivity(), "Chose a loction inside the Grid",
 									Toast.LENGTH_SHORT).show();
 
-							// deactivate scroll & activate save button
-							saveButton.setEnabled(false);
+							// deactivate scroll and check box
 							privacyBar.setEnabled(false);
+							checkBox.setChecked(false);
 						} else {
 							//--> remove select grid
 							if (currDrawableGridCell != null)
@@ -135,17 +154,26 @@ public class PrivacyProfileMapFragment extends Fragment {
 							currDrawableGridCell = Utils.drawPolygon(currSelectedGridCell,
 									googleMap, 0x3300FF00);
 
-							// activate scroll & activate save button
-							saveButton.setEnabled(true);
-							privacyBar.setEnabled(true);
+							// activate scroll & checkbox
+							if (currSelectedGridCell.getSensitivityAsInteger() != null) {
+								checkBox.setChecked(true);
+								privacyBar.setEnabled(true);
 
-							// update sensitivity bar
-							int currSensitivity = (int) (currSelectedGridCell.getSensitivity() * 100);
-							privacyBar.setProgress(currSensitivity);
+								// update sensitivity bar
+								int currSensitivity = currSelectedGridCell
+										.getSensitivityAsInteger();
+								privacyBar.setProgress(currSensitivity);
+							} else {
+								// deactivate scroll and check box
+								privacyBar.setEnabled(false);
+								checkBox.setChecked(false);
+							}
 
 							// test sensititivy
-							Toast.makeText(getActivity(),"CellID: "+currSelectedGridCell.getName()+
-									"Sensitivity : " + currSelectedGridCell.getSensitivity(),
+							Toast.makeText(
+									getActivity(),
+									"CellID: " + currSelectedGridCell.getName() + "Sensitivity : "
+											+ currSelectedGridCell.getSensitivityAsDouble(),
 									Toast.LENGTH_SHORT).show();
 
 						}
@@ -211,4 +239,24 @@ public class PrivacyProfileMapFragment extends Fragment {
 		polygon = Utils.drawObfuscationArea(mapGrid, googleMap);
 	}
 
+	//===================================================================================
+	//seek bar methods
+	@Override
+	public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
+	}
+
+	@Override
+	public void onStartTrackingTouch(SeekBar arg0) {
+	}
+
+	@Override
+	public void onStopTrackingTouch(SeekBar seekbar) {
+		// update gridcell
+		int sensitivity = seekbar.getProgress();
+		int gridId = Integer.parseInt(currSelectedGridCell.getName());
+		gridDBDataSource.updateGridCellSensititivity(gridId, sensitivity);
+
+		Toast.makeText(getActivity(), "Successfully saved value: " + sensitivity,
+				Toast.LENGTH_SHORT).show();
+	}
 }

@@ -11,7 +11,7 @@ public class MyPolygon {
 	String name;
 	String semantic;
 	ArrayList<LatLng> points;
-	Double sensitivity;
+	Integer sensitivity;
 
 	public MyPolygon(String name, String semantic, ArrayList<LatLng> points) {
 		super();
@@ -20,7 +20,7 @@ public class MyPolygon {
 		this.points = points;
 	}
 
-	public MyPolygon(String name, String semantic, ArrayList<LatLng> points, Double sensitivity) {
+	public MyPolygon(String name, String semantic, ArrayList<LatLng> points, Integer sensitivity) {
 		super();
 		this.name = name;
 		this.semantic = semantic;
@@ -119,11 +119,17 @@ public class MyPolygon {
 		this.points = points;
 	}
 
-	public Double getSensitivity() {
+	public Double getSensitivityAsDouble() {
+		if (sensitivity == null)
+			return null;
+		return (sensitivity * 1.0) / 100.0;
+	}
+
+	public Integer getSensitivityAsInteger() {
 		return sensitivity;
 	}
 
-	public void setSensitivity(Double sensitivity) {
+	public void setSensitivity(Integer sensitivity) {
 		this.sensitivity = sensitivity;
 	}
 
