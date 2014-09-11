@@ -43,9 +43,9 @@ public class LandingPageActivity extends Activity {
 
 		//mock sensitivities
 		//--> semantic sensitivities
-		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("university", 30);
-		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("bar", 10);
-		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("hospital", 40);
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("university", 25);
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("bar", 25);
+		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("hospital", 25);
 
 		//--> semantic sensitivities
 		GridDBDataSource.getInstance(this).updateGridCellSensititivity(10367, 20);

@@ -359,9 +359,9 @@ public class Utils {
 	//========================= Logging Methods =================================
 	//===========================================================================
 
-	private static String filePathPart1 = "sdcard/LocationPrivacyLibrary";
-	private static String filePathPart2;
-	private static String filePathPart3;
+	public static String filePathPart1 = "sdcard/LocationPrivacyLibrary";
+	public static String filePathPart2;
+	public static String filePathPart3;
 
 	public static void createNewLoggingFolder() {
 		filePathPart2 = System.currentTimeMillis() + "";
@@ -398,13 +398,14 @@ public class Utils {
 		}
 	}
 
-	public static void logLinkabilityGraph(Queue<ArrayList<Event>> levels) {
+	public static void logLinkabilityGraph(Queue<ArrayList<Event>> levels, String nodesFileName,
+			String edgesFileName) {
 		try {
 			// open nodes and edges files
 			File nodesFile = new File(filePathPart1 + "/" + filePathPart2 + "/" + filePathPart3
-					+ "/" + "nodes.txt");
+					+ "/" + nodesFileName);
 			File edgesFile = new File(filePathPart1 + "/" + filePathPart2 + "/" + filePathPart3
-					+ "/" + "edges.txt");
+					+ "/" + edgesFileName);
 			nodesFile.createNewFile();
 			edgesFile.createNewFile();
 			BufferedWriter bufNodes = new BufferedWriter(new FileWriter(nodesFile, true));

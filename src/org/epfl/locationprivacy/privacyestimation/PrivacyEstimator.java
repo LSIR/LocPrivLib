@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.Random;
 
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.privacyestimation.databases.LinkabilityGraphDataSource;
@@ -26,10 +27,11 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	private static final String LOGTAG = "PrivacyEstimator";
 
 	private static final boolean SAVE_LINKABILITYGRAPH_IN_DB = false;
-	private static final int MAX_INMEMORY_GRAPH_LEVELS = 6;
+	private static final int MAX_INMEMORY_GRAPH_LEVELS = 3;
 	private static final int MAX_INDB_GRAPH_LEVELS = 3;
 	private static final int MAX_USER_SPEED_IN_KM_PER_HOUR = 30;
 	private static final int MELLISECONDS_IN_HOUR = 3600000;
+	private static final boolean TEST_UPDATES_PROPAGATION = false;
 
 	private Queue<ArrayList<Event>> linkabilityGraphLevels;
 	private Queue<ArrayList<Event>> lastLinkabilityGraphCopy;
@@ -39,6 +41,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	private long currEventID;
 	private static DecimalFormat formatter = new DecimalFormat(".##E0");
 	private static DecimalFormat formatter2 = new DecimalFormat("#.###");
+	private static Random rand = new Random();
 
 	public PrivacyEstimator(Context c) {
 		super();
@@ -62,7 +65,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 				loadLinkabilityGraphFromDB();
 				Utils.createNewLoggingFolder();
 				Utils.createNewLoggingSubFolder();
-				Utils.logLinkabilityGraph(linkabilityGraphLevels);
+				Utils.logLinkabilityGraph(linkabilityGraphLevels, "nodes.txt", "edges.txt");
 				logLG("Finished Loading LG from DB in "
 						+ (System.currentTimeMillis() - startLoading) + " ms");
 			}
@@ -145,7 +148,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		currLevelID++;
 
 		//--?Logging
-		Utils.logLinkabilityGraph(linkabilityGraphLevels);
+		Utils.logLinkabilityGraph(linkabilityGraphLevels, "nodes.txt", "edges.txt");
 	}
 
 	public double calculatePrivacyEstimation(LatLng fineLocation, int fineLocationID,
@@ -200,6 +203,13 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		// Phase 2: Add last level events to the linkability graph
 		linkabilityGraphCopy.add(currLevelEvents);
 
+		//--> testing update propagation
+		if (TEST_UPDATES_PROPAGATION) {
+			Utils.logLinkabilityGraph(linkabilityGraphCopy,
+					"ObfRegionSize" + obfRegionCellIDs.size() + "_BeforePorpagation_nodes.txt",
+					"ObfRegionSize" + obfRegionCellIDs.size() + "_BeforePorpagation_edges.txt");
+		}
+
 		// Phase 3: propagate graph updates
 		if (previousLevelEvents != null)
 			propagateGraphUpdates(linkabilityGraphCopy);
@@ -221,21 +231,33 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 			}
 		}
 
+		//--> testing update propagation
+		if (TEST_UPDATES_PROPAGATION) {
+			Utils.logLinkabilityGraph(linkabilityGraphCopy,
+					"ObfRegionSize" + obfRegionCellIDs.size() + "_AfterPorpagation_nodes.txt",
+					"ObfRegionSize" + obfRegionCellIDs.size() + "_AeforePorpagation_edges.txt");
+		}
+
 		// Phase 5: calculate expected distortion
 		long startPhase5 = System.currentTimeMillis();
 		double expectedDistortion = 0;
 		StringBuilder distanceLogString = new StringBuilder("");
+		double distnaceSum = 0;
 		for (Event e : currLevelEvents) {
 			//TODO[Validate]: implement calculate Distance
 			double distance = calculateDistance(fineLocation, gridDBDataSource.getCentroid(e.locID));
 			expectedDistortion += distance * e.propability;
+
+			//--> for logging
 			distanceLogString.append(formatter2.format(distance) + ", ");
+			distnaceSum += distance;
 		}
 		//--> logging
 		if (!currLevelEvents.isEmpty()) {
 			log("Prob of first event: " + formatter.format(currLevelEvents.get(0).propability));
 		}
-		log("Distances: " + distanceLogString.toString());
+		log("Distances: " + distanceLogString.toString() + " SUM: "
+				+ formatter2.format(distnaceSum));
 		log("Expected Distortion: " + expectedDistortion);
 		log("Phase 5 took: " + (System.currentTimeMillis() - startPhase5) + " ms");
 
@@ -285,7 +307,28 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//				parents.add(previousLevelEvent);
 		//		}
 		//		return parents;
+
+		if (TEST_UPDATES_PROPAGATION)
+			previousLevelEvents = pickRandomParents(previousLevelEvents);
+
 		return previousLevelEvents;
+	}
+
+	private ArrayList<Event> pickRandomParents(ArrayList<Event> previousLevelEvents) {
+		int numberOfRandomParents = 1;
+		int possibleParents = previousLevelEvents.size();
+		ArrayList<Event> chosenParents = new ArrayList<Event>();
+		HashSet<Long> ids = new HashSet<Long>();
+		for (int i = 0; i < numberOfRandomParents;) {
+			Event e = previousLevelEvents.get(rand.nextInt(possibleParents));
+
+			if (!ids.contains(e.id)) {
+				chosenParents.add(e);
+				ids.add(e.id);
+				i++;
+			}
+		}
+		return chosenParents;
 	}
 
 	private ArrayList<Event> createNewEventList(ArrayList<Integer> obfRegionCellIDs,
@@ -356,18 +399,19 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//Phase 0: get events with no children
 		ArrayList<Event> beforeLastLevelEvents = linkabilityGraphCopy.get(linkabilityGraphCopy
 				.size() - 2);
-		Queue<Event> hasNoChildren = new LinkedList<Event>();
+		Queue<Event> eventsHaveNoChildren = new LinkedList<Event>();
 		for (Event e : beforeLastLevelEvents) {
 			if (e.children.isEmpty()) {
-				hasNoChildren.add(e);
+				eventsHaveNoChildren.add(e);
 			}
 		}
 
 		//Phase 1: propagate events removals up through the linkability graph
-		HashSet<Long> toBeRemovedEvents = new HashSet<Long>();
-		while (!hasNoChildren.isEmpty()) {
-			Event e = hasNoChildren.poll();
-			toBeRemovedEvents.add(e.id);
+		HashSet<Long> eventsToBeRemoved = new HashSet<Long>();
+		HashSet<Long> eventsLostSomeChildren = new HashSet<Long>();
+		while (!eventsHaveNoChildren.isEmpty()) {
+			Event e = eventsHaveNoChildren.poll();
+			eventsToBeRemoved.add(e.id);
 			Iterator<Pair<Event, Double>> parentsIterator = e.parents.iterator();
 			while (parentsIterator.hasNext()) {
 				Pair<Event, Double> parentInfo = parentsIterator.next();
@@ -381,35 +425,57 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 				//--> check if parent now has no children
 				if (parent.children.isEmpty()) {
-					hasNoChildren.add(parent);
+					eventsHaveNoChildren.add(parent);
+				} else {
+					eventsLostSomeChildren.add(parent.id);
 				}
 			}
 		}
 
-		//Phase 2: traverse graph levels downwards and update probabilities
+		//Phase 2: traverse graph levels downwards and update probabilities if needed
 		int levelNumber = 1;
+		HashSet<Long> eventsToBeUpdated = new HashSet<Long>();
 		for (ArrayList<Event> level : linkabilityGraphCopy) {
+			boolean levelHasEventsRemoved = false;
 			Iterator<Event> levelEventsIterator = level.iterator();
 			while (levelEventsIterator.hasNext()) {
 				Event e = levelEventsIterator.next();
-				if (toBeRemovedEvents.contains(e.id)) {
+
+				if (eventsToBeRemoved.contains(e.id)) {
 					levelEventsIterator.remove();
+					levelHasEventsRemoved = true;
 				} else {
-					//--> re-calculate the probability
-					e.propability = 0;
-					for (Pair<Event, Double> parentInfo : e.parents) {
-						Event parent = parentInfo.first;
-						Double transProp = parentInfo.second;
-						double normalizedTransProp = transProp / parent.childrenTransProbSum;
-						e.propability += normalizedTransProp * parent.propability;
+
+					if (eventsLostSomeChildren.contains(e.id))
+						for (Event child : e.children)
+							eventsToBeUpdated.add(child.id);
+
+					if (eventsToBeUpdated.contains(e.id)) {
+						//--> re-calculate the probability
+						e.propability = 0;
+						for (Pair<Event, Double> parentInfo : e.parents) {
+							Event parent = parentInfo.first;
+							Double transProp = parentInfo.second;
+							double normalizedTransProp = transProp / parent.childrenTransProbSum;
+							e.propability += normalizedTransProp * parent.propability;
+						}
+						//--> mark children as to be updated
+						for (Event child : e.children)
+							eventsToBeUpdated.add(child.id);
 					}
 				}
 			}
 
 			//--> special case: the first level
-			if (levelNumber == 1)
-				for (Event e : level)
+			if (levelNumber == 1 && levelHasEventsRemoved)
+				for (Event e : level) {
+					//--> re-calculate probability
 					e.propability = 1.0 / (double) level.size();
+
+					//--> mark children as to be updated
+					for (Event child : e.children)
+						eventsToBeUpdated.add(child.id);
+				}
 
 			levelNumber++;
 		}

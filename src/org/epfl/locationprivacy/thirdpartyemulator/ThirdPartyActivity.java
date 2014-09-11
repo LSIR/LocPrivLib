@@ -6,6 +6,7 @@ import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.adaptiveprotection.AdaptiveProtection;
 import org.epfl.locationprivacy.adaptiveprotection.AdaptiveProtectionInterface;
 import org.epfl.locationprivacy.map.models.MyPolygon;
+import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator;
 import org.epfl.locationprivacy.privacyestimation.databases.LinkabilityGraphDataSource;
 import org.epfl.locationprivacy.util.Utils;
 

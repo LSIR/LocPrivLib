@@ -29,7 +29,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	private static final String LOGTAG = "AdaptiveProtection";
 
 	private static final double THETA = 0.2; //200 meters
-	private static final int ALPHA = 2; // try 2 different obf regions with same size before enlarging the obf region
+	private static final int ALPHA = 1; // try 1 different obf regions with same size before enlarging the obf region
 	private static final int MAX_OBF_REG_AREA = 81; // 81 grid cells (9X9)
 
 	private PrivacyEstimator privacyEstimator;
@@ -156,8 +156,8 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			obfRegionCellIDs = generateRandomObfRegion(fineLocationID, ObfRegionHeightCells,
 					ObfRegionWidthCells);
 			log("Lamda: " + lamda);
-			log("ObfRegionSize: " + ObfRegionWidthCells + "X" + ObfRegionHeightCells);
-			logObfRegSize = ObfRegionWidthCells + "X" + ObfRegionHeightCells;
+			log("ObfRegionSize: " + ObfRegionHeightCells + "X" + ObfRegionWidthCells);
+			logObfRegSize = ObfRegionHeightCells + "X" + ObfRegionWidthCells;
 
 			//--> Phase 2: 
 			// Get feedback from the privacy estimator
@@ -236,7 +236,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	private void log(String s) {
 		long startlogging = System.currentTimeMillis();
 		Log.d(LOGTAG, s);
-		Utils.appendLog(LOGTAG+".txt", s);
+		Utils.appendLog(LOGTAG + ".txt", s);
 		totalLoggingTime += (System.currentTimeMillis() - startlogging);
 	}
 
@@ -270,7 +270,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		for (int r = topLeftRow; r <= bottomRightRow; r++)
 			for (int c = topLeftCol; c <= bottomRightCol; c++)
 				obfRegionCellIDs.add(r * Utils.LAUSSANE_GRID_WIDTH_CELLS + c);
-		log("Actual Location gridCellID: " + (topLeftColDelta + 1) + "X" + (topLeftRowDelta + 1));
+		log("Actual Location gridCellID: " + (topLeftRowDelta + 1) + "X" + (topLeftColDelta + 1));
 
 		return obfRegionCellIDs;
 	}
