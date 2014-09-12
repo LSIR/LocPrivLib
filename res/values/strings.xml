@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">LocationPrivacyV2</string>
+    <string name="app_name">Location Privacy</string>
     <string name="title_activity_landing_page">Landing Page</string>
     <string name="title_activity_privacyprofile">Privacy Sensitivities</string>
     <string name="title_activity_obf_region_setting">Settings</string>
