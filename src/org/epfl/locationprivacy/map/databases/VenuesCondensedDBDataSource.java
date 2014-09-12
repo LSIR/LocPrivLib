@@ -3,20 +3,20 @@ package org.epfl.locationprivacy.map.databases;
 import java.util.ArrayList;
 import java.util.Vector;
 
-import org.epfl.locationprivacy.map.models.MyPolygon;
-import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
-
-import com.google.android.gms.maps.model.LatLng;
-
 import jsqlite.Database;
 import jsqlite.Exception;
 import jsqlite.Stmt;
 import jsqlite.TableResult;
+
+import org.epfl.locationprivacy.map.models.MyPolygon;
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import android.util.Pair;
+
+import com.google.android.gms.maps.model.LatLng;
 
 public class VenuesCondensedDBDataSource {
 	private static final String LOGTAG = "VenuesCondensedDBDataSource";
@@ -24,7 +24,7 @@ public class VenuesCondensedDBDataSource {
 
 	SQLiteOpenHelper dbHelper;
 	SQLiteDatabase db; // this db is just used to copy the db from assets folder to the application data on the first time
-	Database spatialdb;
+	public Database spatialdb;
 	Context context;
 
 	public static VenuesCondensedDBDataSource getInstance(Context context) {

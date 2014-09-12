@@ -35,7 +35,7 @@ public class LandingPageActivity extends Activity {
 		SemanticLocationsDataSource.getInstance(this);
 		LinkabilityGraphDataSource.getInstance(this);
 
-		//mock sensitivities
+		//mock sensitivities for unit tests
 		//--> semantic sensitivities
 		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("university", 25);
 		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("bar", 25);
