@@ -111,7 +111,6 @@ public class UserHistoryActivity extends ActionBarActivity implements
 
 		super.onDestroy();
 		mapView.onDestroy();
-		Toast.makeText(this, "On Destroy", Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -124,7 +123,6 @@ public class UserHistoryActivity extends ActionBarActivity implements
 	protected void onPause() {
 		super.onPause();
 		mapView.onPause();
-		Toast.makeText(this, "On Pause", Toast.LENGTH_SHORT).show();
 	}
 
 	@Override

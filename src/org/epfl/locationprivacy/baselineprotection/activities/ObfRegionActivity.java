@@ -162,7 +162,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 					obfRegionTopLeftPoint);
 
 		} else {
-			Toast.makeText(this, "Current Location is not available", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "Current Location is not available, Can't Access GPS data", Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -176,28 +176,35 @@ public class ObfRegionActivity extends ActionBarActivity implements
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		int id = item.getItemId();
-		if (id == R.id.action_obfuscate) {
+		if (currentLocation != null) {
 
-			// obfuscation region size
-			int obfuscationRegionHeightCells = currGridHeightCells / 2 + 1;
-			int obfuscationRegionWidthCells = currGridWidthCells / 2 + 1;
+			int id = item.getItemId();
+			if (id == R.id.action_obfuscate) {
 
-			//generate random  top left point for the obfuscation region
-			int randomRow = Utils.getRandom(0, currGridHeightCells / 2);
-			int randomCol = Utils.getRandom(0, currGridWidthCells / 2);
-			LatLng obfuscationRegionTopLeftPoint = new LatLng(
-					mapGrid[randomRow][randomCol].latitude, mapGrid[randomRow][randomCol].longitude);
+				// obfuscation region size
+				int obfuscationRegionHeightCells = currGridHeightCells / 2 + 1;
+				int obfuscationRegionWidthCells = currGridWidthCells / 2 + 1;
 
-			//refresh map
-			refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
-					obfuscationRegionTopLeftPoint);
-			return true;
-		} else if (id == R.id.action_settings) {
+				//generate random  top left point for the obfuscation region
+				int randomRow = Utils.getRandom(0, currGridHeightCells / 2);
+				int randomCol = Utils.getRandom(0, currGridWidthCells / 2);
+				LatLng obfuscationRegionTopLeftPoint = new LatLng(
+						mapGrid[randomRow][randomCol].latitude,
+						mapGrid[randomRow][randomCol].longitude);
 
-			Intent intent = new Intent(ObfRegionActivity.this, ObfRegionSettingActivity.class);
-			startActivityForResult(intent, REQUEST_CODE);
-			return true;
+				//refresh map
+				refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
+						obfuscationRegionTopLeftPoint);
+				return true;
+
+			} else if (id == R.id.action_settings) {
+				Intent intent = new Intent(ObfRegionActivity.this, ObfRegionSettingActivity.class);
+				startActivityForResult(intent, REQUEST_CODE);
+				return true;
+			}
+		} else {
+			Toast.makeText(this, "Sorry Can't Get the current location, Turn On the GPS",
+					Toast.LENGTH_LONG).show();
 		}
 		return super.onOptionsItemSelected(item);
 	}

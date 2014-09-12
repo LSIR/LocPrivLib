@@ -134,7 +134,7 @@ public class VirtualTransitionGeneratorActivity extends Activity {
 			lastGoogleRequest.clearMap();
 
 		lastGoogleRequest = new GoogleDirectionAPI(map, GridDBDataSource.getInstance(this),
-				originInfo, destinationInfo, randomTransportation);
+				originInfo, destinationInfo, randomTransportation, this);
 		lastGoogleRequest.execute(url);
 
 	}

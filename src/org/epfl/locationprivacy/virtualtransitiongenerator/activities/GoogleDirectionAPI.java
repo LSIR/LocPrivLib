@@ -17,10 +17,12 @@ import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.util.Utils;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -47,11 +49,12 @@ class GoogleDirectionAPI extends AsyncTask<String, String, String> {
 	ArrayList<Polygon> polygons;
 	ArrayList<Marker> markers;
 	ArrayList<Polyline> polylines;
+	Context context;
 	NumberFormat formatter = new DecimalFormat("#0.00");
 
 	public GoogleDirectionAPI(GoogleMap map, GridDBDataSource gridDB,
 			Pair<MyPolygon, LatLng> origin, Pair<MyPolygon, LatLng> destination,
-			String transportationMean) {
+			String transportationMean, Context context) {
 		googleMap = map;
 		gridDBDataSource = gridDB;
 		this.originInfo = origin;
@@ -60,6 +63,7 @@ class GoogleDirectionAPI extends AsyncTask<String, String, String> {
 		polygons = new ArrayList<Polygon>();
 		markers = new ArrayList<Marker>();
 		polylines = new ArrayList<Polyline>();
+		this.context = context;
 	}
 
 	@Override
@@ -92,6 +96,13 @@ class GoogleDirectionAPI extends AsyncTask<String, String, String> {
 	@Override
 	protected void onPostExecute(String result) {
 		super.onPostExecute(result);
+
+		if (result == null) {
+			Toast.makeText(context,
+					"Google API doesn't respond, You might have lost internet connection",
+					Toast.LENGTH_SHORT).show();
+			return;
+		}
 
 		JsonElement jelement = new JsonParser().parse(result.toString());
 		JsonObject jobject = jelement.getAsJsonObject();

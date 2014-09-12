@@ -28,7 +28,9 @@ public class LocationTrackingService extends Service implements
 		GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
 
 	private static final String LOGTAG = "LocationTrackingService";
+
 	private static final int SAMPLING_INTERVAL_IN_MILLISECONDS = 5000;
+
 	private LocationClient locationClient;
 	Random random;
 	int previousLocID = -1;
@@ -42,7 +44,6 @@ public class LocationTrackingService extends Service implements
 
 	@Override
 	public void onCreate() {
-		Toast.makeText(this, "Congrats! MyService Created", Toast.LENGTH_SHORT).show();
 		Log.d(LOGTAG, "onCreate");
 
 		//Random Number
@@ -52,7 +53,6 @@ public class LocationTrackingService extends Service implements
 
 	@Override
 	public void onStart(Intent intent, int startId) {
-		Toast.makeText(this, "My Service Started", Toast.LENGTH_SHORT).show();
 		Log.d(LOGTAG, "onStart");
 
 		locationClient = new LocationClient(this, this, this);
@@ -61,7 +61,7 @@ public class LocationTrackingService extends Service implements
 
 	@Override
 	public void onDestroy() {
-		Toast.makeText(this, "MyService Stopped", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, "Background Service Stopped", Toast.LENGTH_SHORT).show();
 		Log.d(LOGTAG, "onDestroy");
 		locationClient.removeLocationUpdates(this);
 	}
@@ -70,19 +70,33 @@ public class LocationTrackingService extends Service implements
 	@Override
 	public void onConnected(Bundle arg0) {
 		Log.d(LOGTAG, "onConnected");
-		LocationRequest locationRequest = LocationRequest.create();
-		locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-		locationRequest.setInterval(SAMPLING_INTERVAL_IN_MILLISECONDS);
-		locationRequest.setFastestInterval(SAMPLING_INTERVAL_IN_MILLISECONDS);
-		locationClient.requestLocationUpdates(locationRequest, this);
+
+		Location currentLocation = locationClient.getLastLocation();
+		if (currentLocation != null) {
+			LocationRequest locationRequest = LocationRequest.create();
+			locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+			locationRequest.setInterval(SAMPLING_INTERVAL_IN_MILLISECONDS);
+			locationRequest.setFastestInterval(SAMPLING_INTERVAL_IN_MILLISECONDS);
+			locationClient.requestLocationUpdates(locationRequest, this);
+
+			Toast.makeText(this, "Background Service Started", Toast.LENGTH_SHORT).show();
+		} else {
+			Toast.makeText(this,
+					"Current Location is not available, Please check your GPS connection",
+					Toast.LENGTH_LONG).show();
+		}
 	}
 
 	@Override
 	public void onConnectionFailed(ConnectionResult arg0) {
+		Log.d(LOGTAG, "connection failed");
+		Toast.makeText(this, "Connection Failed", Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
 	public void onDisconnected() {
+		Log.d(LOGTAG, "connection disconnected");
+		Toast.makeText(this, "Connection disconnected", Toast.LENGTH_SHORT).show();
 	}
 
 	//===================================================
