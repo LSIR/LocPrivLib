@@ -26,12 +26,14 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 	private static final String LOGTAG = "PrivacyEstimator";
 
+	/* Library Parameters */
 	private static final boolean SAVE_LINKABILITYGRAPH_IN_DB = false;
+	private static final boolean TEST_UPDATES_PROPAGATION = false; //IMPORTANT NOTE: if you enable this boolean, you should set the ALPHA=1 in AdaptiveProtection class
+	private static final boolean ACTIVATE_REACHABILITY_FORMULA = false; // IMPORTANT NOTE: not test if true
 	private static final int MAX_INMEMORY_GRAPH_LEVELS = 3;
 	private static final int MAX_INDB_GRAPH_LEVELS = 3;
 	private static final int MAX_USER_SPEED_IN_KM_PER_HOUR = 30;
 	private static final int MELLISECONDS_IN_HOUR = 3600000;
-	private static final boolean TEST_UPDATES_PROPAGATION = false;
 
 	private Queue<ArrayList<Event>> linkabilityGraphLevels;
 	private Queue<ArrayList<Event>> lastLinkabilityGraphCopy;
@@ -120,7 +122,6 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//--> check in-memory graph size
 		if (linkabilityGraphLevels.size() > MAX_INMEMORY_GRAPH_LEVELS) {
 			ArrayList<Event> toBeDeletedLevel = linkabilityGraphLevels.poll();
-			//TODO[Validate]: implement Event removal from graph
 			removeLevel(toBeDeletedLevel);
 		}
 
@@ -167,7 +168,6 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 		int timeStampID = Utils.findDayPortionID(timeStamp);
 		LinkedList<ArrayList<Event>> linkabilityGraphCopy = getLinkabilityGraphCopy();
-		// TODO[NaiveImplementation]: what if levels.size = 0
 		ArrayList<Event> previousLevelEvents = (!linkabilityGraphCopy.isEmpty()) ? linkabilityGraphCopy
 				.getLast() : null;
 		ArrayList<Event> currLevelEvents = createNewEventList(obfRegionCellIDs, timeStampID,
@@ -179,16 +179,15 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 			Iterator<Event> currLevelEventsIterator = currLevelEvents.iterator();
 			while (currLevelEventsIterator.hasNext()) {
 				Event e = currLevelEventsIterator.next();
-				//TODO[DONE]: implement reachability
 				ArrayList<Event> parentList = detectReachability(previousLevelEvents, e,
 						gridDBDataSource);
 
 				if (parentList.isEmpty()) {
-					//TODO[Validate]: implement Event removal from graph
+					//--> remove unreachable event from current level
 					currLevelEventsIterator.remove();
 				} else {
 					for (Event parent : parentList) {
-						//TODO[Done+PopulateDATA]: How to get transition probability form DB
+						//--> transition probability
 						double transitionPropability = userHistoryDBDataSource
 								.getTransitionProbability(parent.locID, e.locID);
 						parent.childrenTransProbSum += transitionPropability;
@@ -206,8 +205,8 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//--> testing update propagation
 		if (TEST_UPDATES_PROPAGATION) {
 			Utils.logLinkabilityGraph(linkabilityGraphCopy,
-					"ObfRegionSize" + obfRegionCellIDs.size() + "_BeforePorpagation_nodes.txt",
-					"ObfRegionSize" + obfRegionCellIDs.size() + "_BeforePorpagation_edges.txt");
+					"ObfRegionSize" + obfRegionCellIDs.size() + "_BeforePropagation_nodes.txt",
+					"ObfRegionSize" + obfRegionCellIDs.size() + "_BeforePropagation_edges.txt");
 		}
 
 		// Phase 3: propagate graph updates
@@ -234,8 +233,8 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//--> testing update propagation
 		if (TEST_UPDATES_PROPAGATION) {
 			Utils.logLinkabilityGraph(linkabilityGraphCopy,
-					"ObfRegionSize" + obfRegionCellIDs.size() + "_AfterPorpagation_nodes.txt",
-					"ObfRegionSize" + obfRegionCellIDs.size() + "_AeforePorpagation_edges.txt");
+					"ObfRegionSize" + obfRegionCellIDs.size() + "_AfterPropagation_nodes.txt",
+					"ObfRegionSize" + obfRegionCellIDs.size() + "_AfterPropagation_edges.txt");
 		}
 
 		// Phase 5: calculate expected distortion
@@ -244,14 +243,19 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		StringBuilder distanceLogString = new StringBuilder("");
 		double distnaceSum = 0;
 		for (Event e : currLevelEvents) {
-			//TODO[Validate]: implement calculate Distance
-			double distance = calculateDistance(fineLocation, gridDBDataSource.getCentroid(e.locID));
+
+			double distance;
+			if (fineLocationID == e.id)
+				distance = 0;
+			else
+				distance = calculateDistance(fineLocation, gridDBDataSource.getCentroid(e.locID));
 			expectedDistortion += distance * e.propability;
 
 			//--> for logging
 			distanceLogString.append(formatter2.format(distance) + ", ");
 			distnaceSum += distance;
 		}
+
 		//--> logging
 		if (!currLevelEvents.isEmpty()) {
 			log("Prob of first event: " + formatter.format(currLevelEvents.get(0).propability));
@@ -293,24 +297,28 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 	private ArrayList<Event> detectReachability(ArrayList<Event> previousLevelEvents,
 			Event currLevelEvent, GridDBDataSource gridDBDataSource) {
-		//		ArrayList<Event> parents = new ArrayList<Event>();
-		//
-		//		LatLng centroid1 = gridDBDataSource.getCentroid(currLevelEvent.locID);
-		//		for (Event previousLevelEvent : previousLevelEvents) {
-		//			LatLng centroid2 = gridDBDataSource.getCentroid(previousLevelEvent.locID);
-		//			double travelDistanceInKm = Utils.distance(centroid1.latitude, centroid1.longitude,
-		//					centroid2.latitude, centroid2.longitude, 'K');
-		//			double travelTimeInHr = (double) (currLevelEvent.timeStamp - previousLevelEvent.timeStamp)
-		//					/ (double) MELLISECONDS_IN_HOUR;
-		//			double travelSpeedInKmPerHr = travelDistanceInKm / travelTimeInHr;
-		//			if (travelSpeedInKmPerHr <= MAX_USER_SPEED_IN_KM_PER_HOUR)
-		//				parents.add(previousLevelEvent);
-		//		}
-		//		return parents;
 
 		if (TEST_UPDATES_PROPAGATION)
-			previousLevelEvents = pickRandomParents(previousLevelEvents);
+			return pickRandomParents(previousLevelEvents);
 
+		if (ACTIVATE_REACHABILITY_FORMULA) {
+			ArrayList<Event> parents = new ArrayList<Event>();
+
+			LatLng centroid1 = gridDBDataSource.getCentroid(currLevelEvent.locID);
+			for (Event previousLevelEvent : previousLevelEvents) {
+				LatLng centroid2 = gridDBDataSource.getCentroid(previousLevelEvent.locID);
+				double travelDistanceInKm = Utils.distance(centroid1.latitude, centroid1.longitude,
+						centroid2.latitude, centroid2.longitude, 'K');
+				double travelTimeInHr = (double) (currLevelEvent.timeStamp - previousLevelEvent.timeStamp)
+						/ (double) MELLISECONDS_IN_HOUR;
+				double travelSpeedInKmPerHr = travelDistanceInKm / travelTimeInHr;
+				if (travelSpeedInKmPerHr <= MAX_USER_SPEED_IN_KM_PER_HOUR)
+					parents.add(previousLevelEvent);
+			}
+			return parents;
+		}
+
+		//--> If the reachability formula is not activated, so return all the previous level events as parents to the currrent event
 		return previousLevelEvents;
 	}
 

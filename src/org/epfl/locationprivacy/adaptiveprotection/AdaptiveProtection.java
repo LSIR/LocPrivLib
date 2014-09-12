@@ -28,8 +28,9 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 	private static final String LOGTAG = "AdaptiveProtection";
 
+	/* Library Parameters */
 	private static final double THETA = 0.2; //200 meters
-	private static final int ALPHA = 1; // try 1 different obf regions with same size before enlarging the obf region
+	private static final int ALPHA = 4; // try 4 different obf regions with same size before enlarging the obf region
 	private static final int MAX_OBF_REG_AREA = 81; // 81 grid cells (9X9)
 
 	private PrivacyEstimator privacyEstimator;
@@ -276,6 +277,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	}
 
 	//===========================================================================
+	//--> GPS methods
 	@Override
 	public void onConnected(Bundle arg0) {
 	}

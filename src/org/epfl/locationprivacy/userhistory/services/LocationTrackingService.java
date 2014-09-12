@@ -69,6 +69,7 @@ public class LocationTrackingService extends Service implements
 	//===================================================
 	@Override
 	public void onConnected(Bundle arg0) {
+		Log.d(LOGTAG, "onConnected");
 		LocationRequest locationRequest = LocationRequest.create();
 		locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 		locationRequest.setInterval(SAMPLING_INTERVAL_IN_MILLISECONDS);
@@ -87,7 +88,7 @@ public class LocationTrackingService extends Service implements
 	//===================================================
 	@Override
 	public void onLocationChanged(Location location) {
-
+		Log.d(LOGTAG, "onLocationChanged");
 		// open DBs
 		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(this);
 		TransitionTableDataSource transitionTableDataSource = TransitionTableDataSource

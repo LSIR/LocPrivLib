@@ -22,7 +22,7 @@
         <CheckBox android:id="@+id/checkbox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="override semantic sensitivity"/>
+        android:text="Override semantic sensitivity"/>
 
         <RelativeLayout
             android:id="@+id/relativeLayout1"

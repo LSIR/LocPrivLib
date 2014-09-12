@@ -126,18 +126,38 @@ public class TransitionTableDataSource {
 
 	public double getTransitionProbability(int fromLocID, int toLocID) {
 
-		int numerator = getTransitionCount(fromLocID, toLocID);
-		Pair<Integer, Integer> transitionInfo = getTransitionCount(fromLocID);
-		int totalTransitionCount = transitionInfo.first;
-		int possibleDestinationsCount = transitionInfo.second;
+		int transitionCountFromLocToLoc = getTransitionCount(fromLocID, toLocID);
+		int transitionCountFromLoc = getTransitionCount(fromLocID);
+		int numberOfGridCells = Utils.LAUSSANE_GRID_HEIGHT_CELLS * Utils.LAUSSANE_GRID_WIDTH_CELLS;
+		return ((double) (transitionCountFromLocToLoc + eta))
+				/ ((double) (transitionCountFromLoc + (numberOfGridCells * eta)));
+	}
 
-		if (possibleDestinationsCount != 0) //--> there is data
-			return ((double) numerator + eta)
-					/ ((double) totalTransitionCount + possibleDestinationsCount * eta);
-		else
-			//-->> thre is no data, then uniform probability
-			return 1 / (Utils.LAUSSANE_GRID_HEIGHT_CELLS * Utils.LAUSSANE_GRID_WIDTH_CELLS * 1.0);
+	private int getTransitionCount(int fromLocID, int toLocID) {
 
+		if (!inMemoryTransitionTable.containsKey(fromLocID))
+			return 0;
+		HashMap<Integer, Integer> destinationsMap = inMemoryTransitionTable.get(fromLocID);
+		if (!destinationsMap.containsKey(toLocID))
+			return 0;
+		return destinationsMap.get(toLocID);
+	}
+
+	private Integer getTransitionCount(int fromID) {
+
+		if (!inMemoryTransitionTable.containsKey(fromID))
+			return 0;
+
+		//iterate over the destinations map
+		HashMap<Integer, Integer> destinationsMap = inMemoryTransitionTable.get(fromID);
+		int totalTransitionCount = 0;
+		Iterator<Entry<Integer, Integer>> it = destinationsMap.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry<Integer, Integer> pairs = (Map.Entry<Integer, Integer>) it.next();
+			totalTransitionCount += pairs.getValue();
+			it.remove(); // avoids a ConcurrentModificationException
+		}
+		return totalTransitionCount;
 	}
 
 	private Transition parseDBRow(Cursor cursor) {
@@ -159,68 +179,6 @@ public class TransitionTableDataSource {
 
 		Transition transition = new Transition(fromLocID, toLocID, fromTimeID, toTimeID, count);
 		return transition;
-	}
-
-	private int getTransitionCount(int fromLocID, int toLocID) {
-		//		Cursor cursor = db.query(UserHistoryDBOpenHelper.TABLE_TRANSITIONS, allColums,
-		//				UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_FROMLOCID + "=? AND "
-		//						+ UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_TOLOCID + "=?", new String[] {
-		//						fromLocID + "", toLocID + "" }, null, null, null, null);
-		//
-		//		int rows = cursor.getCount();
-		//		if (rows == 1) {
-		//			cursor.moveToNext();
-		//			return parseDBRow(cursor).count;
-		//		} else
-		//			return 0; // means this transition doesn't exist
-
-		if (!inMemoryTransitionTable.containsKey(fromLocID))
-			return 0;
-		HashMap<Integer, Integer> destinationsMap = inMemoryTransitionTable.get(fromLocID);
-		if (!destinationsMap.containsKey(toLocID))
-			return 0;
-		return destinationsMap.get(toLocID);
-	}
-
-	private Pair<Integer, Integer> getTransitionCount(int fromID) {
-		//		final Cursor cursor = db.rawQuery("SELECT sum("
-		//				+ UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_COUNT + "), count("
-		//				+ UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_TOLOCID + ")  FROM "
-		//				+ UserHistoryDBOpenHelper.TABLE_TRANSITIONS + " where "
-		//				+ UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_FROMLOCID + " = " + fromID + " ;",
-		//				null);
-		//		int possibleDestinationsCount = 0;
-		//		int totalTransitionCount = 0;
-		//		if (cursor != null) {
-		//			try {
-		//				if (cursor.moveToFirst()) {
-		//					totalTransitionCount = cursor.getInt(0);
-		//					possibleDestinationsCount = cursor.getInt(1);
-		//				}
-		//			} finally {
-		//				cursor.close();
-		//			}
-		//		}
-		//		Pair<Integer, Integer> transitionInformation = new Pair<Integer, Integer>(
-		//				totalTransitionCount, possibleDestinationsCount);
-		//		return transitionInformation;
-
-		int possibleDestinationsCount = 0;
-		int totalTransitionCount = 0;
-		if (!inMemoryTransitionTable.containsKey(fromID))
-			return new Pair<Integer, Integer>(totalTransitionCount, possibleDestinationsCount);
-		HashMap<Integer, Integer> destinationsMap = inMemoryTransitionTable.get(fromID);
-
-		//iterate over the destinations map
-		Iterator<Entry<Integer, Integer>> it = destinationsMap.entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry<Integer, Integer> pairs = (Map.Entry<Integer, Integer>) it.next();
-			totalTransitionCount += pairs.getValue();
-			possibleDestinationsCount++;
-			it.remove(); // avoids a ConcurrentModificationException
-		}
-		return new Pair<Integer, Integer>(totalTransitionCount, possibleDestinationsCount);
-
 	}
 
 	private void loadTransitionTableInMemory() {
