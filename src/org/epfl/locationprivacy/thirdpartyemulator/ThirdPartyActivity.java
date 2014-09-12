@@ -6,7 +6,6 @@ import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.adaptiveprotection.AdaptiveProtection;
 import org.epfl.locationprivacy.adaptiveprotection.AdaptiveProtectionInterface;
 import org.epfl.locationprivacy.map.models.MyPolygon;
-import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator;
 import org.epfl.locationprivacy.privacyestimation.databases.LinkabilityGraphDataSource;
 import org.epfl.locationprivacy.util.Utils;
 
@@ -162,12 +161,6 @@ public class ThirdPartyActivity extends Activity {
 										AdaptiveProtection.logVenue.getPoints().get(0).longitude));
 				markers.add(googleMap.addMarker(markerOptions2));
 			}
-
-			//move camera
-			//			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(
-			//					AdaptiveProtection.logCurrentLocation.getLatitude(),
-			//					AdaptiveProtection.logCurrentLocation.getLongitude()), 15);
-			//			googleMap.moveCamera(cameraUpdate);
 
 			//testing
 			Log.d(LOGTAG, "LG Events: "
