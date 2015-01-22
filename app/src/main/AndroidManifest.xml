@@ -6,7 +6,7 @@
 
     <uses-sdk
         android:minSdkVersion="11"
-        android:targetSdkVersion="19" />
+        android:targetSdkVersion="21" />
 
     <permission
         android:name="org.epfl.locationprivacy.permission.MAPS_RECEIVE"
@@ -61,7 +61,7 @@
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyCLN08PNK_55_vv6odazxwZeJK4ZFItOS0" />
+            android:value="AIzaSyDKFNDWfdK75AwoB-KWUFf6aiPgzY7xezs" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
