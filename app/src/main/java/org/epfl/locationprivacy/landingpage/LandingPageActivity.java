@@ -16,9 +16,10 @@ import org.epfl.locationprivacy.virtualtransitiongenerator.activities.VirtualTra
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 
-public class LandingPageActivity extends Activity {
+public class LandingPageActivity extends ActionBarActivity {
 
 	private static final String LOGTAG = "LandingPageActivity";
 

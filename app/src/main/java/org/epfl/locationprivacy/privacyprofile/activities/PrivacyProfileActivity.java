@@ -4,20 +4,17 @@ import org.epfl.locationprivacy.R;
 import org.epfl.locationprivacy.privacyprofile.adapters.PrivacyProfileTabsAdapter;
 import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 
-import android.app.ActionBar;
-import android.app.ActionBar.Tab;
-import android.app.ActionBar.TabListener;
-import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 
-public class PrivacyProfileActivity extends ActionBarActivity implements TabListener {
+public class PrivacyProfileActivity extends ActionBarActivity implements android.support.v7.app.ActionBar.TabListener {
 
 	private String[] tabs = { "Semantics", "Locations" };
 	private ViewPager viewPager;
 	private PrivacyProfileTabsAdapter privacyProfileTabsAdapter;
-	private ActionBar actionBar;
+	private android.support.v7.app.ActionBar actionBar;
 	SemanticLocationsDataSource semanticLocationsDataSource;
 
 	@Override
@@ -25,9 +22,9 @@ public class PrivacyProfileActivity extends ActionBarActivity implements TabList
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_privacyprofile);
 
-		// Initilization
+		// Initialization
 		viewPager = (ViewPager) findViewById(R.id.privacyprofilepager);
-		actionBar = getActionBar();
+		actionBar = getSupportActionBar();
 		privacyProfileTabsAdapter = new PrivacyProfileTabsAdapter(getSupportFragmentManager(), this);
 
 		viewPager.setAdapter(privacyProfileTabsAdapter);
@@ -60,18 +57,18 @@ public class PrivacyProfileActivity extends ActionBarActivity implements TabList
 	}
 
 	// Tab Methods
-	@Override
-	public void onTabReselected(Tab tab, FragmentTransaction ft) {
+    @Override
+    public void onTabSelected(android.support.v7.app.ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
+        viewPager.setCurrentItem(tab.getPosition());
+    }
 
-	}
+    @Override
+    public void onTabUnselected(android.support.v7.app.ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
 
-	@Override
-	public void onTabSelected(Tab tab, FragmentTransaction ft) {
-		viewPager.setCurrentItem(tab.getPosition());
-	}
+    }
 
-	@Override
-	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+    @Override
+    public void onTabReselected(android.support.v7.app.ActionBar.Tab tab, android.support.v4.app.FragmentTransaction fragmentTransaction) {
 
-	}
+    }
 }
