@@ -17,11 +17,13 @@ import org.epfl.locationprivacy.privacyestimation.Event;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.os.Environment;
 import android.os.StrictMode;
 import android.util.Log;
 import android.util.Pair;
@@ -46,7 +48,7 @@ public class Utils {
 	private static String LOGTAG = "Utils";
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
-	private static final float GRID_CELL_SIZE = 0.05f; //50 meters 
+	private static final float GRID_CELL_SIZE = 0.05f; //50 meters
 	private static DecimalFormat formatter = new DecimalFormat(".##E0");
 
 	public static LatLng getLatLong(LatLng src, float distance, float bearing) {
@@ -56,9 +58,9 @@ public class Utils {
 		double lon1 = Math.toRadians(src.longitude);
 
 		double lat2 = Math.asin(Math.sin(lat1) * Math.cos(dist) + Math.cos(lat1) * Math.sin(dist)
-				* Math.cos(brng));
+				                                                          * Math.cos(brng));
 		double a = Math.atan2(Math.sin(brng) * Math.sin(dist) * Math.cos(lat1), Math.cos(dist)
-				- Math.sin(lat1) * Math.sin(lat2));
+				                                                                        - Math.sin(lat1) * Math.sin(lat2));
 		double lon2 = lon1 + a;
 		lon2 = (lon2 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
 
@@ -70,12 +72,12 @@ public class Utils {
 	}
 
 	public static LatLng findTopLeftPoint(LatLng centerPoint, int gridHeightCells,
-			int gridWidthCells) {
+	                                      int gridWidthCells) {
 
 		LatLng midLeftPoint = Utils.getLatLong(centerPoint, (gridWidthCells / 2 + 0.5f)
-				* GRID_CELL_SIZE, -90f);
+				                                                    * GRID_CELL_SIZE, -90f);
 		LatLng topLeftPoint = Utils.getLatLong(midLeftPoint, (gridHeightCells / 2 + 0.5f)
-				* GRID_CELL_SIZE, 0f);
+				                                                     * GRID_CELL_SIZE, 0f);
 		return topLeftPoint;
 	}
 
@@ -127,14 +129,14 @@ public class Utils {
 		//draw horizontal polylines
 		for (int i = 0; i < arrRows; i++) {
 			PolylineOptions polylineOptions = new PolylineOptions().color(Color.BLUE).width(1)
-					.add(mapGrid[i][0]).add(mapGrid[i][arrCols - 1]);
+					                                  .add(mapGrid[i][0]).add(mapGrid[i][arrCols - 1]);
 			polylines.add(googleMap.addPolyline(polylineOptions));
 		}
 
 		//draw vertical polylines
 		for (int i = 0; i < arrCols; i++) {
 			PolylineOptions polylineOptions = new PolylineOptions().color(Color.BLUE).width(1)
-					.add(mapGrid[0][i]).add(mapGrid[arrRows - 1][i]);
+					                                  .add(mapGrid[0][i]).add(mapGrid[arrRows - 1][i]);
 			polylines.add(googleMap.addPolyline(polylineOptions));
 		}
 
@@ -143,7 +145,7 @@ public class Utils {
 
 	public static Polygon drawPolygon(MyPolygon polygon, GoogleMap googleMap, int fillColor) {
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(fillColor)
-				.strokeColor(Color.BLUE).strokeWidth(1);
+				                                .strokeColor(Color.BLUE).strokeWidth(1);
 		for (LatLng p : polygon.getPoints()) {
 			polygonOptions.add(p);
 		}
@@ -157,7 +159,7 @@ public class Utils {
 		Log.d(LOGTAG, "Rows:" + arrRows + "  Cols:" + arrCols);
 
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(0x330000FF)
-				.strokeColor(Color.BLUE).strokeWidth(1);
+				                                .strokeColor(Color.BLUE).strokeWidth(1);
 		polygonOptions.add(mapGrid[0][0]).add(mapGrid[0][arrCols - 1])
 				.add(mapGrid[arrRows - 1][arrCols - 1]).add(mapGrid[arrRows - 1][0]);
 		return googleMap.addPolygon(polygonOptions);
@@ -171,7 +173,7 @@ public class Utils {
 			return true;
 		} else if (GooglePlayServicesUtil.isUserRecoverableError(isAvailable)) {
 			Dialog dialog = GooglePlayServicesUtil.getErrorDialog(isAvailable, activity,
-					GPS_ERRORDIALOG_REQUEST);
+					                                                     GPS_ERRORDIALOG_REQUEST);
 			dialog.show();
 		} else {
 			Toast.makeText(activity, "Can't connect to google play services", Toast.LENGTH_SHORT)
@@ -199,7 +201,7 @@ public class Utils {
 	public static double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
 		double theta = lon1 - lon2;
 		double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1))
-				* Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+				                                                                  * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
 		dist = Math.acos(dist);
 		dist = rad2deg(dist);
 		dist = dist * 60 * 1.1515;
@@ -241,13 +243,13 @@ public class Utils {
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 		StrictMode.setThreadPolicy(policy);
 
-		// Get the corresponding triangle marker from Google        
+		// Get the corresponding triangle marker from Google
 		URL url;
 		Bitmap image = null;
 
 		try {
 			url = new URL("http://www.google.com/intl/en_ALL/mapfiles/dir_"
-					+ String.valueOf((int) adjBearing) + ".png");
+					              + String.valueOf((int) adjBearing) + ".png");
 			try {
 				image = BitmapFactory.decodeStream(url.openConnection().getInputStream());
 			} catch (IOException e) {
@@ -318,7 +320,7 @@ public class Utils {
 
 			// Create larger bitmap 4 times the size of arrow head image
 			wideBmp = Bitmap.createBitmap(image.getWidth() * 2, image.getHeight() * 2,
-					image.getConfig());
+					                             image.getConfig());
 
 			wideBmpCanvas = new Canvas(wideBmp);
 
@@ -329,7 +331,7 @@ public class Utils {
 			wideBmpCanvas.drawBitmap(image, src, dest, null);
 
 			return mMap.addMarker(new MarkerOptions().position(to)
-					.icon(BitmapDescriptorFactory.fromBitmap(wideBmp)).anchor(anchorX, anchorY));
+					                      .icon(BitmapDescriptorFactory.fromBitmap(wideBmp)).anchor(anchorX, anchorY));
 		}
 		return null;
 	}
@@ -342,9 +344,9 @@ public class Utils {
 
 		// Compute the angle.
 		double angle = -Math.atan2(
-				Math.sin(lon1 - lon2) * Math.cos(lat2),
-				Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)
-						* Math.cos(lon1 - lon2));
+				                          Math.sin(lon1 - lon2) * Math.cos(lat2),
+				                          Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)
+						                                                            * Math.cos(lon1 - lon2));
 
 		if (angle < 0.0)
 			angle += Math.PI * 2.0;
@@ -359,30 +361,49 @@ public class Utils {
 	//========================= Logging Methods =================================
 	//===========================================================================
 
-	public static String filePathPart1 = "sdcard/LocationPrivacyLibrary";
+	public static String filePathPart1 = "LocationPrivacyLibrary";
 	public static String filePathPart2;
 	public static String filePathPart3;
 
-	public static void createNewLoggingFolder() {
+	public static void createNewLoggingFolder(Context context) {
 		filePathPart2 = System.currentTimeMillis() + "";
-		File dir = new File(filePathPart1 + "/" + filePathPart2);
-		dir.mkdir();
+		File path;
+		if (isExternalStorageWritable()) {
+			path = context.getExternalFilesDir(null);
+		} else {
+			path = context.getFilesDir();
+		}
+		File completePath = new File(path, filePathPart1 + File.separator + filePathPart2);
+		completePath.mkdirs();
 	}
 
-	public static void createNewLoggingSubFolder() {
+	public static void createNewLoggingSubFolder(Context context) {
 		filePathPart3 = System.currentTimeMillis() + "";
-		File dir = new File(filePathPart1 + "/" + filePathPart2 + "/" + filePathPart3);
-		dir.mkdir();
+		File path;
+		if (isExternalStorageWritable()) {
+			path = context.getExternalFilesDir(null);
+		} else {
+			path = context.getFilesDir();
+		}
+		File completePath = new File(path, filePathPart1 + File.separator + filePathPart2 + File.separator + filePathPart3);
+		completePath.mkdirs();
 	}
 
-	public static void appendLog(String fileName, String text) {
-		File logFile = new File(filePathPart1 + "/" + filePathPart2 + "/" + filePathPart3 + "/"
-				+ fileName);
+	public static void appendLog(String fileName, String text, Context context) {
+		File path;
+		if (isExternalStorageWritable()) {
+			path = context.getExternalFilesDir(null);
+		} else {
+			path = context.getFilesDir();
+		}
+		File completePath = new File(path, filePathPart1 + File.separator + filePathPart2 + File.separator + filePathPart3);
+		File logFile = new File(completePath, fileName);
 		if (!logFile.exists()) {
 			try {
 				logFile.createNewFile();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
+				Toast.makeText(context, "Problem with logging", Toast.LENGTH_SHORT);
 				e.printStackTrace();
 			}
 		}
@@ -394,18 +415,33 @@ public class Utils {
 			buf.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			Toast.makeText(context, "Problem with logging", Toast.LENGTH_SHORT);
 			e.printStackTrace();
 		}
 	}
 
 	public static void logLinkabilityGraph(Queue<ArrayList<Event>> levels, String nodesFileName,
-			String edgesFileName) {
+	                                       String edgesFileName, Context context) {
 		try {
 			// open nodes and edges files
-			File nodesFile = new File(filePathPart1 + "/" + filePathPart2 + "/" + filePathPart3
-					+ "/" + nodesFileName);
-			File edgesFile = new File(filePathPart1 + "/" + filePathPart2 + "/" + filePathPart3
-					+ "/" + edgesFileName);
+			File pathNodes;
+			if (isExternalStorageWritable()) {
+				pathNodes = context.getExternalFilesDir(null);
+			} else {
+				pathNodes = context.getFilesDir();
+			}
+			File completeNodesPath = new File(pathNodes, filePathPart1 + File.separator + filePathPart2 + File.separator + filePathPart3);
+			File nodesFile = new File(completeNodesPath, nodesFileName);
+
+			File pathEdges;
+			if (isExternalStorageWritable()) {
+				pathEdges = context.getExternalFilesDir(null);
+			} else {
+				pathEdges = context.getFilesDir();
+			}
+			File completeEdgesPath = new File(pathEdges, filePathPart1 + File.separator + filePathPart2 + File.separator + filePathPart3);
+			File edgesFile = new File(completeEdgesPath, edgesFileName);
+
 			nodesFile.createNewFile();
 			edgesFile.createNewFile();
 			BufferedWriter bufNodes = new BufferedWriter(new FileWriter(nodesFile, true));
@@ -447,5 +483,14 @@ public class Utils {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/* Checks if external storage is available for read and write */
+	public static boolean isExternalStorageWritable() {
+		String state = Environment.getExternalStorageState();
+		if (Environment.MEDIA_MOUNTED.equals(state)) {
+			return true;
+		}
+		return false;
 	}
 }

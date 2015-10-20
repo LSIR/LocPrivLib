@@ -40,7 +40,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	private long totalLoggingTime;
 
 	// All the next variables which have the prefix log* are only used by ThirdPartyActivity for testing purposes, because
-	// the library returns only the obfuscation region. So, these variables can be removed safely without affecting the 
+	// the library returns only the obfuscation region. So, these variables can be removed safely without affecting the
 	// adaptive protection mechanism
 	public static LatLng logCurrentLocation;
 	public static MyPolygon logVenue;
@@ -101,7 +101,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		// getting sensitivity preference of location, if not existing then sensitivity of semantic of nearest venue
 		Double sensitivity = currLocGridCell.getSensitivityAsDouble();
 		log("Current Cell Sensitivity: " + sensitivity);
-		if (sensitivity == null) { // current grid cell is not sensitive,then get nearest venue semantic sensitivity 
+		if (sensitivity == null) { // current grid cell is not sensitive,then get nearest venue semantic sensitivity
 
 			//--> get semantics of current location
 			long startGetNearVenues = System.currentTimeMillis();
@@ -152,7 +152,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			log("----------------------------");
 			long startLoopTime = System.currentTimeMillis();
 
-			//--> Phase 1: 
+			//--> Phase 1:
 			// Generate obfuscation Region
 			obfRegionCellIDs = generateRandomObfRegion(fineLocationID, ObfRegionHeightCells,
 					ObfRegionWidthCells);
@@ -160,7 +160,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			log("ObfRegionSize: " + ObfRegionHeightCells + "X" + ObfRegionWidthCells);
 			logObfRegSize = ObfRegionHeightCells + "X" + ObfRegionWidthCells;
 
-			//--> Phase 2: 
+			//--> Phase 2:
 			// Get feedback from the privacy estimator
 			long timeStamp = System.currentTimeMillis();
 			double privacyEstimation = privacyEstimator.calculatePrivacyEstimation(location,
@@ -185,7 +185,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 				}
 			}
 
-			//--> Phase4: 
+			//--> Phase4:
 			// update likability graph
 			if (finished) {
 				privacyEstimator.saveLastLinkabilityGraphCopy();
@@ -237,7 +237,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	private void log(String s) {
 		long startlogging = System.currentTimeMillis();
 		Log.d(LOGTAG, s);
-		Utils.appendLog(LOGTAG + ".txt", s);
+		Utils.appendLog(LOGTAG + ".txt", s, context);
 		totalLoggingTime += (System.currentTimeMillis() - startlogging);
 	}
 

@@ -121,13 +121,13 @@ public class ThirdPartyActivity extends ActionBarActivity {
 		Utils.removeMarkers(markers);
 
 		//Create Logging folder
-		Utils.createNewLoggingFolder();
+		Utils.createNewLoggingFolder(view.getContext());
 
 		long startExperiment = System.currentTimeMillis();
 		for (int index = 0; index < mockLocations.size(); index++) {
 
 			//create logging folder for this location
-			Utils.createNewLoggingSubFolder();
+			Utils.createNewLoggingSubFolder(view.getContext());
 
 			// get obf location
 			LatLng mockLocation = mockLocations.get(index);
