@@ -13,7 +13,6 @@ import org.epfl.locationprivacy.userhistory.databases.LocationTableDataSource;
 import org.epfl.locationprivacy.userhistory.databases.TransitionTableDataSource;
 import org.epfl.locationprivacy.virtualtransitiongenerator.activities.VirtualTransitionGeneratorActivity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -43,9 +42,9 @@ public class LandingPageActivity extends ActionBarActivity {
 		SemanticLocationsDataSource.getInstance(this).updateSemanticLocation("hospital", 25);
 
 		//--> semantic sensitivities
-		GridDBDataSource.getInstance(this).updateGridCellSensititivity(10367, 20);
-		GridDBDataSource.getInstance(this).updateGridCellSensititivity(17609, 20);
-		GridDBDataSource.getInstance(this).updateGridCellSensititivity(11003, 20);
+		GridDBDataSource.getInstance(this).updateGridCellSensitivity(10367, 20);
+		GridDBDataSource.getInstance(this).updateGridCellSensitivity(17609, 20);
+		GridDBDataSource.getInstance(this).updateGridCellSensitivity(11003, 20);
 	}
 
 	public void onClickPrivacySensitivity(View view) {

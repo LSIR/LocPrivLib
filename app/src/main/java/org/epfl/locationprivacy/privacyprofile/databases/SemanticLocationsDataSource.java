@@ -40,7 +40,7 @@ public class SemanticLocationsDataSource {
 		this.context = context;
 		dbHelper = LocationDBOpenHelper.getInstance(context);
 		open();
-		
+
 		List<SemanticLocation> semanticLocations = finaAll();
 		if (semanticLocations.size() == 0) {
 			populateDB();
@@ -97,7 +97,7 @@ public class SemanticLocationsDataSource {
 
 	public Double findSemanticSensitivity(String semanticTag) {
 
-		
+
 		Cursor cursor = db.query(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, allColums,
 				LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME + " ='" + semanticTag + "'",
 				null, null, null, null, null);
@@ -124,7 +124,7 @@ public class SemanticLocationsDataSource {
 			}
 			reader.close();
 		} catch (IOException e) {
-			Log.e(LOGTAG, "Failed While reading sematic_locations.txt");
+			Log.e(LOGTAG, "Failed While reading semantic_locations.txt");
 		}
 
 		// add data to DB

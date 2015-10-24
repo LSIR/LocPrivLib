@@ -246,8 +246,8 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		ArrayList<Integer> obfRegionCellIDs = new ArrayList<Integer>();
 
 		//curr row and col
-		int currRow = fineLocationID / Utils.LAUSSANE_GRID_WIDTH_CELLS;
-		int currCol = fineLocationID % Utils.LAUSSANE_GRID_WIDTH_CELLS;
+		int currRow = fineLocationID / Utils.LAUSANNE_GRID_WIDTH_CELLS;
+		int currCol = fineLocationID % Utils.LAUSANNE_GRID_WIDTH_CELLS;
 
 		// top left cell id
 		int topLeftRowDelta = random.nextInt(obfRegionHeightCells);
@@ -260,17 +260,17 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 		// bottom right cell id
 		int bottomRightRow = topLeftRow + obfRegionHeightCells - 1;
-		bottomRightRow = bottomRightRow >= Utils.LAUSSANE_GRID_HEIGHT_CELLS ? Utils.LAUSSANE_GRID_HEIGHT_CELLS - 1
+		bottomRightRow = bottomRightRow >= Utils.LAUSANNE_GRID_HEIGHT_CELLS ? Utils.LAUSANNE_GRID_HEIGHT_CELLS - 1
 				: bottomRightRow;
 
 		int bottomRightCol = topLeftCol + obfRegionWidthCells - 1;
-		bottomRightCol = bottomRightCol >= Utils.LAUSSANE_GRID_WIDTH_CELLS ? Utils.LAUSSANE_GRID_WIDTH_CELLS - 1
+		bottomRightCol = bottomRightCol >= Utils.LAUSANNE_GRID_WIDTH_CELLS ? Utils.LAUSANNE_GRID_WIDTH_CELLS - 1
 				: bottomRightCol;
 
 		// generate cell ids
 		for (int r = topLeftRow; r <= bottomRightRow; r++)
 			for (int c = topLeftCol; c <= bottomRightCol; c++)
-				obfRegionCellIDs.add(r * Utils.LAUSSANE_GRID_WIDTH_CELLS + c);
+				obfRegionCellIDs.add(r * Utils.LAUSANNE_GRID_WIDTH_CELLS + c);
 		log("Actual Location gridCellID: " + (topLeftRowDelta + 1) + "X" + (topLeftColDelta + 1));
 
 		return obfRegionCellIDs;

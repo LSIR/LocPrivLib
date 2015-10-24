@@ -6,7 +6,7 @@ import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
 public class VenuesCondensedDBOpenHelper extends SQLiteAssetHelper {
 
-	public static final String DATABASE_NAME = "laussanevenues.sqlite";
+	public static final String DATABASE_NAME = "lausannevenues.sqlite";
 	private static final int DATABASE_VERSION = 1;
 
 	public static final String TABLE_POLYGONS = "polygons";

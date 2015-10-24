@@ -43,8 +43,12 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 public class Utils {
 
-	public static final int LAUSSANE_GRID_HEIGHT_CELLS = 101;
-	public static final int LAUSSANE_GRID_WIDTH_CELLS = 301;
+	// Kept only for testing purpose
+	public static final int LAUSANNE_GRID_HEIGHT_CELLS = 101;
+	public static final int LAUSANNE_GRID_WIDTH_CELLS = 301;
+
+	public static final int GRID_HEIGHT_CELLS = 101;
+	public static final int GRID_WIDTH_CELLS = 101;
 	private static String LOGTAG = "Utils";
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();

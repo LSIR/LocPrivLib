@@ -15,7 +15,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
-import android.util.Pair;
 
 public class TransitionTableDataSource {
 	private static final String LOGTAG = "TransitionTableDataSource";
@@ -128,7 +127,7 @@ public class TransitionTableDataSource {
 
 		int transitionCountFromLocToLoc = getTransitionCount(fromLocID, toLocID);
 		int transitionCountFromLoc = getTransitionCount(fromLocID);
-		int numberOfGridCells = Utils.LAUSSANE_GRID_HEIGHT_CELLS * Utils.LAUSSANE_GRID_WIDTH_CELLS;
+		int numberOfGridCells = Utils.LAUSANNE_GRID_HEIGHT_CELLS * Utils.LAUSANNE_GRID_WIDTH_CELLS;
 		return ((double) (transitionCountFromLocToLoc + eta))
 				/ ((double) (transitionCountFromLoc + (numberOfGridCells * eta)));
 	}
