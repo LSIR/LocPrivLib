@@ -8,6 +8,7 @@ import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.util.Utils;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -19,6 +20,9 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -28,7 +32,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 
-public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChangeListener {
+public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChangeListener,
+		                                                                   GooglePlayServicesClient.ConnectionCallbacks,
+		                                                                   GooglePlayServicesClient.OnConnectionFailedListener {
 
 	GoogleMap googleMap;
 	MapView mapView;
@@ -41,6 +47,9 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 	CheckBox checkBox;
 	HashMap<String, Polygon> idToDrawablePolygon = new HashMap<String, Polygon>();
 	GridDBDataSource gridDBDataSource;
+	LocationClient locationClient;
+	Location currentLocation = null;
+	LatLng[][] mapGrid = null;
 
 	public PrivacyProfileMapFragment() {
 		super();
@@ -61,7 +70,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			public void onClick(View v) {
 
 				if (currSelectedGridCell == null) {
-					Toast.makeText(getActivity(), "Select a gridcell first", Toast.LENGTH_SHORT)
+					Toast.makeText(getActivity(), "Select a grid cell first", Toast.LENGTH_SHORT)
 							.show();
 					checkBox.setChecked(false);
 					return;
@@ -76,7 +85,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 					// draw new map red layer (sensitive grid cell)
 					Polygon newPolygon = Utils.drawPolygon(currSelectedGridCell, googleMap,
-							0x33FF0000);
+							                                      0x33FF0000);
 					idToDrawablePolygon.put(currSelectedGridCell.getName(), newPolygon);
 				} else {
 					//disable privacy bar
@@ -90,9 +99,9 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 				//save sensitivity to db
 				int gridId = Integer.parseInt(currSelectedGridCell.getName());
-				gridDBDataSource.updateGridCellSensititivity(gridId, newSensitivity);
+				gridDBDataSource.updateGridCellSensitivity(gridId, newSensitivity);
 				Toast.makeText(getActivity(), "Successfully saved value: " + newSensitivity,
-						Toast.LENGTH_SHORT).show();
+						              Toast.LENGTH_SHORT).show();
 
 			}
 		});
@@ -100,7 +109,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 		// seekbar
 		privacyBar = (SeekBar) rootView.findViewById(R.id.seekbar);
 		privacyBar.setProgressDrawable(getActivity().getResources().getDrawable(
-				R.drawable.seekbarbgimage));
+				                                                                       R.drawable.seekbarbgimage));
 		privacyBar.setEnabled(false);
 		privacyBar.setOnSeekBarChangeListener(this);
 
@@ -112,17 +121,21 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			mapView.onCreate(mBundle);
 
 			if (initMap()) {
-
-				// Go to laussane map
-				LatLng latLng = new LatLng(46.526092, 6.584415);
+				// Create location client to find current position
+				locationClient = new LocationClient(this.getActivity(), this, this);
+				locationClient.connect();
+				// Default position in Lausanne
+				/*LatLng latLng = new LatLng(46.526092, 6.584415);
 				CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 11);
 				googleMap.moveCamera(cameraUpdate);
 
 				// Draw Grid
+				// FIXME : draw all saved grids
 				MyPolygon topLeftGridCell = gridDBDataSource.findGridCell(0);
 				LatLng topLeftPoint = topLeftGridCell.getPoints().get(0);
-				refreshMapGrid(Utils.LAUSSANE_GRID_HEIGHT_CELLS, Utils.LAUSSANE_GRID_WIDTH_CELLS,
-						topLeftPoint);
+				refreshMapGrid(Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS,
+						              topLeftPoint);
+				*/
 
 				// Query Previously saved grid cells which have customized sensitivity
 				ArrayList<MyPolygon> sensitiveGridCells = gridDBDataSource.findSensitiveGridCells();
@@ -136,11 +149,11 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 					@Override
 					public void onMapClick(LatLng point) {
 						currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude,
-								point.longitude);
+								                                                    point.longitude);
 
 						if (currSelectedGridCell == null) {
-							Toast.makeText(getActivity(), "Chose a loction inside the Grid",
-									Toast.LENGTH_SHORT).show();
+							Toast.makeText(getActivity(), "Choose a location inside the Grid",
+									              Toast.LENGTH_SHORT).show();
 
 							// deactivate scroll and check box
 							privacyBar.setEnabled(false);
@@ -152,7 +165,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 							//--> add new one
 							currDrawableGridCell = Utils.drawPolygon(currSelectedGridCell,
-									googleMap, 0x3300FF00);
+									                                        googleMap, 0x3300FF00);
 
 							// activate scroll & checkbox
 							if (currSelectedGridCell.getSensitivityAsInteger() != null) {
@@ -161,7 +174,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 								// update sensitivity bar
 								int currSensitivity = currSelectedGridCell
-										.getSensitivityAsInteger();
+										                      .getSensitivityAsInteger();
 								privacyBar.setProgress(currSensitivity);
 							} else {
 								// deactivate scroll and check box
@@ -169,12 +182,12 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 								checkBox.setChecked(false);
 							}
 
-							// test sensititivy
+							// test sensitivity
 							Toast.makeText(
-									getActivity(),
-									"CellID: " + currSelectedGridCell.getName() + "Sensitivity : "
-											+ currSelectedGridCell.getSensitivityAsDouble(),
-									Toast.LENGTH_SHORT).show();
+									              getActivity(),
+									              "CellID: " + currSelectedGridCell.getName() + "Sensitivity : "
+											              + currSelectedGridCell.getSensitivityAsDouble(),
+									              Toast.LENGTH_SHORT).show();
 
 						}
 					}
@@ -224,6 +237,70 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 	//=================================================================================
 
+	@Override
+	public void onConnectionFailed(ConnectionResult arg0) {
+	}
+
+	@Override
+	public void onDisconnected() {
+	}
+
+	@Override
+	public void onConnected(Bundle arg0) {
+		Toast.makeText(this.getActivity(), "Connected to location service", Toast.LENGTH_SHORT).show();
+
+		MapsInitializer.initialize(this.getActivity());
+
+		currentLocation = locationClient.getLastLocation();
+		if (currentLocation != null) {
+
+			//Animate
+			LatLng latLng = new LatLng(currentLocation.getLatitude(),
+					                          currentLocation.getLongitude());
+			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
+			googleMap.moveCamera(cameraUpdate);
+
+			//Adding Marker
+			// FIXME : keep this part ?
+			/*String timeStamp = dateFormat.format(new Date());
+			String markerTitle = timeStamp + " " + latLng.toString();
+			MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(latLng);
+			googleMap.addMarker(markerOptions);*/
+
+			// top Left corner
+			LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
+					                               currentLocation.getLongitude());
+			LatLng topLeftPoint = Utils.findTopLeftPoint(centerPoint, Utils.GRID_HEIGHT_CELLS,
+					                                            Utils.GRID_WIDTH_CELLS);
+
+			// generate Map Grid
+			int arrRows = Utils.GRID_HEIGHT_CELLS + 1;
+			int arrCols = Utils.GRID_WIDTH_CELLS + 1;
+			mapGrid = Utils.generateMapGrid(arrRows, arrCols, topLeftPoint);
+
+			// obfuscation region size
+			int obfuscationRegionHeightCells = Utils.GRID_HEIGHT_CELLS / 2 + 1;
+			int obfuscationRegionWidthCells = Utils.GRID_WIDTH_CELLS / 2 + 1;
+
+			// top Left corner for the obfuscation region
+			LatLng obfRegionTopLeftPoint = Utils.findTopLeftPoint(centerPoint,
+					                                                     obfuscationRegionHeightCells, obfuscationRegionWidthCells);
+
+			// refresh map
+			refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
+					              obfRegionTopLeftPoint);
+
+			// Save grid in db
+			gridDBDataSource.saveGrid(mapGrid, Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS);
+
+		} else {
+			Toast.makeText(this.getActivity(), "Current Location is not available, Can't Access GPS data", Toast.LENGTH_LONG).show();
+		}
+	}
+
+	//=================================================================================
+
+	// FIXME : to modify
 	private void refreshMapGrid(int heightCells, int widthCells, LatLng topLeftPoint) {
 
 		// generate Map Grid
@@ -254,9 +331,9 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 		// update gridcell
 		int sensitivity = seekbar.getProgress();
 		int gridId = Integer.parseInt(currSelectedGridCell.getName());
-		gridDBDataSource.updateGridCellSensititivity(gridId, sensitivity);
+		gridDBDataSource.updateGridCellSensitivity(gridId, sensitivity);
 
 		Toast.makeText(getActivity(), "Successfully saved value: " + sensitivity,
-				Toast.LENGTH_SHORT).show();
+				              Toast.LENGTH_SHORT).show();
 	}
 }
