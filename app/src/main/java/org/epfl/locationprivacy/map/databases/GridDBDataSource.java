@@ -133,8 +133,7 @@ public class GridDBDataSource {
 				cornerPoints.add(mapGrid[i][j + 1]);
 				cornerPoints.add(mapGrid[i + 1][j + 1]);
 				cornerPoints.add(mapGrid[i + 1][j]);
-				// FIXME : make ID unique
-				int gridCellId = i * gridWidthCells + j;
+				int gridCellId = Utils.getCellID();
 				MyPolygon polygon = new MyPolygon(gridCellId + "", "", cornerPoints);
 				insertPolygonIntoDB(polygon);
 			}

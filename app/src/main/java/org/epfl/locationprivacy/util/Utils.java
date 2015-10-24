@@ -54,7 +54,13 @@ public class Utils {
 	private static Random rand = new Random();
 	private static final float GRID_CELL_SIZE = 0.05f; //50 meters
 	private static DecimalFormat formatter = new DecimalFormat(".##E0");
+	private static int cellID = 0;
 
+	public static int getCellID() {
+		int returnValue = cellID;
+		cellID++;
+		return returnValue;
+	}
 	public static LatLng getLatLong(LatLng src, float distance, float bearing) {
 		double dist = distance / 6371.0;
 		double brng = Math.toRadians(bearing);
