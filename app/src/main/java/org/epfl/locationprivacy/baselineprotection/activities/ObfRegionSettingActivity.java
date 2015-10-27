@@ -190,7 +190,7 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 		// top Left corner
 		LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
 				currentLocation.getLongitude());
-		LatLng topLeftPoint = Utils.findTopLeftPoint(centerPoint, gridHeightCells, gridWidthCells);
+		LatLng topLeftPoint = Utils.findTopLeftPoint(centerPoint);
 
 		// generate Map Grid
 		int arrRows = gridHeightCells + 1;

@@ -82,7 +82,7 @@ public class Utils {
 	 * @param position
 	 * @return the top Left position of a Cell given an other position
 	 */
-	public static LatLng findTopLeftOfCellFromLatLng(LatLng position) {
+	public static LatLng findTopLeftPoint(LatLng position) {
 		int precision = 10000; // 4 decimals, precision of 11 meters
 		// height in degrees
 		double cellHeight = 0.0009; // 99 meters
@@ -196,7 +196,8 @@ public class Utils {
 		}
 	}
 
-	public static LatLng findTopLeftPoint(LatLng centerPoint, int gridHeightCells,
+	/*************************************** OBSOLETE *********************************************/
+	/*public static LatLng findTopLeftPoint(LatLng centerPoint, int gridHeightCells,
 	                                      int gridWidthCells) {
 
 		LatLng midLeftPoint = Utils.getLatLong(centerPoint, (gridWidthCells / 2 + 0.5f)
@@ -204,7 +205,8 @@ public class Utils {
 		LatLng topLeftPoint = Utils.getLatLong(midLeftPoint, (gridHeightCells / 2 + 0.5f)
 				                                                     * GRID_CELL_SIZE, 0f);
 		return topLeftPoint;
-	}
+	}*/
+	/**********************************************************************************************/
 
 	public static LatLng[][] generateMapGrid(int arrRows, int arrCols, LatLng topLeftPoint) {
 		LatLng[][] grid = new LatLng[arrRows][arrCols];

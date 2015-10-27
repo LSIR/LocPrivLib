@@ -141,8 +141,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 			// top Left corner
 			LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
 					currentLocation.getLongitude());
-			LatLng topLeftPoint = Utils.findTopLeftPoint(centerPoint, currGridHeightCells,
-					currGridWidthCells);
+			LatLng topLeftPoint = Utils.findTopLeftPoint(centerPoint);
 
 			// generate Map Grid
 			int arrRows = currGridHeightCells + 1;
@@ -154,8 +153,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 			int obfuscationRegionWidthCells = currGridWidthCells / 2 + 1;
 
 			// top Left corner for the obfuscation region
-			LatLng obfRegionTopLeftPoint = Utils.findTopLeftPoint(centerPoint,
-					obfuscationRegionHeightCells, obfuscationRegionWidthCells);
+			LatLng obfRegionTopLeftPoint = Utils.findTopLeftPoint(centerPoint);
 
 			// refresh map
 			refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
@@ -224,8 +222,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 			// top Left corner for the grid
 			LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
 					currentLocation.getLongitude());
-			LatLng gridTopLeftPoint = Utils.findTopLeftPoint(centerPoint, currGridHeightCells,
-					currGridWidthCells);
+			LatLng gridTopLeftPoint = Utils.findTopLeftPoint(centerPoint);
 
 			// generate Map Grid
 			int arrRows = currGridHeightCells + 1;
@@ -233,8 +230,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 			mapGrid = Utils.generateMapGrid(arrRows, arrCols, gridTopLeftPoint);
 
 			// top Left corner for the obfuscation region
-			LatLng obfRegionTopLeftPoint = Utils.findTopLeftPoint(centerPoint,
-					obfuscationRegionHeightCells, obfuscationRegionWidthCells);
+			LatLng obfRegionTopLeftPoint = Utils.findTopLeftPoint(centerPoint);
 
 			// refresh map
 			refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
