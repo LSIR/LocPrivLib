@@ -68,6 +68,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 			@Override
 			public void onClick(View v) {
+				// TODO : when tick checkbox, add cell into DB
 
 				if (currSelectedGridCell == null) {
 					Toast.makeText(getActivity(), "Select a grid cell first", Toast.LENGTH_SHORT)
@@ -267,6 +268,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(latLng);
 			googleMap.addMarker(markerOptions);*/
 
+			// TODO : Compute the cell of current position according to origin
 			// top Left corner
 			LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
 					                               currentLocation.getLongitude());
@@ -282,6 +284,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			int obfuscationRegionHeightCells = Utils.GRID_HEIGHT_CELLS / 2 + 1;
 			int obfuscationRegionWidthCells = Utils.GRID_WIDTH_CELLS / 2 + 1;
 
+			// FIXME : something to change ?
 			// top Left corner for the obfuscation region
 			LatLng obfRegionTopLeftPoint = Utils.findTopLeftPoint(centerPoint,
 					                                                     obfuscationRegionHeightCells, obfuscationRegionWidthCells);
@@ -291,7 +294,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 					              obfRegionTopLeftPoint);
 
 			// Save grid in db
-			gridDBDataSource.saveGrid(mapGrid, Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS);
+			//gridDBDataSource.saveGrid(mapGrid, Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS);
 
 		} else {
 			Toast.makeText(this.getActivity(), "Current Location is not available, Can't Access GPS data", Toast.LENGTH_LONG).show();
@@ -300,7 +303,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 	//=================================================================================
 
-	// FIXME : to modify
+	// FIXME : to modify ?
 	private void refreshMapGrid(int heightCells, int widthCells, LatLng topLeftPoint) {
 
 		// generate Map Grid

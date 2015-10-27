@@ -49,18 +49,14 @@ public class Utils {
 
 	public static final int GRID_HEIGHT_CELLS = 101;
 	public static final int GRID_WIDTH_CELLS = 101;
+	public static final LatLng MAP_ORIGIN = new LatLng(0, 0);
 	private static String LOGTAG = "Utils";
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
+	// FIXME : can change depending on position on earth
 	private static final float GRID_CELL_SIZE = 0.05f; //50 meters
 	private static DecimalFormat formatter = new DecimalFormat(".##E0");
-	private static int cellID = 0;
 
-	public static int getCellID() {
-		int returnValue = cellID;
-		cellID++;
-		return returnValue;
-	}
 	public static LatLng getLatLong(LatLng src, float distance, float bearing) {
 		double dist = distance / 6371.0;
 		double brng = Math.toRadians(bearing);
@@ -79,6 +75,125 @@ public class Utils {
 
 	public static int getRandom(int min, int max) {
 		return rand.nextInt((max - min) + 1) + min;
+	}
+
+	/**
+	 * Compute the top Left position of a Cell given an other position
+	 * @param position
+	 * @return the top Left position of a Cell given an other position
+	 */
+	public static LatLng findTopLeftOfCellFromLatLng(LatLng position) {
+		int precision = 10000; // 4 decimals, precision of 11 meters
+		// height in degrees
+		double cellHeight = 0.0009; // 99 meters
+		double latitude = position.latitude + 90; // latitude is positive
+		double longitude = position.longitude + 180; // longitude is positive
+		// width in degrees
+		double cellWidth = getDegreesFor100m(position.latitude, cellHeight);
+
+		if (cellWidth == 0) {
+		}
+
+		// Truncate to 11 meters precision
+		latitude = Math.floor(latitude * precision) / precision;
+
+		double nbCellsLatFromSouthPole = Math.floor(latitude / cellHeight);
+		double nbCellsLongFromOppositeOfOrigin = Math.floor(longitude / cellWidth);
+
+		// Bottom Left corner of current cell
+		latitude = cellHeight * nbCellsLatFromSouthPole;
+		longitude = cellWidth * nbCellsLongFromOppositeOfOrigin;
+
+		// Top Left corner of current cell
+		if (position.latitude < 90) {
+			latitude = latitude + cellHeight;
+		}
+
+		// Come back to real values
+		latitude -= 90;
+		longitude -= 180;
+
+		// Truncate once to be sure to have the exact value
+		latitude = Math.floor(latitude * precision) / precision;
+		longitude = Math.floor(longitude * precision) / precision;
+
+		return new LatLng(latitude, longitude);
+	}
+
+	/**
+	 * Compute the width of a cell to have in it approx. 100 meters
+	 * @param latitude between -90 and 90
+	 * @param initialWidth in degrees
+	 * @return the width of a cell to have in it approx. 100 meters
+	 */
+	public static double getDegreesFor100m(double latitude, double initialWidth) {
+
+		// Find the percentage of distance lost between equinox and current circle of latitude
+		double lat = Math.abs(latitude);
+		double diffWithEquinox = differenceWithEquinox(lat);
+
+		// Compute new width for cells
+		double cellWidth = initialWidth + (initialWidth * diffWithEquinox);
+		if (cellWidth == 0) {
+			return 0;
+		}
+		// Compute nbOfCells needed
+		double nbOfCellsForLong = Math.floor(360 / cellWidth);
+		// Compute the new adapted size to fit the entire circle of latitude
+		double oneCellSize = 360 / nbOfCellsForLong;
+
+		return oneCellSize;
+	}
+
+	/**
+	 * Compute the difference in percentage for lost distance between equinox and circle of latitude
+	 * @param latitude in degrees
+	 * @return the difference in percentage for lost distance between equinox and circle of latitude
+	 */
+	private static double differenceWithEquinox(double latitude) {
+		double circleOfLatitude = Math.round(latitude);
+
+		if (circleOfLatitude < 1) {
+			return 0;
+		} else if (circleOfLatitude < 5) {
+			return 100 - 99.6;
+		} else if (circleOfLatitude < 10) {
+			return 100 - 98.5;
+		} else if (circleOfLatitude < 15) {
+			return 100 - 96.6;
+		} else if (circleOfLatitude < 20) {
+			return 100 - 94;
+		} else if (circleOfLatitude < 25) {
+			return 100 - 90.7;
+		} else if (circleOfLatitude < 30) {
+			return 100 - 86.7;
+		} else if (circleOfLatitude < 35) {
+			return 100 - 82;
+		} else if (circleOfLatitude < 40) {
+			return 100 - 76.7;
+		} else if (circleOfLatitude < 45) {
+			return 100 - 70.8;
+		} else if (circleOfLatitude < 50) {
+			return 100 - 64.4;
+		} else if (circleOfLatitude < 55) {
+			return 100 - 57.5;
+		} else if (circleOfLatitude < 60) {
+			return 100 - 50.1;
+		} else if (circleOfLatitude < 65) {
+			return 100 - 42.4;
+		} else if (circleOfLatitude < 70) {
+			return 100 - 34.3;
+		} else if (circleOfLatitude < 75) {
+			return 100 - 26;
+		} else if (circleOfLatitude < 80) {
+			return 100 - 17.4;
+		} else if (circleOfLatitude < 90) {
+			return 100 - 8.7;
+		} else if (circleOfLatitude == 90) {
+			return -1;
+		} else {
+			return 100;
+		}
 	}
 
 	public static LatLng findTopLeftPoint(LatLng centerPoint, int gridHeightCells,
