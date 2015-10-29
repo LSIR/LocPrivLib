@@ -50,6 +50,7 @@ public class Utils {
 	public static final int GRID_HEIGHT_CELLS = 101;
 	public static final int GRID_WIDTH_CELLS = 101;
 	public static final LatLng MAP_ORIGIN = new LatLng(0, 0);
+	public static double INITIAL_CELL_SIZE = 0.0009; // in degrees (approx. 100 meters at MAP_ORIGIN)
 	private static String LOGTAG = "Utils";
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
@@ -79,13 +80,14 @@ public class Utils {
 
 	/**
 	 * Compute the top Left position of a Cell given an other position
+	 *
 	 * @param position
 	 * @return the top Left position of a Cell given an other position
 	 */
 	public static LatLng findTopLeftPoint(LatLng position) {
 		int precision = 10000; // 4 decimals, precision of 11 meters
 		// height in degrees
-		double cellHeight = 0.0009; // 99 meters
+		double cellHeight = INITIAL_CELL_SIZE; // 99 meters
 		double latitude = position.latitude + 90; // latitude is positive
 		double longitude = position.longitude + 180; // longitude is positive
 		// width in degrees
@@ -121,8 +123,9 @@ public class Utils {
 	}
 
 	/**
-	 * Compute the width of a cell to have in it approx. 100 meters
-	 * @param latitude between -90 and 90
+	 * Compute the width (longitude) of a cell to have in it approx. 100 meters
+	 *
+	 * @param latitude     between -90 and 90
 	 * @param initialWidth in degrees
 	 * @return the width of a cell to have in it approx. 100 meters
 	 */
@@ -147,6 +150,7 @@ public class Utils {
 
 	/**
 	 * Compute the difference in percentage for lost distance between equinox and circle of latitude
+	 *
 	 * @param latitude in degrees
 	 * @return the difference in percentage for lost distance between equinox and circle of latitude
 	 */
@@ -196,6 +200,49 @@ public class Utils {
 		}
 	}
 
+	/**
+	 * Compute the id of a given point on the map
+	 * You should use this function for positions representing cells (top left corner)
+	 *
+	 * @param position
+	 * @return the id of a given point on the map
+	 */
+	public static int computeCellIDFromPosition(LatLng position) {
+		int precision = 1000; // 4 decimals, precision of 11 meters
+
+		double latitude = position.latitude + 90;
+		double longitude = position.longitude + 180;
+
+		int integerLatitude = (int) Math.floor(latitude * precision);
+		int integerLongitude = (int) Math.floor(longitude * precision);
+
+		// Cantor pairing Function
+		int id = 1 / 2 * (integerLatitude + integerLongitude) * (integerLatitude + integerLongitude + 1) + integerLongitude;
+
+		return id;
+	}
+
+	/**
+	 * Compute corners of a cell from the top left point of this cell
+	 * @param topLeft the top left point of a cell
+	 * @return list of a cell corners
+	 */
+	public static ArrayList<LatLng> computeCellCornerPoints(LatLng topLeft) {
+		ArrayList<LatLng> corners = new ArrayList<LatLng>();
+		corners.add(topLeft);
+
+		double cellWidth = getDegreesFor100m(topLeft.latitude, Utils.INITIAL_CELL_SIZE);
+
+		// Top Right
+		corners.add(new LatLng(topLeft.latitude, topLeft.longitude + cellWidth));
+		// Bottom Left
+		corners.add(new LatLng(topLeft.latitude - Utils.INITIAL_CELL_SIZE, topLeft.longitude));
+		// Bottom Right
+		corners.add(new LatLng(topLeft.latitude - Utils.INITIAL_CELL_SIZE, topLeft.longitude - Utils.INITIAL_CELL_SIZE));
+
+		return corners;
+	}
+
 	/*************************************** OBSOLETE *********************************************/
 	/*public static LatLng findTopLeftPoint(LatLng centerPoint, int gridHeightCells,
 	                                      int gridWidthCells) {
@@ -206,8 +253,10 @@ public class Utils {
 				                                                     * GRID_CELL_SIZE, 0f);
 		return topLeftPoint;
 	}*/
+
 	/**********************************************************************************************/
 
+	// FIXME : change GRID_CELL_SIZE with new values for a given cell
 	public static LatLng[][] generateMapGrid(int arrRows, int arrCols, LatLng topLeftPoint) {
 		LatLng[][] grid = new LatLng[arrRows][arrCols];
 		grid[0][0] = topLeftPoint;
