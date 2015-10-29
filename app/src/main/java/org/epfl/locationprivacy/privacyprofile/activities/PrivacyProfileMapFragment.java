@@ -68,15 +68,6 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 			@Override
 			public void onClick(View v) {
-				// TODO : when tick checkbox, add cell into DB
-
-				if (currSelectedGridCell == null) {
-					Toast.makeText(getActivity(), "Select a grid cell first", Toast.LENGTH_SHORT)
-							.show();
-					checkBox.setChecked(false);
-					return;
-				}
-
 				Integer newSensitivity;
 				if (checkBox.isChecked()) {
 					//enable privacy bar
@@ -99,8 +90,13 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 				}
 
 				//save sensitivity to db
+
 				int gridId = Integer.parseInt(currSelectedGridCell.getName());
-				gridDBDataSource.updateGridCellSensitivity(gridId, newSensitivity);
+				if (gridDBDataSource.findGridCell(gridId) == null) {
+					gridDBDataSource.insertPolygonIntoDB(currSelectedGridCell);
+				} else {
+					gridDBDataSource.updateGridCellSensitivity(gridId, newSensitivity);
+				}
 				Toast.makeText(getActivity(), "Successfully saved value: " + newSensitivity,
 						              Toast.LENGTH_SHORT).show();
 
@@ -131,7 +127,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 				googleMap.moveCamera(cameraUpdate);
 
 				// Draw Grid
-				// FIXME : draw all saved grids
+				// FIXME : draw grid
 				MyPolygon topLeftGridCell = gridDBDataSource.findGridCell(0);
 				LatLng topLeftPoint = topLeftGridCell.getPoints().get(0);
 				refreshMapGrid(Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS,
@@ -149,48 +145,46 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 				googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
 					@Override
 					public void onMapClick(LatLng point) {
-						currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude,
-								                                                    point.longitude);
-
+						//FIXME : change here because not in DB
+						currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude, point.longitude);
 						if (currSelectedGridCell == null) {
-							Toast.makeText(getActivity(), "Choose a location inside the Grid",
-									              Toast.LENGTH_SHORT).show();
+							LatLng cellPosition = Utils.findTopLeftPoint(new LatLng(point.latitude, point.longitude));
+							int cellID = Utils.computeCellIDFromPosition(cellPosition);
+							ArrayList<LatLng> corners = Utils.computeCellCornerPoints(cellPosition);
+							currSelectedGridCell = new MyPolygon(cellID + "", "", corners);
+						}
 
+
+						//--> remove select grid
+						if (currDrawableGridCell != null)
+							currDrawableGridCell.remove();
+
+						//--> add new one
+						currDrawableGridCell = Utils.drawPolygon(currSelectedGridCell,
+								                                        googleMap, 0x3300FF00);
+
+						// activate scroll & checkbox
+						if (currSelectedGridCell.getSensitivityAsInteger() != null) {
+							checkBox.setChecked(true);
+							privacyBar.setEnabled(true);
+
+							// update sensitivity bar
+							int currSensitivity = currSelectedGridCell
+									                      .getSensitivityAsInteger();
+							privacyBar.setProgress(currSensitivity);
+						} else {
 							// deactivate scroll and check box
 							privacyBar.setEnabled(false);
 							checkBox.setChecked(false);
-						} else {
-							//--> remove select grid
-							if (currDrawableGridCell != null)
-								currDrawableGridCell.remove();
-
-							//--> add new one
-							currDrawableGridCell = Utils.drawPolygon(currSelectedGridCell,
-									                                        googleMap, 0x3300FF00);
-
-							// activate scroll & checkbox
-							if (currSelectedGridCell.getSensitivityAsInteger() != null) {
-								checkBox.setChecked(true);
-								privacyBar.setEnabled(true);
-
-								// update sensitivity bar
-								int currSensitivity = currSelectedGridCell
-										                      .getSensitivityAsInteger();
-								privacyBar.setProgress(currSensitivity);
-							} else {
-								// deactivate scroll and check box
-								privacyBar.setEnabled(false);
-								checkBox.setChecked(false);
-							}
-
-							// test sensitivity
-							Toast.makeText(
-									              getActivity(),
-									              "CellID: " + currSelectedGridCell.getName() + "Sensitivity : "
-											              + currSelectedGridCell.getSensitivityAsDouble(),
-									              Toast.LENGTH_SHORT).show();
-
 						}
+
+						// test sensitivity
+						Toast.makeText(
+								              getActivity(),
+								              "CellID: " + currSelectedGridCell.getName() + "Sensitivity : "
+										              + currSelectedGridCell.getSensitivityAsDouble(),
+								              Toast.LENGTH_SHORT).show();
+
 					}
 				});
 
