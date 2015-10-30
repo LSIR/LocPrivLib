@@ -242,15 +242,14 @@ public class Utils {
 
 		double cellWidth = getDegreesFor100m(topLeft.latitude, Utils.INITIAL_CELL_SIZE);
 
-
-		// FIXME : use getLagLong for computing points
 		// Apparently the order of the corners in the arrayList is important
 		// Top Right
-		corners.add(new LatLng(topLeft.latitude, topLeft.longitude + cellWidth));
+		LatLng topRight = Utils.getLatLong(topLeft, cellWidth, 90);
+		corners.add(topRight);
 		// Bottom Right
-		corners.add(new LatLng(topLeft.latitude - Utils.INITIAL_CELL_SIZE, topLeft.longitude + cellWidth));
+		corners.add(Utils.getLatLong(topRight, INITIAL_CELL_SIZE, 180));
 		// Bottom Left
-		corners.add(new LatLng(topLeft.latitude - Utils.INITIAL_CELL_SIZE, topLeft.longitude));
+		corners.add(Utils.getLatLong(topLeft, INITIAL_CELL_SIZE, 180));
 
 		return corners;
 	}
