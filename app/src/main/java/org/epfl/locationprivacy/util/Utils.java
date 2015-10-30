@@ -244,12 +244,13 @@ public class Utils {
 
 		double cellWidth = getDegreesFor100m(topLeft.latitude, Utils.INITIAL_CELL_SIZE);
 
+		// Apparently the order of the corners in the arrayList is important
 		// Top Right
 		corners.add(new LatLng(topLeft.latitude, topLeft.longitude + cellWidth));
+		// Bottom Right
+		corners.add(new LatLng(topLeft.latitude - Utils.INITIAL_CELL_SIZE, topLeft.longitude + cellWidth));
 		// Bottom Left
 		corners.add(new LatLng(topLeft.latitude - Utils.INITIAL_CELL_SIZE, topLeft.longitude));
-		// Bottom Right
-		corners.add(new LatLng(topLeft.latitude - Utils.INITIAL_CELL_SIZE, topLeft.longitude - Utils.INITIAL_CELL_SIZE));
 
 		return corners;
 	}
