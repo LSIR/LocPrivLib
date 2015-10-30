@@ -59,24 +59,22 @@ public class Utils {
 	private static DecimalFormat formatter = new DecimalFormat(".##E0");
 
 	/**
-	 * Compute the Harvesine formula
-	 *
-	 * @param src
-	 * @param distance
-	 * @param bearing
-	 * @return
+	 * Compute the Harvesine formula.
+	 * @param src The source point
+	 * @param distance The distance between src and the wanted point
+	 * @param bearing The orientation where we want the new point
+	 * @return a point in a direction bearing with distance from src
 	 */
-	public static LatLng getLatLong(LatLng src, double latDistance, double longDistance, float bearing) {
+	public static LatLng getLatLong(LatLng src, double distance, float bearing) {
 		// 6371 is the average radius of earth in km
-		double latDist = latDistance / 6371.0;
-		double longDist = longDistance / 6371.0;
+		double dist = distance / 6371.0;
 		double brng = Math.toRadians(bearing);
 		double lat1 = Math.toRadians(src.latitude);
 		double lon1 = Math.toRadians(src.longitude);
 
-		double lat2 = Math.asin(Math.sin(lat1) * Math.cos(latDist) + Math.cos(lat1) * Math.sin(latDist)
+		double lat2 = Math.asin(Math.sin(lat1) * Math.cos(dist) + Math.cos(lat1) * Math.sin(dist)
 				                                                             * Math.cos(brng));
-		double a = Math.atan2(Math.sin(brng) * Math.sin(longDist) * Math.cos(lat1), Math.cos(longDist)
+		double a = Math.atan2(Math.sin(brng) * Math.sin(dist) * Math.cos(lat1), Math.cos(dist)
 				                                                                            - Math.sin(lat1) * Math.sin(lat2));
 		double lon2 = lon1 + a;
 		lon2 = (lon2 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
@@ -255,18 +253,15 @@ public class Utils {
 		return corners;
 	}
 
-	/*************************************** OBSOLETE *********************************************/
-	/*public static LatLng findTopLeftPoint(LatLng centerPoint, int gridHeightCells,
-	                                      int gridWidthCells) {
+	public static LatLng findGridTopLeftPoint(LatLng centerPoint, int gridHeightCells,
+	                                          int gridWidthCells) {
 
 		LatLng midLeftPoint = Utils.getLatLong(centerPoint, (gridWidthCells / 2 + 0.5f)
 				                                                    * GRID_CELL_SIZE, -90f);
 		LatLng topLeftPoint = Utils.getLatLong(midLeftPoint, (gridHeightCells / 2 + 0.5f)
 				                                                     * GRID_CELL_SIZE, 0f);
 		return topLeftPoint;
-	}*/
-
-	/**********************************************************************************************/
+	}
 
 	// FIXME : change GRID_CELL_SIZE with new values for a given cell
 	public static LatLng[][] generateMapGrid(int arrRows, int arrCols, LatLng topLeftPoint) {
@@ -275,12 +270,12 @@ public class Utils {
 
 		//fill first column
 		for (int i = 1; i < arrRows; i++)
-			grid[i][0] = Utils.getLatLong(grid[i - 1][0], INITIAL_CELL_SIZE, Utils.getDegreesFor100m(grid[i - 1][0].latitude, INITIAL_CELL_SIZE), 180);
+			grid[i][0] = Utils.getLatLong(grid[i - 1][0], INITIAL_CELL_SIZE, 180);
 
 		//fill rows
 		for (int i = 0; i < arrRows; i++)
 			for (int j = 1; j < arrCols; j++)
-				grid[i][j] = Utils.getLatLong(grid[i][j - 1], INITIAL_CELL_SIZE, Utils.getDegreesFor100m(grid[i][j - 1].latitude, INITIAL_CELL_SIZE), 90);
+				grid[i][j] = Utils.getLatLong(grid[i][j - 1], Utils.getDegreesFor100m(grid[i][j - 1].latitude, INITIAL_CELL_SIZE), 90);
 
 		return grid;
 	}

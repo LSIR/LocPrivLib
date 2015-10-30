@@ -266,7 +266,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			// top Left corner
 			LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
 					                               currentLocation.getLongitude());
-			LatLng topLeftPoint = Utils.findTopLeftPoint(centerPoint);
+			LatLng topLeftPoint = Utils.findGridTopLeftPoint(centerPoint, Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS);
 
 			// generate Map Grid
 			int arrRows = Utils.GRID_HEIGHT_CELLS + 1;
@@ -279,7 +279,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 			// FIXME : something to change ?
 			// top Left corner for the obfuscation region
-			LatLng obfRegionTopLeftPoint = Utils.findTopLeftPoint(centerPoint);
+			LatLng obfRegionTopLeftPoint = Utils.findGridTopLeftPoint(centerPoint, obfuscationRegionHeightCells, obfuscationRegionWidthCells);
 
 			// refresh map
 			refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
