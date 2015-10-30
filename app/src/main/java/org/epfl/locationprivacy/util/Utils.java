@@ -58,16 +58,26 @@ public class Utils {
 	private static final float GRID_CELL_SIZE = 0.05f; //50 meters
 	private static DecimalFormat formatter = new DecimalFormat(".##E0");
 
-	public static LatLng getLatLong(LatLng src, float distance, float bearing) {
-		double dist = distance / 6371.0;
+	/**
+	 * Compute the Harvesine formula
+	 *
+	 * @param src
+	 * @param distance
+	 * @param bearing
+	 * @return
+	 */
+	public static LatLng getLatLong(LatLng src, double latDistance, double longDistance, float bearing) {
+		// 6371 is the average radius of earth in km
+		double latDist = latDistance / 6371.0;
+		double longDist = longDistance / 6371.0;
 		double brng = Math.toRadians(bearing);
 		double lat1 = Math.toRadians(src.latitude);
 		double lon1 = Math.toRadians(src.longitude);
 
-		double lat2 = Math.asin(Math.sin(lat1) * Math.cos(dist) + Math.cos(lat1) * Math.sin(dist)
-				                                                          * Math.cos(brng));
-		double a = Math.atan2(Math.sin(brng) * Math.sin(dist) * Math.cos(lat1), Math.cos(dist)
-				                                                                        - Math.sin(lat1) * Math.sin(lat2));
+		double lat2 = Math.asin(Math.sin(lat1) * Math.cos(latDist) + Math.cos(lat1) * Math.sin(latDist)
+				                                                             * Math.cos(brng));
+		double a = Math.atan2(Math.sin(brng) * Math.sin(longDist) * Math.cos(lat1), Math.cos(longDist)
+				                                                                            - Math.sin(lat1) * Math.sin(lat2));
 		double lon2 = lon1 + a;
 		lon2 = (lon2 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
 
@@ -224,6 +234,7 @@ public class Utils {
 
 	/**
 	 * Compute corners of a cell from the top left point of this cell
+	 *
 	 * @param topLeft the top left point of a cell
 	 * @return list of a cell corners
 	 */
@@ -263,12 +274,12 @@ public class Utils {
 
 		//fill first column
 		for (int i = 1; i < arrRows; i++)
-			grid[i][0] = Utils.getLatLong(grid[i - 1][0], GRID_CELL_SIZE, 180);
+			grid[i][0] = Utils.getLatLong(grid[i - 1][0], INITIAL_CELL_SIZE, Utils.getDegreesFor100m(grid[i - 1][0].latitude, INITIAL_CELL_SIZE), 180);
 
 		//fill rows
 		for (int i = 0; i < arrRows; i++)
 			for (int j = 1; j < arrCols; j++)
-				grid[i][j] = Utils.getLatLong(grid[i][j - 1], GRID_CELL_SIZE, 90);
+				grid[i][j] = Utils.getLatLong(grid[i][j - 1], INITIAL_CELL_SIZE, Utils.getDegreesFor100m(grid[i][j - 1].latitude, INITIAL_CELL_SIZE), 90);
 
 		return grid;
 	}

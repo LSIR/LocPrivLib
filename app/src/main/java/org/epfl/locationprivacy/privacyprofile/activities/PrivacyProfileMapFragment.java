@@ -127,7 +127,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 				googleMap.moveCamera(cameraUpdate);
 
 				// Draw Grid
-				// FIXME : draw grid
+				// FIXME : draw grid - draw cell per cell or give to top left corner of the cell ?
 				MyPolygon topLeftGridCell = gridDBDataSource.findGridCell(0);
 				LatLng topLeftPoint = topLeftGridCell.getPoints().get(0);
 				refreshMapGrid(Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS,
