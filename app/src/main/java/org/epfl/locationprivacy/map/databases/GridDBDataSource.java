@@ -184,7 +184,7 @@ public class GridDBDataSource {
 		int gridWidthCells = Utils.LAUSANNE_GRID_WIDTH_CELLS; //must be odd number [1,3,5,...,15]
 		// FIXME : take the current point
 		LatLng centerPoint = new LatLng(46.526092, 6.584415);
-		LatLng topLeftPoint = Utils.findTopLeftPoint(centerPoint);
+		LatLng topLeftPoint = Utils.findCellTopLeftPoint(centerPoint);
 
 		// generate Map Grid
 		int arrRows = gridHeightCells + 1;

@@ -148,7 +148,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 						//FIXME : change here because not in DB
 						currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude, point.longitude);
 						if (currSelectedGridCell == null) {
-							LatLng cellPosition = Utils.findTopLeftPoint(new LatLng(point.latitude, point.longitude));
+							LatLng cellPosition = Utils.findCellTopLeftPoint(new LatLng(point.latitude, point.longitude));
 							int cellID = Utils.computeCellIDFromPosition(cellPosition);
 							ArrayList<LatLng> corners = Utils.computeCellCornerPoints(cellPosition);
 							currSelectedGridCell = new MyPolygon(cellID + "", "", corners);
@@ -262,7 +262,6 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(latLng);
 			googleMap.addMarker(markerOptions);*/
 
-			// TODO : Compute the cell of current position according to origin
 			// top Left corner
 			LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
 					                               currentLocation.getLongitude());

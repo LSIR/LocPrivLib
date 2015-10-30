@@ -92,7 +92,7 @@ public class Utils {
 	 * @param position
 	 * @return the top Left position of a Cell given an other position
 	 */
-	public static LatLng findTopLeftPoint(LatLng position) {
+	public static LatLng findCellTopLeftPoint(LatLng position) {
 		int precision = 10000; // 4 decimals, precision of 11 meters
 		// height in degrees
 		double cellHeight = INITIAL_CELL_SIZE; // 99 meters
@@ -242,6 +242,8 @@ public class Utils {
 
 		double cellWidth = getDegreesFor100m(topLeft.latitude, Utils.INITIAL_CELL_SIZE);
 
+
+		// FIXME : use getLagLong for computing points
 		// Apparently the order of the corners in the arrayList is important
 		// Top Right
 		corners.add(new LatLng(topLeft.latitude, topLeft.longitude + cellWidth));
@@ -256,10 +258,16 @@ public class Utils {
 	public static LatLng findGridTopLeftPoint(LatLng centerPoint, int gridHeightCells,
 	                                          int gridWidthCells) {
 
-		LatLng midLeftPoint = Utils.getLatLong(centerPoint, (gridWidthCells / 2 + 0.5f)
-				                                                    * GRID_CELL_SIZE, -90f);
-		LatLng topLeftPoint = Utils.getLatLong(midLeftPoint, (gridHeightCells / 2 + 0.5f)
-				                                                     * GRID_CELL_SIZE, 0f);
+		// Top left point of a cell the central cell
+		LatLng cell = Utils.findCellTopLeftPoint(centerPoint);
+
+		LatLng topMiddlePoint = Utils.getLatLong(cell, (gridHeightCells - 1)/2 * INITIAL_CELL_SIZE, 0);
+
+		LatLng topLeftPoint = Utils.getLatLong(topMiddlePoint, (gridWidthCells - 1) / 2 * Utils.getDegreesFor100m(topMiddlePoint.latitude, INITIAL_CELL_SIZE), -90);
+
+		// FIXME : Remove when sure it is ok for new computations
+		//LatLng midLeftPoint = Utils.getLatLong(centerPoint, (gridWidthCells / 2 + 0.5f) * GRID_CELL_SIZE, -90f);
+		//LatLng topLeftPoint = Utils.getLatLong(midLeftPoint, (gridHeightCells / 2 + 0.5f) * GRID_CELL_SIZE, 0f);
 		return topLeftPoint;
 	}
 
