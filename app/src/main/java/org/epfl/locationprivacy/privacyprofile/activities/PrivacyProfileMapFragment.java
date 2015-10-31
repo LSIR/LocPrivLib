@@ -127,7 +127,6 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 				googleMap.moveCamera(cameraUpdate);
 
 				// Draw Grid
-				// FIXME : draw grid - draw cell per cell or give to top left corner of the cell ?
 				MyPolygon topLeftGridCell = gridDBDataSource.findGridCell(0);
 				LatLng topLeftPoint = topLeftGridCell.getPoints().get(0);
 				refreshMapGrid(Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS,
@@ -145,7 +144,6 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 				googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
 					@Override
 					public void onMapClick(LatLng point) {
-						//FIXME : change here because not in DB
 						currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude, point.longitude);
 						if (currSelectedGridCell == null) {
 							LatLng cellPosition = Utils.findCellTopLeftPoint(new LatLng(point.latitude, point.longitude));
@@ -250,8 +248,9 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 		if (currentLocation != null) {
 
 			//Animate
-			LatLng latLng = new LatLng(currentLocation.getLatitude(),
-					                          currentLocation.getLongitude());
+			LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+			// FIXME : to remove, for testing purpose
+			//LatLng latLng = Utils.MAP_ORIGIN;
 			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
 			googleMap.moveCamera(cameraUpdate);
 
@@ -263,8 +262,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			googleMap.addMarker(markerOptions);*/
 
 			// top Left corner
-			LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
-					                               currentLocation.getLongitude());
+			LatLng centerPoint = new LatLng(latLng.latitude, latLng.longitude);
 			LatLng topLeftPoint = Utils.findGridTopLeftPoint(centerPoint, Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS);
 
 			// generate Map Grid
@@ -272,6 +270,8 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			int arrCols = Utils.GRID_WIDTH_CELLS + 1;
 			mapGrid = Utils.generateMapGrid(arrRows, arrCols, topLeftPoint);
 
+			// FIXME : What is the purpose of this ?
+			/*
 			// obfuscation region size
 			int obfuscationRegionHeightCells = Utils.GRID_HEIGHT_CELLS / 2 + 1;
 			int obfuscationRegionWidthCells = Utils.GRID_WIDTH_CELLS / 2 + 1;
@@ -280,12 +280,13 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			// top Left corner for the obfuscation region
 			LatLng obfRegionTopLeftPoint = Utils.findGridTopLeftPoint(centerPoint, obfuscationRegionHeightCells, obfuscationRegionWidthCells);
 
+
 			// refresh map
 			refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
-					              obfRegionTopLeftPoint);
-
-			// Save grid in db
-			//gridDBDataSource.saveGrid(mapGrid, Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS);
+					              obfRegionTopLeftPoint);*/
+			// refresh map
+			refreshMapGrid(Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS,
+					              topLeftPoint);
 
 		} else {
 			Toast.makeText(this.getActivity(), "Current Location is not available, Can't Access GPS data", Toast.LENGTH_LONG).show();
@@ -294,7 +295,6 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 	//=================================================================================
 
-	// FIXME : to modify ?
 	private void refreshMapGrid(int heightCells, int widthCells, LatLng topLeftPoint) {
 
 		// generate Map Grid

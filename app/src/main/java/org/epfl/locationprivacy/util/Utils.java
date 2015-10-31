@@ -50,19 +50,19 @@ public class Utils {
 	public static final int GRID_HEIGHT_CELLS = 101;
 	public static final int GRID_WIDTH_CELLS = 101;
 	public static final LatLng MAP_ORIGIN = new LatLng(0, 0);
-	public static double INITIAL_CELL_SIZE = 0.0009; // in degrees (approx. 100 meters at MAP_ORIGIN)
+	public static double INITIAL_DEGREES_CELL_SIZE = 0.0009; // in degrees (approx. 100 meters at MAP_ORIGIN)
 	private static String LOGTAG = "Utils";
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
-	// FIXME : can change depending on position on earth
 	private static final float GRID_CELL_SIZE = 0.05f; //50 meters
 	private static DecimalFormat formatter = new DecimalFormat(".##E0");
 
 	/**
 	 * Compute the Harvesine formula.
-	 * @param src The source point
-	 * @param distance The distance between src and the wanted point
-	 * @param bearing The orientation where we want the new point
+	 *
+	 * @param src      The source point
+	 * @param distance The distance between src and the wanted point in km
+	 * @param bearing  The orientation where we want the new point
 	 * @return a point in a direction bearing with distance from src
 	 */
 	public static LatLng getLatLong(LatLng src, double distance, float bearing) {
@@ -73,13 +73,38 @@ public class Utils {
 		double lon1 = Math.toRadians(src.longitude);
 
 		double lat2 = Math.asin(Math.sin(lat1) * Math.cos(dist) + Math.cos(lat1) * Math.sin(dist)
-				                                                             * Math.cos(brng));
+				                                                          * Math.cos(brng));
 		double a = Math.atan2(Math.sin(brng) * Math.sin(dist) * Math.cos(lat1), Math.cos(dist)
-				                                                                            - Math.sin(lat1) * Math.sin(lat2));
+				                                                                        - Math.sin(lat1) * Math.sin(lat2));
 		double lon2 = lon1 + a;
 		lon2 = (lon2 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
 
 		return new LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2));
+	}
+
+	/**
+	 * Compute the distance in km for a distance in degrees between two points
+	 *
+	 * @param first
+	 * @param second
+	 * @return the distance in km for a distance in degrees between two points
+	 */
+	public static double getDistance(LatLng first, LatLng second) {
+		int R = 6371; // km
+		double lat1 = first.latitude;
+		double lat2 = second.longitude;
+		double lon1 = first.latitude;
+		double lon2 = second.longitude;
+
+		double dLat = Math.toRadians(lat2 - lat1);
+		double dLon = Math.toRadians(lon2 - lon1);
+		double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+				           Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+						           Math.sin(dLon / 2) * Math.sin(dLon / 2);
+		double c = 2 * Math.asin(Math.sqrt(a));
+		double d = R * c;
+		System.out.println("distance : " + d);
+		return d;
 	}
 
 	public static int getRandom(int min, int max) {
@@ -95,13 +120,14 @@ public class Utils {
 	public static LatLng findCellTopLeftPoint(LatLng position) {
 		int precision = 10000; // 4 decimals, precision of 11 meters
 		// height in degrees
-		double cellHeight = INITIAL_CELL_SIZE; // 99 meters
+		double cellHeight = INITIAL_DEGREES_CELL_SIZE; // 99 meters
 		double latitude = position.latitude + 90; // latitude is positive
 		double longitude = position.longitude + 180; // longitude is positive
 		// width in degrees
 		double cellWidth = getDegreesFor100m(position.latitude, cellHeight);
 
-		if (cellWidth == 0) {
+		if (cellWidth == -1) {
+			return position;
 		}
 
 		// Truncate to 11 meters precision
@@ -131,11 +157,11 @@ public class Utils {
 	}
 
 	/**
-	 * Compute the width (longitude) of a cell to have in it approx. 100 meters
+	 * Compute the width (longitude) of a cell in degrees to have in it approx. 100 meters
 	 *
 	 * @param latitude     between -90 and 90
 	 * @param initialWidth in degrees
-	 * @return the width of a cell to have in it approx. 100 meters
+	 * @return the width of a cell in degrees to have in it approx. 100 meters
 	 */
 	public static double getDegreesFor100m(double latitude, double initialWidth) {
 
@@ -146,7 +172,9 @@ public class Utils {
 		// Compute new width for cells
 		double cellWidth = initialWidth + (initialWidth * diffWithEquinox);
 		if (cellWidth == 0) {
-			return 0;
+			return initialWidth;
+		} else if (diffWithEquinox == -1) {
+			return -1;
 		}
 		// Compute nbOfCells needed
 		double nbOfCellsForLong = Math.floor(360 / cellWidth);
@@ -240,16 +268,15 @@ public class Utils {
 		ArrayList<LatLng> corners = new ArrayList<LatLng>();
 		corners.add(topLeft);
 
-		double cellWidth = getDegreesFor100m(topLeft.latitude, Utils.INITIAL_CELL_SIZE);
+		double cellWidth = getDegreesFor100m(topLeft.latitude, Utils.INITIAL_DEGREES_CELL_SIZE);
 
 		// Apparently the order of the corners in the arrayList is important
 		// Top Right
-		LatLng topRight = Utils.getLatLong(topLeft, cellWidth, 90);
-		corners.add(topRight);
+		corners.add(new LatLng(topLeft.latitude, topLeft.longitude + cellWidth));
 		// Bottom Right
-		corners.add(Utils.getLatLong(topRight, INITIAL_CELL_SIZE, 180));
+		corners.add(new LatLng(topLeft.latitude - INITIAL_DEGREES_CELL_SIZE, topLeft.longitude + cellWidth));
 		// Bottom Left
-		corners.add(Utils.getLatLong(topLeft, INITIAL_CELL_SIZE, 180));
+		corners.add(new LatLng(topLeft.latitude - INITIAL_DEGREES_CELL_SIZE, topLeft.longitude));
 
 		return corners;
 	}
@@ -260,29 +287,28 @@ public class Utils {
 		// Top left point of a cell the central cell
 		LatLng cell = Utils.findCellTopLeftPoint(centerPoint);
 
-		LatLng topMiddlePoint = Utils.getLatLong(cell, (gridHeightCells - 1)/2 * INITIAL_CELL_SIZE, 0);
+		double latitude = cell.latitude + (gridHeightCells - 1) / 2 * INITIAL_DEGREES_CELL_SIZE;
+		double longitude = cell.longitude - (gridWidthCells - 1) / 2 * getDegreesFor100m(latitude, INITIAL_DEGREES_CELL_SIZE);
+		LatLng topLeftPoint = new LatLng(latitude, longitude);
 
-		LatLng topLeftPoint = Utils.getLatLong(topMiddlePoint, (gridWidthCells - 1) / 2 * Utils.getDegreesFor100m(topMiddlePoint.latitude, INITIAL_CELL_SIZE), -90);
-
-		// FIXME : Remove when sure it is ok for new computations
-		//LatLng midLeftPoint = Utils.getLatLong(centerPoint, (gridWidthCells / 2 + 0.5f) * GRID_CELL_SIZE, -90f);
-		//LatLng topLeftPoint = Utils.getLatLong(midLeftPoint, (gridHeightCells / 2 + 0.5f) * GRID_CELL_SIZE, 0f);
 		return topLeftPoint;
 	}
 
-	// FIXME : change GRID_CELL_SIZE with new values for a given cell
 	public static LatLng[][] generateMapGrid(int arrRows, int arrCols, LatLng topLeftPoint) {
 		LatLng[][] grid = new LatLng[arrRows][arrCols];
 		grid[0][0] = topLeftPoint;
 
 		//fill first column
 		for (int i = 1; i < arrRows; i++)
-			grid[i][0] = Utils.getLatLong(grid[i - 1][0], INITIAL_CELL_SIZE, 180);
+			grid[i][0] = new LatLng(grid[i - 1][0].latitude - INITIAL_DEGREES_CELL_SIZE, grid[i - 1][0].longitude);
 
 		//fill rows
-		for (int i = 0; i < arrRows; i++)
+		for (int i = 0; i < arrRows; i++) {
+			double width = getDegreesFor100m(grid[i][0].latitude, INITIAL_DEGREES_CELL_SIZE);
+
 			for (int j = 1; j < arrCols; j++)
-				grid[i][j] = Utils.getLatLong(grid[i][j - 1], Utils.getDegreesFor100m(grid[i][j - 1].latitude, INITIAL_CELL_SIZE), 90);
+				grid[i][j] = new LatLng(grid[i][j - 1].latitude, grid[i][j - 1].longitude + width);
+		}
 
 		return grid;
 	}
