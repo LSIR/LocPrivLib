@@ -149,10 +149,6 @@ public class Utils {
 		latitude -= 90;
 		longitude -= 180;
 
-		// Truncate once to be sure to have the exact value
-		latitude = Math.floor(latitude * precision) / precision;
-		longitude = Math.floor(longitude * precision) / precision;
-
 		return new LatLng(latitude, longitude);
 	}
 
@@ -285,11 +281,11 @@ public class Utils {
 	                                          int gridWidthCells) {
 
 		// Top left point of a cell the central cell
-		LatLng cell = Utils.findCellTopLeftPoint(centerPoint);
+		LatLng cell = findCellTopLeftPoint(centerPoint);
 
 		double latitude = cell.latitude + (gridHeightCells - 1) / 2 * INITIAL_DEGREES_CELL_SIZE;
 		double longitude = cell.longitude - (gridWidthCells - 1) / 2 * getDegreesFor100m(latitude, INITIAL_DEGREES_CELL_SIZE);
-		LatLng topLeftPoint = new LatLng(latitude, longitude);
+		LatLng topLeftPoint = findCellTopLeftPoint(new LatLng(latitude, longitude));
 
 		return topLeftPoint;
 	}
