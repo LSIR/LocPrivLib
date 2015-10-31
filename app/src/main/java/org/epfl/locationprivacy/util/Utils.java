@@ -275,23 +275,25 @@ public class Utils {
 		return topLeftPoint;
 	}
 
+	// FIXME : remove useless code
 	public static LatLng[][] generateMapGrid(int arrRows, int arrCols, LatLng topLeftPoint) {
 		LatLng[][] grid = new LatLng[arrRows][arrCols];
 		grid[0][0] = topLeftPoint;
+		double defaultDist = 0.11;
 
 		//fill first column
-		for (int i = 1; i < arrRows; i++)
+		for (int i = 1; i < arrRows; i++) {
 			// for each cell, we need to take a point in the cell to have the top left corner
-			grid[i][0] = findCellTopLeftPoint(getLatLong(getLatLong(grid[i - 1][0], 0.11, 180), 0.05, 90));
+			grid[i][0] = findCellTopLeftPoint(getLatLong(grid[0][0], defaultDist * i, 180));
+		}
 
 		//fill rows
 		for (int i = 0; i < arrRows; i++) {
 			for (int j = 1; j < arrCols; j++) {
-				// for each cell, we need to take a point in the cell to have the top left corner
-				grid[i][j] = findCellTopLeftPoint(getLatLong(getLatLong(grid[i][j - 1], 0.11, 90), 0.05, 180));
+				// Compute horizontal distance with cell on the left
+				grid[i][j] = getLatLong(grid[i][j - 1], 0.1, 90);
 			}
 		}
-
 		return grid;
 	}
 
@@ -319,7 +321,12 @@ public class Utils {
 		markers.clear();
 	}
 
-	// FIXME : problem is that it is not always well aligned
+	/**
+	 * Draw the grid on the map
+	 * @param mapGrid
+	 * @param googleMap
+	 * @return
+	 */
 	public static ArrayList<Polyline> drawMapGrid(LatLng[][] mapGrid, GoogleMap googleMap) {
 		ArrayList<Polyline> polylines = new ArrayList<>();
 		int arrRows = mapGrid.length;
@@ -334,14 +341,25 @@ public class Utils {
 
 		//draw vertical polylines
 		for (int i = 0; i < arrCols; i++) {
-			PolylineOptions polylineOptions = new PolylineOptions().color(Color.BLUE).width(1)
-					                                  .add(mapGrid[0][i]).add(mapGrid[arrRows - 1][i]);
+			PolylineOptions polylineOptions = new PolylineOptions().color(Color.BLUE).width(1);
+			for (int j = 0; j < arrRows - 1; j++) {
+				LatLng bottomLeftJ = new LatLng(mapGrid[j + 1][i].latitude, mapGrid[j][i].longitude);
+				polylineOptions.add(mapGrid[j][i]).add(bottomLeftJ);
+				polylineOptions.add(bottomLeftJ).add(mapGrid[j + 1][i]);
+			}
 			polylines.add(googleMap.addPolyline(polylineOptions));
 		}
 
 		return polylines;
 	}
 
+	/**
+	 * Draw a Polygon
+	 * @param polygon
+	 * @param googleMap
+	 * @param fillColor
+	 * @return
+	 */
 	public static Polygon drawPolygon(MyPolygon polygon, GoogleMap googleMap, int fillColor) {
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(fillColor)
 				                                .strokeColor(Color.BLUE).strokeWidth(1);
@@ -351,6 +369,12 @@ public class Utils {
 		return googleMap.addPolygon(polygonOptions);
 	}
 
+	/**
+	 * Draw obfuscation area
+	 * @param mapGrid
+	 * @param googleMap
+	 * @return
+	 */
 	public static Polygon drawObfuscationArea(LatLng[][] mapGrid, GoogleMap googleMap) {
 
 		int arrRows = mapGrid.length;
@@ -359,8 +383,28 @@ public class Utils {
 
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(0x330000FF)
 				                                .strokeColor(Color.BLUE).strokeWidth(1);
-		polygonOptions.add(mapGrid[0][0]).add(mapGrid[0][arrCols - 1])
-				.add(mapGrid[arrRows - 1][arrCols - 1]).add(mapGrid[arrRows - 1][0]);
+
+		// Left side
+		for (int j = 0; j < arrRows - 1; j++) {
+			// Bottom Right of cell j
+			LatLng bottomLeftJ = new LatLng(mapGrid[j + 1][0].latitude, mapGrid[j][0].longitude);
+			polygonOptions.add(mapGrid[j][0]).add(bottomLeftJ);
+			polygonOptions.add(bottomLeftJ).add(mapGrid[j + 1][0]);
+		}
+
+		// Bottom
+		polygonOptions.add(mapGrid[arrRows - 1][0]).add(mapGrid[arrRows - 1][arrCols - 1]);
+
+		// Right side
+		for (int j = arrRows - 1; j > 0; j--) {
+			// Bottom Right of cell j - 1
+			LatLng bottomRightJ = new LatLng(mapGrid[j][arrCols - 1].latitude, mapGrid[j - 1][arrCols - 1].longitude);
+			polygonOptions.add(mapGrid[j][arrCols - 1]).add(bottomRightJ);
+			polygonOptions.add(bottomRightJ).add(mapGrid[j - 1][arrCols - 1]);
+		}
+
+		// Top is done automatically
+		
 		return googleMap.addPolygon(polygonOptions);
 
 	}
