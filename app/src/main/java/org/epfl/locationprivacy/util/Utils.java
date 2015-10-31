@@ -58,7 +58,7 @@ public class Utils {
 	private static DecimalFormat formatter = new DecimalFormat(".##E0");
 
 	/**
-	 * Compute the Harvesine formula.
+	 * Compute the Haversine formula to get a point from another point, a distance and a direction
 	 *
 	 * @param src      The source point
 	 * @param distance The distance between src and the wanted point in km
@@ -84,6 +84,7 @@ public class Utils {
 
 	/**
 	 * Compute the distance in km for a distance in degrees between two points
+	 * Uses the Haversine formula
 	 *
 	 * @param first
 	 * @param second
@@ -103,8 +104,7 @@ public class Utils {
 						           Math.sin(dLon / 2) * Math.sin(dLon / 2);
 		double c = 2 * Math.asin(Math.sqrt(a));
 		double d = R * c;
-		System.out.println("distance : " + d);
-		return d;
+		return d / 10000;
 	}
 
 	public static int getRandom(int min, int max) {
@@ -112,10 +112,10 @@ public class Utils {
 	}
 
 	/**
-	 * Compute the top Left position of a Cell given an other position
+	 * Compute the top Left position of a Cell given another position
 	 *
 	 * @param position
-	 * @return the top Left position of a Cell given an other position
+	 * @return the top Left position of a Cell given another position
 	 */
 	public static LatLng findCellTopLeftPoint(LatLng position) {
 		int precision = 10000; // 4 decimals, precision of 11 meters
@@ -123,30 +123,27 @@ public class Utils {
 		double cellHeight = INITIAL_DEGREES_CELL_SIZE; // 99 meters
 		double latitude = position.latitude + 90; // latitude is positive
 		double longitude = position.longitude + 180; // longitude is positive
-		// width in degrees
-		double cellWidth = getDegreesFor100m(position.latitude, cellHeight);
-
-		if (cellWidth == -1) {
-			return position;
-		}
 
 		// Truncate to 11 meters precision
 		latitude = Math.floor(latitude * precision) / precision;
 
 		double nbCellsLatFromSouthPole = Math.floor(latitude / cellHeight);
-		double nbCellsLongFromOppositeOfOrigin = Math.floor(longitude / cellWidth);
 
-		// Bottom Left corner of current cell
+		// Bottom of current cell
 		latitude = cellHeight * nbCellsLatFromSouthPole;
-		longitude = cellWidth * nbCellsLongFromOppositeOfOrigin;
 
-		// Top Left corner of current cell
+		// Top of current cell
 		if (position.latitude < 90) {
 			latitude = latitude + cellHeight;
 		}
 
 		// Come back to real values
 		latitude -= 90;
+
+		// width in degrees
+		double cellWidth = getDegreesFor100m(new LatLng(latitude, position.longitude), 90);
+		double nbCellsLongFromOppositeOfOrigin = Math.floor(longitude / cellWidth);
+		longitude = cellWidth * nbCellsLongFromOppositeOfOrigin;
 		longitude -= 180;
 
 		return new LatLng(latitude, longitude);
@@ -155,29 +152,18 @@ public class Utils {
 	/**
 	 * Compute the width (longitude) of a cell in degrees to have in it approx. 100 meters
 	 *
-	 * @param latitude     between -90 and 90
-	 * @param initialWidth in degrees
-	 * @return the width of a cell in degrees to have in it approx. 100 meters
+	 * @param position
+	 * @param bearing
+	 * @return
 	 */
-	public static double getDegreesFor100m(double latitude, double initialWidth) {
+	//public static double getDegreesFor100m(double latitude, double initialWidth) {
+	public static double getDegreesFor100m(LatLng position, float bearing) {
 
-		// Find the percentage of distance lost between equinox and current circle of latitude
-		double lat = Math.abs(latitude);
-		double diffWithEquinox = differenceWithEquinox(lat);
-
-		// Compute new width for cells
-		double cellWidth = initialWidth + (initialWidth * diffWithEquinox);
-		if (cellWidth == 0) {
-			return initialWidth;
-		} else if (diffWithEquinox == -1) {
-			return -1;
-		}
-		// Compute nbOfCells needed
-		double nbOfCellsForLong = Math.floor(360 / cellWidth);
-		// Compute the new adapted size to fit the entire circle of latitude
-		double oneCellSize = 360 / nbOfCellsForLong;
-
-		return oneCellSize;
+		// Get a point at 100 meters from position
+		LatLng other = getLatLong(position, 0.1, bearing);
+		// Compute the distance in degrees
+		double cellWidth = Math.abs(position.longitude - other.longitude);
+		return cellWidth;
 	}
 
 	/**
@@ -261,18 +247,17 @@ public class Utils {
 	 * @return list of a cell corners
 	 */
 	public static ArrayList<LatLng> computeCellCornerPoints(LatLng topLeft) {
-		ArrayList<LatLng> corners = new ArrayList<LatLng>();
+		ArrayList<LatLng> corners = new ArrayList<>();
 		corners.add(topLeft);
-
-		double cellWidth = getDegreesFor100m(topLeft.latitude, Utils.INITIAL_DEGREES_CELL_SIZE);
 
 		// Apparently the order of the corners in the arrayList is important
 		// Top Right
-		corners.add(new LatLng(topLeft.latitude, topLeft.longitude + cellWidth));
+		LatLng topRight = getLatLong(topLeft, 0.1, 90);
+		corners.add(topRight);
 		// Bottom Right
-		corners.add(new LatLng(topLeft.latitude - INITIAL_DEGREES_CELL_SIZE, topLeft.longitude + cellWidth));
+		corners.add(getLatLong(topRight, 0.1, 180));
 		// Bottom Left
-		corners.add(new LatLng(topLeft.latitude - INITIAL_DEGREES_CELL_SIZE, topLeft.longitude));
+		corners.add(getLatLong(topLeft, 0.1, 180));
 
 		return corners;
 	}
@@ -284,7 +269,7 @@ public class Utils {
 		LatLng cell = findCellTopLeftPoint(centerPoint);
 
 		double latitude = cell.latitude + (gridHeightCells - 1) / 2 * INITIAL_DEGREES_CELL_SIZE;
-		double longitude = cell.longitude - (gridWidthCells - 1) / 2 * getDegreesFor100m(latitude, INITIAL_DEGREES_CELL_SIZE);
+		double longitude = cell.longitude - (gridWidthCells - 1) / 2 * getDegreesFor100m(new LatLng(latitude, cell.longitude), -90);
 		LatLng topLeftPoint = findCellTopLeftPoint(new LatLng(latitude, longitude));
 
 		return topLeftPoint;
@@ -296,14 +281,15 @@ public class Utils {
 
 		//fill first column
 		for (int i = 1; i < arrRows; i++)
-			grid[i][0] = new LatLng(grid[i - 1][0].latitude - INITIAL_DEGREES_CELL_SIZE, grid[i - 1][0].longitude);
+			// for each cell, we need to take a point in the cell to have the top left corner
+			grid[i][0] = findCellTopLeftPoint(getLatLong(getLatLong(grid[i - 1][0], 0.11, 180), 0.05, 90));
 
 		//fill rows
 		for (int i = 0; i < arrRows; i++) {
-			double width = getDegreesFor100m(grid[i][0].latitude, INITIAL_DEGREES_CELL_SIZE);
-
-			for (int j = 1; j < arrCols; j++)
-				grid[i][j] = new LatLng(grid[i][j - 1].latitude, grid[i][j - 1].longitude + width);
+			for (int j = 1; j < arrCols; j++) {
+				// for each cell, we need to take a point in the cell to have the top left corner
+				grid[i][j] = findCellTopLeftPoint(getLatLong(getLatLong(grid[i][j - 1], 0.11, 90), 0.05, 180));
+			}
 		}
 
 		return grid;
@@ -333,8 +319,9 @@ public class Utils {
 		markers.clear();
 	}
 
+	// FIXME : problem is that it is not always well aligned
 	public static ArrayList<Polyline> drawMapGrid(LatLng[][] mapGrid, GoogleMap googleMap) {
-		ArrayList<Polyline> polylines = new ArrayList<Polyline>();
+		ArrayList<Polyline> polylines = new ArrayList<>();
 		int arrRows = mapGrid.length;
 		int arrCols = mapGrid[0].length;
 

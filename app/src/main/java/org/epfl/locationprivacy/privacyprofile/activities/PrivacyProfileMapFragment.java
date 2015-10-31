@@ -146,7 +146,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 					public void onMapClick(LatLng point) {
 						currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude, point.longitude);
 						if (currSelectedGridCell == null) {
-							LatLng cellPosition = Utils.findCellTopLeftPoint(new LatLng(point.latitude, point.longitude));
+							LatLng cellPosition = Utils.findCellTopLeftPoint(point);
 							int cellID = Utils.computeCellIDFromPosition(cellPosition);
 							ArrayList<LatLng> corners = Utils.computeCellCornerPoints(cellPosition);
 							currSelectedGridCell = new MyPolygon(cellID + "", "", corners);
@@ -248,9 +248,10 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 		if (currentLocation != null) {
 
 			//Animate
-			LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+			//LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
 			// FIXME : to remove, for testing purpose
-			//LatLng latLng = Utils.MAP_ORIGIN;
+			LatLng latLng = Utils.MAP_ORIGIN;
+			//LatLng latLng = new LatLng(80, 0);
 			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
 			googleMap.moveCamera(cameraUpdate);
 
