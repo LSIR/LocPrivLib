@@ -54,7 +54,6 @@ public class Utils {
 	private static String LOGTAG = "Utils";
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
-	private static final float GRID_CELL_SIZE = 0.05f; //50 meters
 	private static DecimalFormat formatter = new DecimalFormat(".##E0");
 
 	/**
@@ -107,6 +106,12 @@ public class Utils {
 		return d / 10000;
 	}
 
+	/**
+	 * Get a random integer between min and max
+	 * @param min
+	 * @param max
+	 * @return
+	 */
 	public static int getRandom(int min, int max) {
 		return rand.nextInt((max - min) + 1) + min;
 	}
@@ -167,58 +172,6 @@ public class Utils {
 	}
 
 	/**
-	 * Compute the difference in percentage for lost distance between equinox and circle of latitude
-	 *
-	 * @param latitude in degrees
-	 * @return the difference in percentage for lost distance between equinox and circle of latitude
-	 */
-	private static double differenceWithEquinox(double latitude) {
-		double circleOfLatitude = Math.round(latitude);
-
-		if (circleOfLatitude < 1) {
-			return 0;
-		} else if (circleOfLatitude < 5) {
-			return 100 - 99.6;
-		} else if (circleOfLatitude < 10) {
-			return 100 - 98.5;
-		} else if (circleOfLatitude < 15) {
-			return 100 - 96.6;
-		} else if (circleOfLatitude < 20) {
-			return 100 - 94;
-		} else if (circleOfLatitude < 25) {
-			return 100 - 90.7;
-		} else if (circleOfLatitude < 30) {
-			return 100 - 86.7;
-		} else if (circleOfLatitude < 35) {
-			return 100 - 82;
-		} else if (circleOfLatitude < 40) {
-			return 100 - 76.7;
-		} else if (circleOfLatitude < 45) {
-			return 100 - 70.8;
-		} else if (circleOfLatitude < 50) {
-			return 100 - 64.4;
-		} else if (circleOfLatitude < 55) {
-			return 100 - 57.5;
-		} else if (circleOfLatitude < 60) {
-			return 100 - 50.1;
-		} else if (circleOfLatitude < 65) {
-			return 100 - 42.4;
-		} else if (circleOfLatitude < 70) {
-			return 100 - 34.3;
-		} else if (circleOfLatitude < 75) {
-			return 100 - 26;
-		} else if (circleOfLatitude < 80) {
-			return 100 - 17.4;
-		} else if (circleOfLatitude < 90) {
-			return 100 - 8.7;
-		} else if (circleOfLatitude == 90) {
-			return -1;
-		} else {
-			return 100;
-		}
-	}
-
-	/**
 	 * Compute the id of a given point on the map
 	 * You should use this function for positions representing cells (top left corner)
 	 *
@@ -250,7 +203,7 @@ public class Utils {
 		ArrayList<LatLng> corners = new ArrayList<>();
 		corners.add(topLeft);
 
-		// Apparently the order of the corners in the arrayList is important
+		// The order of the corners in the arrayList is important for drawing the cell
 		// Top Right
 		LatLng topRight = getLatLong(topLeft, 0.1, 90);
 		corners.add(topRight);
@@ -262,6 +215,13 @@ public class Utils {
 		return corners;
 	}
 
+	/**
+	 * Find the top left point of a grid given then central cell
+	 * @param centerPoint the center of the grid
+	 * @param gridHeightCells the height of the grid
+	 * @param gridWidthCells the width of the grid
+	 * @return the top left point of a grid given then central cell
+	 */
 	public static LatLng findGridTopLeftPoint(LatLng centerPoint, int gridHeightCells,
 	                                          int gridWidthCells) {
 
@@ -275,11 +235,19 @@ public class Utils {
 		return topLeftPoint;
 	}
 
-	// FIXME : remove useless code
+	/**
+	 * Generate the grid given its size and the top left cell
+	 *
+	 * the grid is not a nice square because of different sizes due to different latitudes
+	 * @param arrRows
+	 * @param arrCols
+	 * @param topLeftPoint
+	 * @return
+	 */
 	public static LatLng[][] generateMapGrid(int arrRows, int arrCols, LatLng topLeftPoint) {
 		LatLng[][] grid = new LatLng[arrRows][arrCols];
 		grid[0][0] = topLeftPoint;
-		double defaultDist = 0.11;
+		double defaultDist = 0.1;
 
 		//fill first column
 		for (int i = 1; i < arrRows; i++) {
@@ -297,6 +265,11 @@ public class Utils {
 		return grid;
 	}
 
+	/**
+	 * Remove lines created for a grid
+	 * @param polylines
+	 * @param polygon
+	 */
 	public static void removeOldMapGrid(ArrayList<Polyline> polylines, Polygon polygon) {
 		for (Polyline p : polylines) {
 			p.remove();
@@ -307,6 +280,10 @@ public class Utils {
 			polygon.remove();
 	}
 
+	/**
+	 * Remove polygons out of the map
+	 * @param polygons
+	 */
 	public static void removePolygons(ArrayList<Polygon> polygons) {
 		for (Polygon p : polygons) {
 			p.remove();
@@ -314,6 +291,10 @@ public class Utils {
 		polygons.clear();
 	}
 
+	/**
+	 * Remove markers
+	 * @param markers
+	 */
 	public static void removeMarkers(ArrayList<Marker> markers) {
 		for (Marker m : markers) {
 			m.remove();
@@ -323,6 +304,7 @@ public class Utils {
 
 	/**
 	 * Draw the grid on the map
+	 *
 	 * @param mapGrid
 	 * @param googleMap
 	 * @return
@@ -355,6 +337,7 @@ public class Utils {
 
 	/**
 	 * Draw a Polygon
+	 *
 	 * @param polygon
 	 * @param googleMap
 	 * @param fillColor
@@ -371,6 +354,7 @@ public class Utils {
 
 	/**
 	 * Draw obfuscation area
+	 *
 	 * @param mapGrid
 	 * @param googleMap
 	 * @return
@@ -404,11 +388,16 @@ public class Utils {
 		}
 
 		// Top is done automatically
-		
+
 		return googleMap.addPolygon(polygonOptions);
 
 	}
 
+	/**
+	 * Check if the Google Play Service is working
+	 * @param activity
+	 * @return a boolean
+	 */
 	public static boolean googlePlayServicesOK(Activity activity) {
 		int isAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(activity);
 
@@ -728,7 +717,9 @@ public class Utils {
 		}
 	}
 
-	/* Checks if external storage is available for read and write */
+	/**
+	 *  Checks if external storage is available for read and write
+	 **/
 	public static boolean isExternalStorageWritable() {
 		String state = Environment.getExternalStorageState();
 		if (Environment.MEDIA_MOUNTED.equals(state)) {

@@ -1,6 +1,8 @@
 package org.epfl.locationprivacy.privacyprofile.activities;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 import org.epfl.locationprivacy.R;
@@ -29,6 +31,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 
@@ -50,6 +53,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 	LocationClient locationClient;
 	Location currentLocation = null;
 	LatLng[][] mapGrid = null;
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
 	public PrivacyProfileMapFragment() {
 		super();
@@ -121,17 +125,6 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 				// Create location client to find current position
 				locationClient = new LocationClient(this.getActivity(), this, this);
 				locationClient.connect();
-				// Default position in Lausanne
-				/*LatLng latLng = new LatLng(46.526092, 6.584415);
-				CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 11);
-				googleMap.moveCamera(cameraUpdate);
-
-				// Draw Grid
-				MyPolygon topLeftGridCell = gridDBDataSource.findGridCell(0);
-				LatLng topLeftPoint = topLeftGridCell.getPoints().get(0);
-				refreshMapGrid(Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS,
-						              topLeftPoint);
-				*/
 
 				// Query Previously saved grid cells which have customized sensitivity
 				ArrayList<MyPolygon> sensitiveGridCells = gridDBDataSource.findSensitiveGridCells();
@@ -248,19 +241,16 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 		if (currentLocation != null) {
 
 			//Animate
-			//LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-			// FIXME : to remove, for testing purpose
-			LatLng latLng = Utils.MAP_ORIGIN;
-			//LatLng latLng = new LatLng(80, 0);
+			LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
 			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
 			googleMap.moveCamera(cameraUpdate);
 
+			// FIXME : Keep the marker ?
 			//Adding Marker
-			// FIXME : keep this part ?
-			/*String timeStamp = dateFormat.format(new Date());
+			String timeStamp = dateFormat.format(new Date());
 			String markerTitle = timeStamp + " " + latLng.toString();
 			MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(latLng);
-			googleMap.addMarker(markerOptions);*/
+			googleMap.addMarker(markerOptions);
 
 			// top Left corner
 			LatLng centerPoint = new LatLng(latLng.latitude, latLng.longitude);
@@ -271,23 +261,8 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			int arrCols = Utils.GRID_WIDTH_CELLS + 1;
 			mapGrid = Utils.generateMapGrid(arrRows, arrCols, topLeftPoint);
 
-			// FIXME : What is the purpose of this ?
-			/*
-			// obfuscation region size
-			int obfuscationRegionHeightCells = Utils.GRID_HEIGHT_CELLS / 2 + 1;
-			int obfuscationRegionWidthCells = Utils.GRID_WIDTH_CELLS / 2 + 1;
-
-			// FIXME : something to change ?
-			// top Left corner for the obfuscation region
-			LatLng obfRegionTopLeftPoint = Utils.findGridTopLeftPoint(centerPoint, obfuscationRegionHeightCells, obfuscationRegionWidthCells);
-
-
 			// refresh map
-			refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
-					              obfRegionTopLeftPoint);*/
-			// refresh map
-			refreshMapGrid(Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS,
-					              topLeftPoint);
+			refreshMapGrid(Utils.GRID_HEIGHT_CELLS, Utils.GRID_WIDTH_CELLS, topLeftPoint);
 
 		} else {
 			Toast.makeText(this.getActivity(), "Current Location is not available, Can't Access GPS data", Toast.LENGTH_LONG).show();
