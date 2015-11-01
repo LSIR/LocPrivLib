@@ -47,8 +47,8 @@ public class Utils {
 	public static final int LAUSANNE_GRID_HEIGHT_CELLS = 101;
 	public static final int LAUSANNE_GRID_WIDTH_CELLS = 301;
 
-	public static final int GRID_HEIGHT_CELLS = 101;
-	public static final int GRID_WIDTH_CELLS = 101;
+	public static final int GRID_HEIGHT_CELLS = 31;
+	public static final int GRID_WIDTH_CELLS = 31;
 	public static final LatLng MAP_ORIGIN = new LatLng(0, 0);
 	public static double INITIAL_DEGREES_CELL_SIZE = 0.0009; // in degrees (approx. 100 meters at MAP_ORIGIN)
 	private static String LOGTAG = "Utils";

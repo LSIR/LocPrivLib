@@ -30,6 +30,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
@@ -176,6 +177,38 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 										              + currSelectedGridCell.getSensitivityAsDouble(),
 								              Toast.LENGTH_SHORT).show();
 
+					}
+				});
+
+				// Refresh the grid according to the current position on the map and the zoom
+				googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+					@Override
+					public void onCameraChange(CameraPosition cameraPosition) {
+						LatLng position = cameraPosition.target;
+						int height;
+						int width;
+						LatLng topLeftPoint;
+						if (cameraPosition.zoom > 11.5 && cameraPosition.zoom <= 12.5) {
+							height = Utils.GRID_HEIGHT_CELLS * 3 / 2;
+							width = Utils.GRID_WIDTH_CELLS * 3 / 2;
+						} else if (cameraPosition.zoom > 12.5 && cameraPosition.zoom <= 14.5) {
+							height = Utils.GRID_HEIGHT_CELLS;
+							width = Utils.GRID_WIDTH_CELLS;
+						} else if (cameraPosition.zoom > 14.5 && cameraPosition.zoom <= 16.5) {
+							height = Utils.GRID_HEIGHT_CELLS / 2;
+							width = Utils.GRID_WIDTH_CELLS / 2;
+						} else if (cameraPosition.zoom > 16.5 && cameraPosition.zoom <= 20.5) {
+							height = Utils.GRID_HEIGHT_CELLS / 4;
+							width = Utils.GRID_WIDTH_CELLS / 4;
+						} else if (cameraPosition.zoom > 20.5) {
+							height = Utils.GRID_HEIGHT_CELLS / 8;
+							width = Utils.GRID_WIDTH_CELLS / 8;
+						} else {
+							height = Utils.GRID_HEIGHT_CELLS;
+							width = Utils.GRID_WIDTH_CELLS;
+						}
+						topLeftPoint = Utils.findGridTopLeftPoint(position, height, width);
+						refreshMapGrid(height, width, topLeftPoint);
 					}
 				});
 
