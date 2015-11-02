@@ -34,7 +34,7 @@ public class VirtualTransitionGeneratorActivity extends ActionBarActivity {
 		super.onCreate(savedInstanceState);
 
 		// Make sure that google play services are OK
-		if (Utils.googlePlayServicesOK(this)) {
+		if (Utils.checkPlayServices(this,getApplicationContext())) {
 			setContentView(R.layout.activity_virtualtransitiongenerator);
 			mapView = (MapView) findViewById(R.id.virtualtransitionmap);
 			mapView.onCreate(savedInstanceState);
@@ -46,8 +46,8 @@ public class VirtualTransitionGeneratorActivity extends ActionBarActivity {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				LatLng laussaneLocation = new LatLng(46.520912, 6.633983);
-				CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(laussaneLocation, 13);
+				LatLng lausanneLocation = new LatLng(46.520912, 6.633983);
+				CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(lausanneLocation, 13);
 				googleMap.moveCamera(cameraUpdate);
 			} else {
 				Toast.makeText(this, "Map not available", Toast.LENGTH_SHORT).show();
@@ -125,8 +125,8 @@ public class VirtualTransitionGeneratorActivity extends ActionBarActivity {
 		String destination = destinationLatLng.latitude + "," + destinationLatLng.longitude;
 
 		String[] transportationArray = { "walking", "bicycling", "driving" };
-		String randomTransportation = transportationArray[rand.nextInt(transportationArray.length)]; 
-		
+		String randomTransportation = transportationArray[rand.nextInt(transportationArray.length)];
+
 		String url = "https://maps.googleapis.com/maps/api/directions/json?" + "origin=" + origin
 				+ "&destination=" + destination + "&mode="
 				+ randomTransportation + "&key=" + key;

@@ -13,6 +13,7 @@ import org.epfl.locationprivacy.util.Utils;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -23,8 +24,8 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -37,9 +38,12 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 
 public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChangeListener,
-		                                                                   GooglePlayServicesClient.ConnectionCallbacks,
-		                                                                   GooglePlayServicesClient.OnConnectionFailedListener {
+		                                                                   GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+	private static final String TAG = "PrivacyProfileMapFragment";
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+	// Google client to interact with Google API
+	private GoogleApiClient mGoogleApiClient;
 	GoogleMap googleMap;
 	MapView mapView;
 	Bundle mBundle;
@@ -51,10 +55,8 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 	CheckBox checkBox;
 	HashMap<String, Polygon> idToDrawablePolygon = new HashMap<String, Polygon>();
 	GridDBDataSource gridDBDataSource;
-	LocationClient locationClient;
 	Location currentLocation = null;
 	LatLng[][] mapGrid = null;
-	private static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
 	public PrivacyProfileMapFragment() {
 		super();
@@ -115,110 +117,105 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 		privacyBar.setEnabled(false);
 		privacyBar.setOnSeekBarChangeListener(this);
 
-		// Make sure that google play services are OK
-		if (Utils.googlePlayServicesOK(getActivity())) {
+		MapsInitializer.initialize(getActivity());
+		mapView = (MapView) rootView.findViewById(R.id.privacyprofilemap);
+		mapView.onCreate(mBundle);
 
-			MapsInitializer.initialize(getActivity());
-			mapView = (MapView) rootView.findViewById(R.id.privacyprofilemap);
-			mapView.onCreate(mBundle);
+		if (initMap()) {
+			// First we need to check availability of play services
+			if (Utils.checkPlayServices(this.getActivity(), this.getActivity().getApplicationContext())) {
 
-			if (initMap()) {
-				// Create location client to find current position
-				locationClient = new LocationClient(this.getActivity(), this, this);
-				locationClient.connect();
-
-				// Query Previously saved grid cells which have customized sensitivity
-				ArrayList<MyPolygon> sensitiveGridCells = gridDBDataSource.findSensitiveGridCells();
-				for (MyPolygon savedGridCell : sensitiveGridCells) {
-					Polygon p = Utils.drawPolygon(savedGridCell, googleMap, 0x33FF0000);
-					idToDrawablePolygon.put(savedGridCell.getName(), p);
-				}
-
-				// Detecting Touch Events
-				googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-					@Override
-					public void onMapClick(LatLng point) {
-						currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude, point.longitude);
-						if (currSelectedGridCell == null) {
-							LatLng cellPosition = Utils.findCellTopLeftPoint(point);
-							int cellID = Utils.computeCellIDFromPosition(cellPosition);
-							ArrayList<LatLng> corners = Utils.computeCellCornerPoints(cellPosition);
-							currSelectedGridCell = new MyPolygon(cellID + "", "", corners);
-						}
-
-
-						//--> remove select grid
-						if (currDrawableGridCell != null)
-							currDrawableGridCell.remove();
-
-						//--> add new one
-						currDrawableGridCell = Utils.drawPolygon(currSelectedGridCell,
-								                                        googleMap, 0x3300FF00);
-
-						// activate scroll & checkbox
-						if (currSelectedGridCell.getSensitivityAsInteger() != null) {
-							checkBox.setChecked(true);
-							privacyBar.setEnabled(true);
-
-							// update sensitivity bar
-							int currSensitivity = currSelectedGridCell
-									                      .getSensitivityAsInteger();
-							privacyBar.setProgress(currSensitivity);
-						} else {
-							// deactivate scroll and check box
-							privacyBar.setEnabled(false);
-							checkBox.setChecked(false);
-						}
-
-						// test sensitivity
-						Toast.makeText(
-								              getActivity(),
-								              "CellID: " + currSelectedGridCell.getName() + "Sensitivity : "
-										              + currSelectedGridCell.getSensitivityAsDouble(),
-								              Toast.LENGTH_SHORT).show();
-
-					}
-				});
-
-				// Refresh the grid according to the current position on the map and the zoom
-				googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-					@Override
-					public void onCameraChange(CameraPosition cameraPosition) {
-						LatLng position = cameraPosition.target;
-						int height;
-						int width;
-						LatLng topLeftPoint;
-						if (cameraPosition.zoom > 11.5 && cameraPosition.zoom <= 12.5) {
-							height = Utils.GRID_HEIGHT_CELLS * 3 / 2;
-							width = Utils.GRID_WIDTH_CELLS * 3 / 2;
-						} else if (cameraPosition.zoom > 12.5 && cameraPosition.zoom <= 14.5) {
-							height = Utils.GRID_HEIGHT_CELLS;
-							width = Utils.GRID_WIDTH_CELLS;
-						} else if (cameraPosition.zoom > 14.5 && cameraPosition.zoom <= 16.5) {
-							height = Utils.GRID_HEIGHT_CELLS / 2;
-							width = Utils.GRID_WIDTH_CELLS / 2;
-						} else if (cameraPosition.zoom > 16.5 && cameraPosition.zoom <= 20.5) {
-							height = Utils.GRID_HEIGHT_CELLS / 4;
-							width = Utils.GRID_WIDTH_CELLS / 4;
-						} else if (cameraPosition.zoom > 20.5) {
-							height = Utils.GRID_HEIGHT_CELLS / 8;
-							width = Utils.GRID_WIDTH_CELLS / 8;
-						} else {
-							height = Utils.GRID_HEIGHT_CELLS;
-							width = Utils.GRID_WIDTH_CELLS;
-						}
-						topLeftPoint = Utils.findGridTopLeftPoint(position, height, width);
-						refreshMapGrid(height, width, topLeftPoint);
-					}
-				});
-
-			} else {
-				Toast.makeText(getActivity(), "Map not available", Toast.LENGTH_SHORT).show();
+				// Building the GoogleApi client
+				buildGoogleApiClient();
 			}
 
+			// Query Previously saved grid cells which have customized sensitivity
+			ArrayList<MyPolygon> sensitiveGridCells = gridDBDataSource.findSensitiveGridCells();
+			for (MyPolygon savedGridCell : sensitiveGridCells) {
+				Polygon p = Utils.drawPolygon(savedGridCell, googleMap, 0x33FF0000);
+				idToDrawablePolygon.put(savedGridCell.getName(), p);
+			}
+
+			// Detecting Touch Events
+			googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+				@Override
+				public void onMapClick(LatLng point) {
+					currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude, point.longitude);
+					if (currSelectedGridCell == null) {
+						LatLng cellPosition = Utils.findCellTopLeftPoint(point);
+						int cellID = Utils.computeCellIDFromPosition(cellPosition);
+						ArrayList<LatLng> corners = Utils.computeCellCornerPoints(cellPosition);
+						currSelectedGridCell = new MyPolygon(cellID + "", "", corners);
+					}
+
+
+					//--> remove select grid
+					if (currDrawableGridCell != null)
+						currDrawableGridCell.remove();
+
+					//--> add new one
+					currDrawableGridCell = Utils.drawPolygon(currSelectedGridCell,
+							                                        googleMap, 0x3300FF00);
+
+					// activate scroll & checkbox
+					if (currSelectedGridCell.getSensitivityAsInteger() != null) {
+						checkBox.setChecked(true);
+						privacyBar.setEnabled(true);
+
+						// update sensitivity bar
+						int currSensitivity = currSelectedGridCell
+								                      .getSensitivityAsInteger();
+						privacyBar.setProgress(currSensitivity);
+					} else {
+						// deactivate scroll and check box
+						privacyBar.setEnabled(false);
+						checkBox.setChecked(false);
+					}
+
+					// test sensitivity
+					Toast.makeText(
+							              getActivity(),
+							              "CellID: " + currSelectedGridCell.getName() + "Sensitivity : "
+									              + currSelectedGridCell.getSensitivityAsDouble(),
+							              Toast.LENGTH_SHORT).show();
+
+				}
+			});
+
+			// Refresh the grid according to the current position on the map and the zoom
+			googleMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+				@Override
+				public void onCameraChange(CameraPosition cameraPosition) {
+					LatLng position = cameraPosition.target;
+					int height;
+					int width;
+					LatLng topLeftPoint;
+					if (cameraPosition.zoom > 11.5 && cameraPosition.zoom <= 12.5) {
+						height = Utils.GRID_HEIGHT_CELLS * 3 / 2;
+						width = Utils.GRID_WIDTH_CELLS * 3 / 2;
+					} else if (cameraPosition.zoom > 12.5 && cameraPosition.zoom <= 14.5) {
+						height = Utils.GRID_HEIGHT_CELLS;
+						width = Utils.GRID_WIDTH_CELLS;
+					} else if (cameraPosition.zoom > 14.5 && cameraPosition.zoom <= 16.5) {
+						height = Utils.GRID_HEIGHT_CELLS / 2;
+						width = Utils.GRID_WIDTH_CELLS / 2;
+					} else if (cameraPosition.zoom > 16.5 && cameraPosition.zoom <= 20.5) {
+						height = Utils.GRID_HEIGHT_CELLS / 4;
+						width = Utils.GRID_WIDTH_CELLS / 4;
+					} else if (cameraPosition.zoom > 20.5) {
+						height = Utils.GRID_HEIGHT_CELLS / 8;
+						width = Utils.GRID_WIDTH_CELLS / 8;
+					} else {
+						height = Utils.GRID_HEIGHT_CELLS;
+						width = Utils.GRID_WIDTH_CELLS;
+					}
+					topLeftPoint = Utils.findGridTopLeftPoint(position, height, width);
+					refreshMapGrid(height, width, topLeftPoint);
+				}
+			});
+
 		} else {
-			Toast.makeText(getActivity(), "Google Play Service Not Available", Toast.LENGTH_SHORT)
-					.show();
+			Toast.makeText(getActivity(), "Map not available", Toast.LENGTH_SHORT).show();
 		}
 
 		return rootView;
@@ -240,6 +237,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 	public void onResume() {
 		super.onResume();
 		mapView.onResume();
+		Utils.checkPlayServices(this.getActivity(), this.getActivity().getApplicationContext());
 	}
 
 	@Override
@@ -257,11 +255,25 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 	//=================================================================================
 
 	@Override
-	public void onConnectionFailed(ConnectionResult arg0) {
+	public void onStart() {
+		super.onStart();
+		if (mGoogleApiClient != null) {
+			mGoogleApiClient.connect();
+		}
+	}
+
+	/**
+	 * Google api callback methods
+	 */
+	@Override
+	public void onConnectionFailed(ConnectionResult result) {
+		Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = "
+				           + result.getErrorCode());
 	}
 
 	@Override
-	public void onDisconnected() {
+	public void onConnectionSuspended(int arg0) {
+		mGoogleApiClient.connect();
 	}
 
 	@Override
@@ -270,7 +282,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 		MapsInitializer.initialize(this.getActivity());
 
-		currentLocation = locationClient.getLastLocation();
+		currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 		if (currentLocation != null) {
 
 			//Animate
@@ -338,5 +350,15 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 		Toast.makeText(getActivity(), "Successfully saved value: " + sensitivity,
 				              Toast.LENGTH_SHORT).show();
+	}
+
+	/**
+	 * Creating google api client object
+	 */
+	protected synchronized void buildGoogleApiClient() {
+		mGoogleApiClient = new GoogleApiClient.Builder(this.getActivity().getApplicationContext())
+				                   .addConnectionCallbacks(this)
+				                   .addOnConnectionFailedListener(this)
+				                   .addApi(LocationServices.API).build();
 	}
 }

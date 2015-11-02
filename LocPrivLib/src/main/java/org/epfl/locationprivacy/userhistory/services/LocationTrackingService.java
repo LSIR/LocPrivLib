@@ -18,20 +18,26 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 
 public class LocationTrackingService extends Service implements
-		GooglePlayServicesClient.ConnectionCallbacks,
-		GooglePlayServicesClient.OnConnectionFailedListener, LocationListener {
+		GoogleApiClient.ConnectionCallbacks,
+				GoogleApiClient.OnConnectionFailedListener,
+				LocationListener {
 
 	private static final String LOGTAG = "LocationTrackingService";
 
 	private static final int SAMPLING_INTERVAL_IN_MILLISECONDS = 5000;
 
-	private LocationClient locationClient;
+	// Google client to interact with Google API
+	private GoogleApiClient mGoogleApiClient;
+
+	private LocationRequest mLocationRequest;
+
 	Random random;
 	int previousLocID = -1;
 	int previousTimeID = -1;
@@ -48,22 +54,20 @@ public class LocationTrackingService extends Service implements
 
 		//Random Number
 		random = new Random();
+		createLocationRequest();
 
-	}
+		// Building the GoogleApi client
+		buildGoogleApiClient();
 
-	@Override
-	public void onStart(Intent intent, int startId) {
-		Log.d(LOGTAG, "onStart");
-
-		locationClient = new LocationClient(this, this, this);
-		locationClient.connect();
+		if (mGoogleApiClient != null) {
+			mGoogleApiClient.connect();
+		}
 	}
 
 	@Override
 	public void onDestroy() {
 		Toast.makeText(this, "Background Service Stopped", Toast.LENGTH_SHORT).show();
 		Log.d(LOGTAG, "onDestroy");
-		locationClient.removeLocationUpdates(this);
 	}
 
 	//===================================================
@@ -71,19 +75,19 @@ public class LocationTrackingService extends Service implements
 	public void onConnected(Bundle arg0) {
 		Log.d(LOGTAG, "onConnected");
 
-		Location currentLocation = locationClient.getLastLocation();
+		Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 		if (currentLocation != null) {
 			LocationRequest locationRequest = LocationRequest.create();
 			locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 			locationRequest.setInterval(SAMPLING_INTERVAL_IN_MILLISECONDS);
 			locationRequest.setFastestInterval(SAMPLING_INTERVAL_IN_MILLISECONDS);
-			locationClient.requestLocationUpdates(locationRequest, this);
+			startLocationUpdates();
 
 			Toast.makeText(this, "Background Service Started", Toast.LENGTH_SHORT).show();
 		} else {
 			Toast.makeText(this,
-					"Current Location is not available, Please check your GPS connection",
-					Toast.LENGTH_LONG).show();
+					              "Current Location is not available, Please check your GPS connection",
+					              Toast.LENGTH_LONG).show();
 		}
 	}
 
@@ -94,9 +98,8 @@ public class LocationTrackingService extends Service implements
 	}
 
 	@Override
-	public void onDisconnected() {
-		Log.d(LOGTAG, "connection disconnected");
-		Toast.makeText(this, "Connection disconnected", Toast.LENGTH_SHORT).show();
+	public void onConnectionSuspended(int arg0) {
+		mGoogleApiClient.connect();
 	}
 
 	//===================================================
@@ -106,7 +109,7 @@ public class LocationTrackingService extends Service implements
 		// open DBs
 		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(this);
 		TransitionTableDataSource transitionTableDataSource = TransitionTableDataSource
-				.getInstance(this);
+				                                                      .getInstance(this);
 		LocationTableDataSource locationTableDataSource = LocationTableDataSource.getInstance(this);
 
 		// random number
@@ -127,7 +130,7 @@ public class LocationTrackingService extends Service implements
 		// Adding location sample to Location table
 		long currTime = System.currentTimeMillis();
 		org.epfl.locationprivacy.userhistory.models.Location newLocation = new org.epfl.locationprivacy.userhistory.models.Location(
-				location.getLatitude(), location.getLongitude(), currTime);
+				                                                                                                                           location.getLatitude(), location.getLongitude(), currTime);
 		locationTableDataSource.create(newLocation);
 
 		//==== Testing
@@ -138,11 +141,11 @@ public class LocationTrackingService extends Service implements
 
 		// Adding transition to transition table
 		MyPolygon currLocPolygon = gridDBDataSource.findGridCell(randomLatitude, randomLongitude);
-		int currLocID = Integer.parseInt(currLocPolygon.getName());
+		int currLocID = Utils.computeCellIDFromPosition(new LatLng(randomLatitude, randomLongitude));
 		int currTimeID = Utils.findDayPortionID(currTime);
 		if (previousLocID != -1) {
 			Transition newTransition = new Transition(previousLocID, currLocID, previousTimeID,
-					currTimeID, 1);
+					                                         currTimeID, 1);
 			transitionTableDataSource.updateOrInsert(newTransition);
 
 			//==== Testing
@@ -152,5 +155,27 @@ public class LocationTrackingService extends Service implements
 		}
 		previousLocID = currLocID;
 		previousTimeID = currTimeID;
+	}
+
+	protected void createLocationRequest() {
+		mLocationRequest = new LocationRequest();
+		mLocationRequest.setInterval(10000);
+		mLocationRequest.setFastestInterval(5000);
+		mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+	}
+
+	protected void startLocationUpdates() {
+		LocationServices.FusedLocationApi.requestLocationUpdates(
+				                                                        mGoogleApiClient, mLocationRequest, this);
+	}
+
+	/**
+	 * Creating google api client object
+	 */
+	protected synchronized void buildGoogleApiClient() {
+		mGoogleApiClient = new GoogleApiClient.Builder(this)
+				                   .addConnectionCallbacks(this)
+				                   .addOnConnectionFailedListener(this)
+				                   .addApi(LocationServices.API).build();
 	}
 }

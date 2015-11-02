@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SeekBar;
@@ -19,8 +20,8 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -32,14 +33,16 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 
 public class ObfRegionSettingActivity extends ActionBarActivity implements
-		GooglePlayServicesClient.ConnectionCallbacks,
-		GooglePlayServicesClient.OnConnectionFailedListener, OnSeekBarChangeListener {
+		GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnSeekBarChangeListener {
 
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+	private static final String TAG = "ObfRegionSettingActivity";
 
 	GoogleMap googleMap;
 	MapView mapView;
-	LocationClient locationClient;
+	// Google client to interact with Google API
+	private GoogleApiClient mGoogleApiClient;
+	Location location;
 	ArrayList<Polyline> polylines = new ArrayList<Polyline>();
 	Polygon polygon = null;
 	int currObfRegionHeightCells = 1;
@@ -49,21 +52,24 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// Make sure that google play services are OK
-		if (Utils.googlePlayServicesOK(this)) {
-			setContentView(R.layout.activity_baselineprotection_obfregionsetting);
-			mapView = (MapView) findViewById(R.id.map);
-			mapView.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_baselineprotection_obfregionsetting);
+		mapView = (MapView) findViewById(R.id.map);
+		mapView.onCreate(savedInstanceState);
 
-			if (initMap()) {
-				locationClient = new LocationClient(this, this, this);
-				locationClient.connect();
-			} else {
-				Toast.makeText(this, "Map not available", Toast.LENGTH_SHORT).show();
+		if (initMap()) {
+			// First we need to check availability of play services
+			if (Utils.checkPlayServices(this, this.getApplicationContext())) {
+
+				// Building the GoogleApi client
+				buildGoogleApiClient();
 			}
 
+			location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+			if (location == null) {
+				Toast.makeText(this, "Current location not available", Toast.LENGTH_SHORT).show();
+			}
 		} else {
-			Toast.makeText(this, "Google Play Service Not Available", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "Map not available", Toast.LENGTH_SHORT).show();
 		}
 
 		//read prefernces
@@ -105,6 +111,7 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 	protected void onResume() {
 		super.onResume();
 		mapView.onResume();
+		Utils.checkPlayServices(this, this.getApplicationContext());
 	}
 
 	@Override
@@ -115,11 +122,25 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 
 	//=============================================================================
 	@Override
-	public void onConnectionFailed(ConnectionResult arg0) {
+	protected void onStart() {
+		super.onStart();
+		if (mGoogleApiClient != null) {
+			mGoogleApiClient.connect();
+		}
+	}
+
+	/**
+	 * Google api callback methods
+	 */
+	@Override
+	public void onConnectionFailed(ConnectionResult result) {
+		Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = "
+				           + result.getErrorCode());
 	}
 
 	@Override
-	public void onDisconnected() {
+	public void onConnectionSuspended(int arg0) {
+		mGoogleApiClient.connect();
 	}
 
 	@Override
@@ -128,12 +149,12 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 
 		MapsInitializer.initialize(this);
 
-		Location currentLocation = locationClient.getLastLocation();
+		Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 		if (currentLocation != null) {
 
 			//Animate
 			LatLng latLng = new LatLng(currentLocation.getLatitude(),
-					currentLocation.getLongitude());
+					                          currentLocation.getLongitude());
 			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
 			googleMap.moveCamera(cameraUpdate);
 
@@ -189,8 +210,8 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 	private void refreshMapGrid(int gridHeightCells, int gridWidthCells, Location currentLocation) {
 		// top Left corner
 		LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
-				currentLocation.getLongitude());
-		LatLng topLeftPoint = Utils.findCellTopLeftPoint(centerPoint);
+				                               currentLocation.getLongitude());
+		LatLng topLeftPoint = Utils.findGridTopLeftPoint(centerPoint, gridHeightCells, gridWidthCells);
 
 		// generate Map Grid
 		int arrRows = gridHeightCells + 1;
@@ -220,6 +241,16 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 		currObfRegionWidthCells = 2 * seekBar.getProgress() + 1;
 		currObfRegionHeightCells = 2 * seekBar.getProgress() + 1;
 		refreshMapGrid(currObfRegionHeightCells, currObfRegionWidthCells,
-				locationClient.getLastLocation());
+				              LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient));
+	}
+
+	/**
+	 * Creating google api client object
+	 */
+	protected synchronized void buildGoogleApiClient() {
+		mGoogleApiClient = new GoogleApiClient.Builder(this)
+				                   .addConnectionCallbacks(this)
+				                   .addOnConnectionFailedListener(this)
+				                   .addApi(LocationServices.API).build();
 	}
 }

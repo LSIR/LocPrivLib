@@ -44,18 +44,14 @@ public class ThirdPartyActivity extends ActionBarActivity {
 		adaptiveProtectionInterface = new AdaptiveProtection(this);
 
 		// Initialize Google Maps
-		if (Utils.googlePlayServicesOK(this)) {
-			setContentView(R.layout.activity_thirdparty);
-			mapView = (MapView) findViewById(R.id.thirdpartymapview);
-			mapView.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_thirdparty);
+		mapView = (MapView) findViewById(R.id.thirdpartymapview);
+		mapView.onCreate(savedInstanceState);
 
-			if (initMap()) {
-				MapsInitializer.initialize(this);
-			} else {
-				Toast.makeText(this, "Map not available", Toast.LENGTH_SHORT).show();
-			}
+		if (initMap()) {
+			MapsInitializer.initialize(this);
 		} else {
-			Toast.makeText(this, "Google Play services Not OK", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "Map not available", Toast.LENGTH_SHORT).show();
 		}
 
 		// Initialize Polygons
@@ -132,7 +128,7 @@ public class ThirdPartyActivity extends ActionBarActivity {
 			// get obf location
 			LatLng mockLocation = mockLocations.get(index);
 			Pair<LatLng, LatLng> obfRegionBoundries = adaptiveProtectionInterface
-					.getObfuscationLocation(mockLocation);
+					                                          .getObfuscationLocation(mockLocation);
 
 			// Draw obfuscation Region
 			for (MyPolygon p : AdaptiveProtection.logObfRegion) {
@@ -142,45 +138,45 @@ public class ThirdPartyActivity extends ActionBarActivity {
 
 			// adding marker for the current Location
 			MarkerOptions markerOptions = new MarkerOptions()
-					.title("CurrentLocation")
-					.snippet("ObfRegtion Size: " + AdaptiveProtection.logObfRegSize)
-					.position(
-							new LatLng(AdaptiveProtection.logCurrentLocation.latitude,
-									AdaptiveProtection.logCurrentLocation.longitude));
+					                              .title("CurrentLocation")
+					                              .snippet("ObfRegtion Size: " + AdaptiveProtection.logObfRegSize)
+					                              .position(
+							                                       new LatLng(AdaptiveProtection.logCurrentLocation.latitude,
+									                                                 AdaptiveProtection.logCurrentLocation.longitude));
 			markers.add(googleMap.addMarker(markerOptions));
 
 			// draw nearest venue
-			if (view.getId() == R.id.thirdpartytestsemantics) {
+			if (view.getId() == R.id.thirdpartytestsemantics && AdaptiveProtection.logVenue != null) {
 				polygons.add(Utils.drawPolygon(AdaptiveProtection.logVenue, googleMap, 0x3300FF00));
 				MarkerOptions markerOptions2 = new MarkerOptions()
-						.title("Name: " + AdaptiveProtection.logVenue.getName())
-						.snippet(
-								"Tag: " + AdaptiveProtection.logVenue.getSemantic()
-										+ " Sensitivity: " + AdaptiveProtection.logSensitivity)
-						.position(
-								new LatLng(AdaptiveProtection.logVenue.getPoints().get(0).latitude,
-										AdaptiveProtection.logVenue.getPoints().get(0).longitude));
+						                               .title("Name: " + AdaptiveProtection.logVenue.getName())
+						                               .snippet(
+								                                       "Tag: " + AdaptiveProtection.logVenue.getSemantic()
+										                                       + " Sensitivity: " + AdaptiveProtection.logSensitivity)
+						                               .position(
+								                                        new LatLng(AdaptiveProtection.logVenue.getPoints().get(0).latitude,
+										                                                  AdaptiveProtection.logVenue.getPoints().get(0).longitude));
 				markers.add(googleMap.addMarker(markerOptions2));
 			}
 
 			//testing
 			Log.d(LOGTAG, "LG Events: "
-					+ LinkabilityGraphDataSource.getInstance(this).countEventRows() + "LG Edges: "
-					+ LinkabilityGraphDataSource.getInstance(this).countParentChildrenRows());
+					              + LinkabilityGraphDataSource.getInstance(this).countEventRows() + "LG Edges: "
+					              + LinkabilityGraphDataSource.getInstance(this).countParentChildrenRows());
 
 			Log.d(LOGTAG, "Finished mock location number: " + (index + 1));
 		}
 		Toast.makeText(
-				this,
-				"Finished experiment in " + (System.currentTimeMillis() - startExperiment) / 1000
-						+ " sec", Toast.LENGTH_SHORT).show();
+				              this,
+				              "Finished experiment in " + (System.currentTimeMillis() - startExperiment) / 1000
+						              + " sec", Toast.LENGTH_SHORT).show();
 	}
 
 	private void drawObfRegion(Pair<LatLng, LatLng> obfRegionBoundries) {
 		LatLng topLeftPoint = obfRegionBoundries.first;
 		LatLng bottomRightPoint = obfRegionBoundries.second;
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(0x55FF0000)
-				.strokeColor(Color.BLUE).strokeWidth(1);
+				                                .strokeColor(Color.BLUE).strokeWidth(1);
 		//--> top left
 		polygonOptions.add(topLeftPoint);
 

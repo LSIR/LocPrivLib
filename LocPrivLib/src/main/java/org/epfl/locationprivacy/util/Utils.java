@@ -55,6 +55,7 @@ public class Utils {
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
 	private static DecimalFormat formatter = new DecimalFormat(".##E0");
+	private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
 	/**
 	 * Compute the Haversine formula to get a point from another point, a distance and a direction
@@ -108,6 +109,7 @@ public class Utils {
 
 	/**
 	 * Get a random integer between min and max
+	 *
 	 * @param min
 	 * @param max
 	 * @return
@@ -217,9 +219,10 @@ public class Utils {
 
 	/**
 	 * Find the top left point of a grid given then central cell
-	 * @param centerPoint the center of the grid
+	 *
+	 * @param centerPoint     the center of the grid
 	 * @param gridHeightCells the height of the grid
-	 * @param gridWidthCells the width of the grid
+	 * @param gridWidthCells  the width of the grid
 	 * @return the top left point of a grid given then central cell
 	 */
 	public static LatLng findGridTopLeftPoint(LatLng centerPoint, int gridHeightCells,
@@ -237,8 +240,9 @@ public class Utils {
 
 	/**
 	 * Generate the grid given its size and the top left cell
-	 *
+	 * <p/>
 	 * the grid is not a nice square because of different sizes due to different latitudes
+	 *
 	 * @param arrRows
 	 * @param arrCols
 	 * @param topLeftPoint
@@ -267,6 +271,7 @@ public class Utils {
 
 	/**
 	 * Remove lines created for a grid
+	 *
 	 * @param polylines
 	 * @param polygon
 	 */
@@ -282,6 +287,7 @@ public class Utils {
 
 	/**
 	 * Remove polygons out of the map
+	 *
 	 * @param polygons
 	 */
 	public static void removePolygons(ArrayList<Polygon> polygons) {
@@ -293,6 +299,7 @@ public class Utils {
 
 	/**
 	 * Remove markers
+	 *
 	 * @param markers
 	 */
 	public static void removeMarkers(ArrayList<Marker> markers) {
@@ -391,27 +398,6 @@ public class Utils {
 
 		return googleMap.addPolygon(polygonOptions);
 
-	}
-
-	/**
-	 * Check if the Google Play Service is working
-	 * @param activity
-	 * @return a boolean
-	 */
-	public static boolean googlePlayServicesOK(Activity activity) {
-		int isAvailable = GooglePlayServicesUtil.isGooglePlayServicesAvailable(activity);
-
-		if (isAvailable == ConnectionResult.SUCCESS) {
-			return true;
-		} else if (GooglePlayServicesUtil.isUserRecoverableError(isAvailable)) {
-			Dialog dialog = GooglePlayServicesUtil.getErrorDialog(isAvailable, activity,
-					                                                     GPS_ERRORDIALOG_REQUEST);
-			dialog.show();
-		} else {
-			Toast.makeText(activity, "Can't connect to google play services", Toast.LENGTH_SHORT)
-					.show();
-		}
-		return false;
 	}
 
 	public static int findDayPortionID(long currTime) {
@@ -718,7 +704,7 @@ public class Utils {
 	}
 
 	/**
-	 *  Checks if external storage is available for read and write
+	 * Checks if external storage is available for read and write
 	 **/
 	public static boolean isExternalStorageWritable() {
 		String state = Environment.getExternalStorageState();
@@ -726,5 +712,26 @@ public class Utils {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Method to verify google play services on the device
+	 */
+	public static boolean checkPlayServices(Activity activity, Context ctx) {
+		int resultCode = GooglePlayServicesUtil
+				                 .isGooglePlayServicesAvailable(ctx);
+		if (resultCode != ConnectionResult.SUCCESS) {
+			if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+				GooglePlayServicesUtil.getErrorDialog(resultCode, activity,
+						                                     PLAY_SERVICES_RESOLUTION_REQUEST).show();
+			} else {
+				Toast.makeText(ctx.getApplicationContext(),
+						              "This device is not supported.", Toast.LENGTH_LONG)
+						.show();
+				activity.finish();
+			}
+			return false;
+		}
+		return true;
 	}
 }
