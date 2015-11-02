@@ -8,9 +8,8 @@ import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.util.Utils;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Toast;
@@ -22,7 +21,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
 
-public class VirtualTransitionGeneratorActivity extends ActionBarActivity {
+public class VirtualTransitionGeneratorActivity extends AppCompatActivity {
 
 	public static String LOGTAG = "VirtualRouteGeneratorActivity";
 	GoogleMap googleMap;

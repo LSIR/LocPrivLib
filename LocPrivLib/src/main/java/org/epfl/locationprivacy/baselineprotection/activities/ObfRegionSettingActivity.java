@@ -11,7 +11,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +32,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 
-public class ObfRegionSettingActivity extends ActionBarActivity implements
+public class ObfRegionSettingActivity extends AppCompatActivity implements
 		GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnSeekBarChangeListener {
 
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
