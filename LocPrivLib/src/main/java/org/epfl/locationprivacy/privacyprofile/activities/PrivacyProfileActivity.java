@@ -7,9 +7,9 @@ import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSo
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.ActionBarActivity;
 
-public class PrivacyProfileActivity extends AppCompatActivity implements android.support.v7.app.ActionBar.TabListener {
+public class PrivacyProfileActivity extends ActionBarActivity implements android.support.v7.app.ActionBar.TabListener {
 
 	private String[] tabs = { "Semantics", "Locations" };
 	private ViewPager viewPager;

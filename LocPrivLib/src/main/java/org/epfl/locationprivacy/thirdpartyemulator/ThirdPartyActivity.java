@@ -9,9 +9,10 @@ import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.privacyestimation.databases.LinkabilityGraphDataSource;
 import org.epfl.locationprivacy.util.Utils;
 
+import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
@@ -26,7 +27,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 
-public class ThirdPartyActivity extends AppCompatActivity {
+public class ThirdPartyActivity extends ActionBarActivity {
 
 	private static final String LOGTAG = "ThirdPartyActivity";
 	AdaptiveProtectionInterface adaptiveProtectionInterface;
