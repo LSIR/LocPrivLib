@@ -16,7 +16,6 @@ import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.privacyestimation.Event;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -236,6 +235,20 @@ public class Utils {
 		LatLng topLeftPoint = findCellTopLeftPoint(new LatLng(latitude, longitude));
 
 		return topLeftPoint;
+	}
+
+	/**
+	 * Find the bottom point right of a grid given the top left point and sizes of grid
+	 *
+	 * @param topLeft        the top left point of the grid (the top left point of the top left cell of the grid)
+	 * @param gridHeightCell the height of the grid
+	 * @param gridWidthCell  the width of the grid
+	 * @return the bottom point right of a grid given the top left point and sizes of grid
+	 */
+	public static LatLng findGridBottomRightPoint(LatLng topLeft, int gridHeightCell, int gridWidthCell) {
+		double latitude = topLeft.latitude + gridHeightCell * INITIAL_DEGREES_CELL_SIZE + INITIAL_DEGREES_CELL_SIZE / 2;
+		double longitude = topLeft.longitude + (gridWidthCell + 1 / 2) * getDegreesFor100m(new LatLng(latitude, topLeft.longitude), 90);
+		return findCellTopLeftPoint(new LatLng(latitude, longitude));
 	}
 
 	/**
@@ -672,7 +685,7 @@ public class Utils {
 			for (ArrayList<Event> level : levels) {
 				currLevel++;
 				for (Event e : level) {
-					String nodeLabel = "ID: " + e.id + " prob: " + formatter.format(e.propability);
+					String nodeLabel = "ID: " + e.id + " prob: " + formatter.format(e.probability);
 					String nodeID = e.id + "";
 					bufNodes.append(nodeID + "," + currLevel + "," + nodeLabel + "\n");
 				}
