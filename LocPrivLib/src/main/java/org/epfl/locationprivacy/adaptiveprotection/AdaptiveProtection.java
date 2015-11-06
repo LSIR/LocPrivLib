@@ -92,142 +92,154 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		//===========================================================================================
 		//current Location ID
 		long start = System.currentTimeMillis();
-		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(location.latitude,
-				                                                         location.longitude);
-		if (currLocGridCell != null) {
-			int fineLocationID = Integer.parseInt(currLocGridCell.getName());
-			log("Getting fine Location ID took: " + (System.currentTimeMillis() - start) + " ms");
-			log("Current CellID: " + fineLocationID);
-
-			//===========================================================================================
-			// getting sensitivity preference of location, if not existing then sensitivity of semantic of nearest venue
-			Double sensitivity = currLocGridCell.getSensitivityAsDouble();
-			log("Current Cell Sensitivity: " + sensitivity);
-			if (sensitivity == null) { // current grid cell is not sensitive,then get nearest venue semantic sensitivity
-
-				//--> get semantics of current location
-				long startGetNearVenues = System.currentTimeMillis();
-				ArrayList<MyPolygon> currentLocationVenues = venuesCondensedDBDataSource
-						                                             .findVenuesContainingLocation(location.latitude, location.longitude);
-				String semantic = null;
-				if (!currentLocationVenues.isEmpty()) {
-					semantic = currentLocationVenues.get(0).getSemantic();
-					logVenue = currentLocationVenues.get(0);
-					logVenueDistance = "inside";
-				}
-
-				//--> what if no venues contains the current location ? get the nearest location
-				if (currentLocationVenues.isEmpty()) {
-					Pair<MyPolygon, Double> nearestVenueAndDistance = venuesCondensedDBDataSource
-							                                                  .findNearestVenue(location.latitude, location.longitude);
-					semantic = nearestVenueAndDistance.first.getSemantic();
-					logVenue = nearestVenueAndDistance.first;
-					logVenueDistance = "nearest";
-				}
-
-				//--> get user sensitivity of current location semantic
-				sensitivity = semanticLocationsDataSource.findSemanticSensitivity(semantic);
-
-				//--> logging
-				log("No Location Sensitivity");
-				log("Nearest Venue: " + logVenue.getName());
-				log("Relationship: " + logVenueDistance);
-				log("Nearest Venue Query took " + (System.currentTimeMillis() - startGetNearVenues)
-						    + " ms");
-				log("Semantic: " + semantic);
-				log("Semantic Sensitivity: " + sensitivity);
-			}
-			logSensitivity = sensitivity;
-
-			log("Theta =  " + THETA);
-			log("Theta * Sen =  " + (THETA * sensitivity));
-
-			//===========================================================================================
-			boolean finished = false;
-			int lamda = 0;
-			int ObfRegionHeightCells = getObfRegionHeightCells(lamda);
-			int ObfRegionWidthCells = getObfRegionWidthCells(lamda);
-			int numOfTrialsWithSameObfSize = 0;
-			ArrayList<Integer> obfRegionCellIDs = null;
-			while (!finished) {
-
-				log("----------------------------");
-				long startLoopTime = System.currentTimeMillis();
-
-				//--> Phase 1:
-				// Generate obfuscation Region
-				obfRegionCellIDs = generateRandomObfRegion(fineLocationID, ObfRegionHeightCells,
-						                                          ObfRegionWidthCells);
-				log("Lamda: " + lamda);
-				log("ObfRegionSize: " + ObfRegionHeightCells + "X" + ObfRegionWidthCells);
-				logObfRegSize = ObfRegionHeightCells + "X" + ObfRegionWidthCells;
-
-				//--> Phase 2:
-				// Get feedback from the privacy estimator
-				long timeStamp = System.currentTimeMillis();
-				double privacyEstimation = privacyEstimator.calculatePrivacyEstimation(location,
-						                                                                      fineLocationID, obfRegionCellIDs, timeStamp);
-				log("Expected Distorition = " + privacyEstimation);
-
-				//--> Phase3:
-				// Comparison
-				if (privacyEstimation > (THETA * sensitivity)) {
-					finished = true;
-				} else {
-					numOfTrialsWithSameObfSize++;
-					if (numOfTrialsWithSameObfSize >= ALPHA) {
-						numOfTrialsWithSameObfSize = 0;
-						lamda++;
-						ObfRegionHeightCells = getObfRegionHeightCells(lamda);
-						ObfRegionWidthCells = getObfRegionWidthCells(lamda);
-					}
-					if (ObfRegionHeightCells * ObfRegionWidthCells > MAX_OBF_REG_AREA) {
-						finished = true;
-						log("Terminating because obf region is too large ");
-					}
-				}
-
-				//--> Phase4:
-				// update likability graph
-				if (finished) {
-					privacyEstimator.saveLastLinkabilityGraphCopy();
-				}
-
-				//--> Logging
-				logPrivacyEstimation = privacyEstimation;
-				log("This loop took: " + (System.currentTimeMillis() - startLoopTime) + " ms");
-			}
-
-			//===========================================================================================
-			// The top left LngLat point is the first point of first gridcell
-			int topLeftGridCellID = obfRegionCellIDs.get(0);
-			LatLng obfRegionTopLeft = gridDBDataSource.findGridCell(topLeftGridCellID).getPoints()
-					                          .get(0);
-
-			// The bottom right LngLat point is the third point of the last gridcell
-			int bottomRightGridCellID = obfRegionCellIDs.get(obfRegionCellIDs.size() - 1);
-			LatLng obfRegtionBottomRight = gridDBDataSource.findGridCell(bottomRightGridCellID)
-					                               .getPoints().get(2);
-
-			//-->test
-			logObfRegion = new ArrayList<MyPolygon>();
-			for (int x : obfRegionCellIDs) {
-				logObfRegion.add(GridDBDataSource.getInstance(context).findGridCell(x));
-			}
-
-			// Logging
-			log("Total Adaptive Protection Time : "
-					    + (System.currentTimeMillis() - startGetLocationTimeStamp) + " ms");
-			log("Total logging time: " + totalLoggingTime + "ms");
-			log("Total Adaptive Protection Time without logging : "
-					    + (System.currentTimeMillis() - startGetLocationTimeStamp - totalLoggingTime)
-					    + " ms");
-
-			return new Pair<LatLng, LatLng>(obfRegionTopLeft, obfRegtionBottomRight);
-		} else {
-			Toast.makeText(this.context, "This is a test that does not work anymore", Toast.LENGTH_LONG).show();
-			return new Pair<LatLng, LatLng>(new LatLng(0,0), new LatLng(0,0));
+		LatLng cell = Utils.findCellTopLeftPoint(location);
+		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(cell.latitude,
+				                                                         cell.longitude);
+		if (currLocGridCell == null) {
+			currLocGridCell = new MyPolygon(Utils.computeCellIDFromPosition(cell) + "", "", Utils.computeCellCornerPoints(cell));
 		}
+		int fineLocationID = Integer.parseInt(currLocGridCell.getName());
+		log("Getting fine Location ID took: " + (System.currentTimeMillis() - start) + " ms");
+		log("Current CellID: " + fineLocationID);
+
+		//===========================================================================================
+		// getting sensitivity preference of location, if not existing then sensitivity of semantic of nearest venue
+		Double sensitivity = currLocGridCell.getSensitivityAsDouble();
+		log("Current Cell Sensitivity: " + sensitivity);
+		if (sensitivity == null) { // current grid cell is not sensitive,then get nearest venue semantic sensitivity
+
+			//--> get semantics of current location
+			long startGetNearVenues = System.currentTimeMillis();
+			ArrayList<MyPolygon> currentLocationVenues = venuesCondensedDBDataSource
+					                                             .findVenuesContainingLocation(cell.latitude, cell.longitude);
+			String semantic = null;
+			if (!currentLocationVenues.isEmpty()) {
+				semantic = currentLocationVenues.get(0).getSemantic();
+				logVenue = currentLocationVenues.get(0);
+				logVenueDistance = "inside";
+			}
+
+			//--> what if no venues contains the current location ? get the nearest location
+			if (currentLocationVenues.isEmpty()) {
+				Pair<MyPolygon, Double> nearestVenueAndDistance = venuesCondensedDBDataSource
+						                                                  .findNearestVenue(cell.latitude, cell.longitude);
+				semantic = nearestVenueAndDistance.first.getSemantic();
+				logVenue = nearestVenueAndDistance.first;
+				logVenueDistance = "nearest";
+			}
+
+			//--> get user sensitivity of current location semantic
+			sensitivity = semanticLocationsDataSource.findSemanticSensitivity(semantic);
+
+			//--> logging
+			log("No Location Sensitivity");
+			log("Nearest Venue: " + logVenue.getName());
+			log("Relationship: " + logVenueDistance);
+			log("Nearest Venue Query took " + (System.currentTimeMillis() - startGetNearVenues)
+					    + " ms");
+			log("Semantic: " + semantic);
+			log("Semantic Sensitivity: " + sensitivity);
+		}
+		logSensitivity = sensitivity;
+
+		log("Theta =  " + THETA);
+		log("Theta * Sen =  " + (THETA * sensitivity));
+
+		//===========================================================================================
+		boolean finished = false;
+		int lambda = 0;
+		int ObfRegionHeightCells = getObfRegionHeightCells(lambda);
+		int ObfRegionWidthCells = getObfRegionWidthCells(lambda);
+		int numOfTrialsWithSameObfSize = 0;
+		Pair<LatLng, LatLng> gridEnds = null;
+		while (!finished) {
+
+			log("----------------------------");
+			long startLoopTime = System.currentTimeMillis();
+
+			//--> Phase 1:
+			// Generate obfuscation Region
+			// FIXME : do not use cell ID
+			gridEnds = generateRandomObfRegion(cell, ObfRegionHeightCells,
+					                              ObfRegionWidthCells);
+			log("Lambda: " + lambda);
+			log("ObfRegionSize: " + ObfRegionHeightCells + "X" + ObfRegionWidthCells);
+			logObfRegSize = ObfRegionHeightCells + "X" + ObfRegionWidthCells;
+
+			//--> Phase 2:
+			// Get feedback from the privacy estimator
+			long timeStamp = System.currentTimeMillis();
+			LatLng[][] mapGrid = Utils.generateMapGrid(ObfRegionHeightCells, ObfRegionWidthCells, gridEnds.first);
+			double privacyEstimation = privacyEstimator.calculatePrivacyEstimation(cell, mapGrid, timeStamp);
+			log("Expected Distortion = " + privacyEstimation);
+
+			//--> Phase3:
+			// Comparison
+			if (privacyEstimation > (THETA * sensitivity)) {
+				finished = true;
+			} else {
+				numOfTrialsWithSameObfSize++;
+				if (numOfTrialsWithSameObfSize >= ALPHA) {
+					numOfTrialsWithSameObfSize = 0;
+					lambda++;
+					ObfRegionHeightCells = getObfRegionHeightCells(lambda);
+					ObfRegionWidthCells = getObfRegionWidthCells(lambda);
+				}
+				if (ObfRegionHeightCells * ObfRegionWidthCells > MAX_OBF_REG_AREA) {
+					finished = true;
+					log("Terminating because obf region is too large ");
+				}
+			}
+
+			//--> Phase4:
+			// update likability graph
+			if (finished) {
+				privacyEstimator.saveLastLinkabilityGraphCopy();
+			}
+
+			//--> Logging
+			logPrivacyEstimation = privacyEstimation;
+			log("This loop took: " + (System.currentTimeMillis() - startLoopTime) + " ms");
+		}
+
+		//===========================================================================================
+		// The top left LngLat point is the first point of first gridcell
+		//int topLeftGridCellID = grid.first;
+		// FIXME : problem here
+		LatLng obfRegionTopLeft = gridEnds.first;
+		//gridDBDataSource.findGridCell(topLeftGridCellID).getPoints().get(0);
+
+		// The bottom right LngLat point is the third point of the last gridcell
+		//int bottomRightGridCellID = obfRegionCellIDs.get(obfRegionCellIDs.size() - 1);
+		// FIXME : problem here too
+		LatLng obfRegionBottomRight = gridEnds.second;
+		//gridDBDataSource.findGridCell(bottomRightGridCellID).getPoints().get(2);
+
+		//-->test
+		// FIXME : won't work
+		logObfRegion = new ArrayList<>();
+		LatLng[][] mapGrid = Utils.generateMapGrid(ObfRegionHeightCells, ObfRegionWidthCells, obfRegionTopLeft);
+		for (LatLng[] positions : mapGrid) {
+			for (LatLng position : positions) {
+				MyPolygon currentPolygon = GridDBDataSource.getInstance(context).findGridCell(position.latitude, position.longitude);
+				if (currentPolygon != null) {
+					logObfRegion.add(currentPolygon);
+				} else {
+					logObfRegion.add(new MyPolygon(Utils.computeCellIDFromPosition(position) + "", "", Utils.computeCellCornerPoints(position)));
+				}
+			}
+		}
+
+		// Logging
+		log("Total Adaptive Protection Time : "
+				    + (System.currentTimeMillis() - startGetLocationTimeStamp) + " ms");
+		log("Total logging time: " + totalLoggingTime + "ms");
+		log("Total Adaptive Protection Time without logging : "
+				    + (System.currentTimeMillis() - startGetLocationTimeStamp - totalLoggingTime)
+				    + " ms");
+
+		return new Pair<>(obfRegionTopLeft, obfRegionBottomRight);
+
 	}
 
 	private int getObfRegionWidthCells(int lambda) {
@@ -247,13 +259,24 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		totalLoggingTime += (System.currentTimeMillis() - startlogging);
 	}
 
-	private ArrayList<Integer> generateRandomObfRegion(int fineLocationID,
-	                                                   int obfRegionHeightCells, int obfRegionWidthCells) {
+	//FIXME : remove useless code
+	//private ArrayList<Integer> generateRandomObfRegion(LatLng cell,
+	private Pair<LatLng, LatLng> generateRandomObfRegion(LatLng cell,
+	                                                     int obfRegionHeightCells, int obfRegionWidthCells) {
 		ArrayList<Integer> obfRegionCellIDs = new ArrayList<Integer>();
 
-		//curr row and col
-		int currRow = fineLocationID / Utils.LAUSANNE_GRID_WIDTH_CELLS;
-		int currCol = fineLocationID % Utils.LAUSANNE_GRID_WIDTH_CELLS;
+		int topLeftRow = random.nextInt(obfRegionHeightCells);
+		int topLeftCol = random.nextInt(obfRegionWidthCells);
+
+		LatLng topLeftPoint = Utils.findGridTopLeftPoint(cell, topLeftRow * 2, topLeftCol * 2);
+
+		LatLng bottomRightPoint = Utils.findGridBottomRightPoint(topLeftPoint, obfRegionHeightCells, obfRegionWidthCells);
+
+		return new Pair<>(topLeftPoint, bottomRightPoint);
+
+		/*//curr row and col
+		int currRow = fineLocationID / Utils.GRID_WIDTH_CELLS;
+		int currCol = fineLocationID % Utils.GRID_WIDTH_CELLS;
 
 		// top left cell id
 		int topLeftRowDelta = random.nextInt(obfRegionHeightCells);
@@ -264,33 +287,36 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		int topLeftCol = currCol - topLeftColDelta;
 		topLeftCol = topLeftCol < 0 ? 0 : topLeftCol;
 
+
 		// bottom right cell id
 		int bottomRightRow = topLeftRow + obfRegionHeightCells - 1;
-		bottomRightRow = bottomRightRow >= Utils.LAUSANNE_GRID_HEIGHT_CELLS ? Utils.LAUSANNE_GRID_HEIGHT_CELLS - 1
+		bottomRightRow = bottomRightRow >= Utils.GRID_HEIGHT_CELLS ? Utils.GRID_HEIGHT_CELLS - 1
 				                 : bottomRightRow;
 
 		int bottomRightCol = topLeftCol + obfRegionWidthCells - 1;
-		bottomRightCol = bottomRightCol >= Utils.LAUSANNE_GRID_WIDTH_CELLS ? Utils.LAUSANNE_GRID_WIDTH_CELLS - 1
+		bottomRightCol = bottomRightCol >= Utils.GRID_WIDTH_CELLS ? Utils.GRID_WIDTH_CELLS - 1
 				                 : bottomRightCol;
 
 		// generate cell ids
 		for (int r = topLeftRow; r <= bottomRightRow; r++)
 			for (int c = topLeftCol; c <= bottomRightCol; c++)
-				obfRegionCellIDs.add(r * Utils.LAUSANNE_GRID_WIDTH_CELLS + c);
+				obfRegionCellIDs.add(r * Utils.GRID_WIDTH_CELLS + c);
 		log("Actual Location gridCellID: " + (topLeftRowDelta + 1) + "X" + (topLeftColDelta + 1));
 
 		return obfRegionCellIDs;
+		*/
 	}
 
 	//===========================================================================
 	//--> GPS methods
+
 	/**
 	 * Google api callback methods
 	 */
 	@Override
 	public void onConnectionFailed(ConnectionResult result) {
 		Log.i(LOGTAG, "Connection failed: ConnectionResult.getErrorCode() = "
-				           + result.getErrorCode());
+				              + result.getErrorCode());
 	}
 
 	@Override

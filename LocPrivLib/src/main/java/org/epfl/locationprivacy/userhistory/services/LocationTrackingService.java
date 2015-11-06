@@ -149,7 +149,7 @@ public class LocationTrackingService extends Service implements
 			transitionTableDataSource.updateOrInsert(newTransition);
 
 			//==== Testing
-			Log.d(LOGTAG, "No of transitios: " + transitionTableDataSource.countRows() + " Rows");
+			Log.d(LOGTAG, "No of transitions: " + transitionTableDataSource.countRows() + " Rows");
 			//			for (Transition t : transitionTableDataSource.findAll())
 			//				Log.d(LOGTAG, t.toString());
 		}

@@ -127,7 +127,7 @@ public class TransitionTableDataSource {
 
 		int transitionCountFromLocToLoc = getTransitionCount(fromLocID, toLocID);
 		int transitionCountFromLoc = getTransitionCount(fromLocID);
-		int numberOfGridCells = Utils.LAUSANNE_GRID_HEIGHT_CELLS * Utils.LAUSANNE_GRID_WIDTH_CELLS;
+		int numberOfGridCells = Utils.GRID_HEIGHT_CELLS * Utils.GRID_WIDTH_CELLS;
 		return ((double) (transitionCountFromLocToLoc + eta))
 				/ ((double) (transitionCountFromLoc + (numberOfGridCells * eta)));
 	}

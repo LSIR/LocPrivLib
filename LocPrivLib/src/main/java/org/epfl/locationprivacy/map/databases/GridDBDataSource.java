@@ -119,9 +119,10 @@ public class GridDBDataSource {
 
 	/**
 	 * Save a grid into the DB
-	 * @param mapGrid the grid to save
+	 *
+	 * @param mapGrid         the grid to save
 	 * @param gridHeightCells the height of the grid
-	 * @param gridWidthCells the width of the grid
+	 * @param gridWidthCells  the width of the grid
 	 */
 	public void saveGrid(LatLng[][] mapGrid, int gridHeightCells, int gridWidthCells) {
 		int arrRows = gridHeightCells + 1;
@@ -240,7 +241,8 @@ public class GridDBDataSource {
 					               + GridDBOpenHelper.COLUMN_SEMANTIC + ", asText("
 					               + GridDBOpenHelper.COLUMN_GEOMETRY + ") , "
 					               + GridDBOpenHelper.COLUMN_SENSITIVITY
-					               + " FROM gridcells  WHERE MBRContains( geometry, BuildMBR( " + longitude
+					               + " FROM " + GridDBOpenHelper.TABLE_GRIDCELLS
+					               + " WHERE MBRContains( geometry, BuildMBR( " + longitude
 					               + "  ," + latitude + ", " + longitude + "  , " + latitude + " ) );";
 			Log.d(LOGTAG, query);
 
@@ -276,12 +278,15 @@ public class GridDBDataSource {
 		return polygon;
 	}
 
-	public LatLng getCentroid(int locID) {
+	// FIXME : need to be tested
+	public LatLng getCentroid(LatLng position) {
 		LatLng centroid = null;
 		try {
 			String query = "select X(Centroid(" + GridDBOpenHelper.COLUMN_GEOMETRY
 					               + ")), Y(Centroid(" + GridDBOpenHelper.COLUMN_GEOMETRY + ")) from "
-					               + GridDBOpenHelper.TABLE_GRIDCELLS + " where id =" + locID + " ;";
+					               + GridDBOpenHelper.TABLE_GRIDCELLS
+					               + " WHERE MBRContains( geometry, BuildMBR( " + position.longitude
+					               + "  ," + position.latitude + ", " + position.longitude + "  , " + position.latitude + " ) );";
 			Stmt stmt = spatialDB.prepare(query);
 			while (stmt.step()) {
 				double longitude = stmt.column_double(0);

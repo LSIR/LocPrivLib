@@ -46,10 +46,10 @@ public class LinkabilityGraphDataSource {
 		ContentValues values = new ContentValues();
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_ID, e.id);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_LEVELID, levelID);
-		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_LOCID, e.locID);
+		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_LOCID, e.cell);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMP, e.timeStamp);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMPID, e.timeStampID);
-		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_PROBABILITY, e.propability);
+		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_PROBABILITY, e.probability);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_CHILDRENTRANSPROBSUM,
 				e.childrenTransProbSum);
 

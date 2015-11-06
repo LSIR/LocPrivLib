@@ -33,7 +33,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	private static final int MAX_INMEMORY_GRAPH_LEVELS = 3;
 	private static final int MAX_INDB_GRAPH_LEVELS = 3;
 	private static final int MAX_USER_SPEED_IN_KM_PER_HOUR = 30;
-	private static final int MELLISECONDS_IN_HOUR = 3600000;
+	private static final int MILLISECONDS_IN_HOUR = 3600000;
 
 	private Queue<ArrayList<Event>> linkabilityGraphLevels;
 	private Queue<ArrayList<Event>> lastLinkabilityGraphCopy;
@@ -152,13 +152,12 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		Utils.logLinkabilityGraph(linkabilityGraphLevels, "nodes.txt", "edges.txt", context);
 	}
 
-	public double calculatePrivacyEstimation(LatLng fineLocation, int fineLocationID,
-	                                         ArrayList<Integer> obfRegionCellIDs, long timeStamp) {
+	public double calculatePrivacyEstimation(LatLng fineLocation, LatLng[][] mapGrid, long timeStamp) {
 
 		//--> logging
 		long startPrivacyEstimation = System.currentTimeMillis();
 		log("=========================");
-		log("obfRegionSize: " + obfRegionCellIDs.size());
+		log("obfRegionSize: " + mapGrid.length);
 		log("Graph Levels: " + linkabilityGraphLevels.size());
 
 		// Phase 0: preparation
@@ -170,7 +169,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		LinkedList<ArrayList<Event>> linkabilityGraphCopy = getLinkabilityGraphCopy();
 		ArrayList<Event> previousLevelEvents = (!linkabilityGraphCopy.isEmpty()) ? linkabilityGraphCopy
 				                                                                           .getLast() : null;
-		ArrayList<Event> currLevelEvents = createNewEventList(obfRegionCellIDs, timeStampID,
+		ArrayList<Event> currLevelEvents = createNewEventList(mapGrid, timeStampID,
 				                                                     timeStamp);
 
 		// Phase 1: transition probabilities
@@ -188,11 +187,13 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 				} else {
 					for (Event parent : parentList) {
 						//--> transition probability
-						double transitionPropability = userHistoryDBDataSource
-								                               .getTransitionProbability(parent.locID, e.locID);
-						parent.childrenTransProbSum += transitionPropability;
+						// FIXME : Not sure if it is correct to use ID here
+						double transitionProbability = userHistoryDBDataSource
+								                               .getTransitionProbability(Utils.computeCellIDFromPosition(parent.cell),
+										                                                        Utils.computeCellIDFromPosition(e.cell));
+						parent.childrenTransProbSum += transitionProbability;
 						parent.children.add(e);
-						e.parents.add(new Pair<Event, Double>(parent, transitionPropability));
+						e.parents.add(new Pair<Event, Double>(parent, transitionProbability));
 					}
 				}
 			}
@@ -205,8 +206,8 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//--> testing update propagation
 		if (TEST_UPDATES_PROPAGATION) {
 			Utils.logLinkabilityGraph(linkabilityGraphCopy,
-					                         "ObfRegionSize" + obfRegionCellIDs.size() + "_BeforePropagation_nodes.txt",
-					                         "ObfRegionSize" + obfRegionCellIDs.size() + "_BeforePropagation_edges.txt",
+					                         "ObfRegionSize" + mapGrid.length + "_BeforePropagation_nodes.txt",
+					                         "ObfRegionSize" + mapGrid.length + "_BeforePropagation_edges.txt",
 					                         context);
 		}
 
@@ -216,16 +217,16 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 		// Phase 4: event probabilities
 		for (Event e : currLevelEvents) {
-			e.propability = 0;
+			e.probability = 0;
 			if (previousLevelEvents == null) {
-				e.propability = 1.0 / (double) currLevelEvents.size();
+				e.probability = 1.0 / (double) currLevelEvents.size();
 			} else {
 				for (Pair<Event, Double> parentRelation : e.parents) {
 					Event parent = parentRelation.first;
 					Double transitionProbability = parentRelation.second;
 					Double normalizedTransitionProbability = transitionProbability
 							                                         / parent.childrenTransProbSum;
-					e.propability += normalizedTransitionProbability * parent.propability;
+					e.probability += normalizedTransitionProbability * parent.probability;
 
 				}
 			}
@@ -234,8 +235,8 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//--> testing update propagation
 		if (TEST_UPDATES_PROPAGATION) {
 			Utils.logLinkabilityGraph(linkabilityGraphCopy,
-					                         "ObfRegionSize" + obfRegionCellIDs.size() + "_AfterPropagation_nodes.txt",
-					                         "ObfRegionSize" + obfRegionCellIDs.size() + "_AfterPropagation_edges.txt",
+					                         "ObfRegionSize" + mapGrid.length + "_AfterPropagation_nodes.txt",
+					                         "ObfRegionSize" + mapGrid.length + "_AfterPropagation_edges.txt",
 					                         context);
 		}
 
@@ -243,27 +244,27 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		long startPhase5 = System.currentTimeMillis();
 		double expectedDistortion = 0;
 		StringBuilder distanceLogString = new StringBuilder("");
-		double distnaceSum = 0;
+		double distanceSum = 0;
 		for (Event e : currLevelEvents) {
 
 			double distance;
-			if (fineLocationID == e.id)
+			if (fineLocation == e.cell)
 				distance = 0;
 			else
-				distance = calculateDistance(fineLocation, gridDBDataSource.getCentroid(e.locID));
-			expectedDistortion += distance * e.propability;
+				distance = calculateDistance(fineLocation, gridDBDataSource.getCentroid(e.cell));
+			expectedDistortion += distance * e.probability;
 
 			//--> for logging
 			distanceLogString.append(formatter2.format(distance) + ", ");
-			distnaceSum += distance;
+			distanceSum += distance;
 		}
 
 		//--> logging
 		if (!currLevelEvents.isEmpty()) {
-			log("Prob of first event: " + formatter.format(currLevelEvents.get(0).propability));
+			log("Prob of first event: " + formatter.format(currLevelEvents.get(0).probability));
 		}
 		log("Distances: " + distanceLogString.toString() + " SUM: "
-				    + formatter2.format(distnaceSum));
+				    + formatter2.format(distanceSum));
 		log("Expected Distortion: " + expectedDistortion);
 		log("Phase 5 took: " + (System.currentTimeMillis() - startPhase5) + " ms");
 
@@ -306,13 +307,14 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		if (ACTIVATE_REACHABILITY_FORMULA) {
 			ArrayList<Event> parents = new ArrayList<Event>();
 
-			LatLng centroid1 = gridDBDataSource.getCentroid(currLevelEvent.locID);
+			// FIXME : not sure this request will work because not all cells are stored in memory
+			LatLng centroid1 = gridDBDataSource.getCentroid(currLevelEvent.cell);
 			for (Event previousLevelEvent : previousLevelEvents) {
-				LatLng centroid2 = gridDBDataSource.getCentroid(previousLevelEvent.locID);
+				LatLng centroid2 = gridDBDataSource.getCentroid(previousLevelEvent.cell);
 				double travelDistanceInKm = Utils.distance(centroid1.latitude, centroid1.longitude,
 						                                          centroid2.latitude, centroid2.longitude, 'K');
 				double travelTimeInHr = (double) (currLevelEvent.timeStamp - previousLevelEvent.timeStamp)
-						                        / (double) MELLISECONDS_IN_HOUR;
+						                        / (double) MILLISECONDS_IN_HOUR;
 				double travelSpeedInKmPerHr = travelDistanceInKm / travelTimeInHr;
 				if (travelSpeedInKmPerHr <= MAX_USER_SPEED_IN_KM_PER_HOUR)
 					parents.add(previousLevelEvent);
@@ -341,12 +343,15 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		return chosenParents;
 	}
 
-	private ArrayList<Event> createNewEventList(ArrayList<Integer> obfRegionCellIDs,
+	private ArrayList<Event> createNewEventList(LatLng[][] mapGrid,
 	                                            int timeStampID, long timeStamp) {
 		ArrayList<Event> eventList = new ArrayList<Event>();
 		long tempCurrEventID = currEventID;
-		for (int cellID : obfRegionCellIDs)
-			eventList.add(new Event(tempCurrEventID++, cellID, timeStampID, timeStamp, 0, 0));
+		for (LatLng[] positions : mapGrid) {
+			for (LatLng position : positions) {
+				eventList.add(new Event(tempCurrEventID++, position, timeStampID, timeStamp, 0, 0));
+			}
+		}
 		return eventList;
 	}
 
@@ -462,12 +467,12 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 					if (eventsToBeUpdated.contains(e.id)) {
 						//--> re-calculate the probability
-						e.propability = 0;
+						e.probability = 0;
 						for (Pair<Event, Double> parentInfo : e.parents) {
 							Event parent = parentInfo.first;
 							Double transProp = parentInfo.second;
 							double normalizedTransProp = transProp / parent.childrenTransProbSum;
-							e.propability += normalizedTransProp * parent.propability;
+							e.probability += normalizedTransProp * parent.probability;
 						}
 						//--> mark children as to be updated
 						for (Event child : e.children)
@@ -480,7 +485,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 			if (levelNumber == 1 && levelHasEventsRemoved)
 				for (Event e : level) {
 					//--> re-calculate probability
-					e.propability = 1.0 / (double) level.size();
+					e.probability = 1.0 / (double) level.size();
 
 					//--> mark children as to be updated
 					for (Event child : e.children)
