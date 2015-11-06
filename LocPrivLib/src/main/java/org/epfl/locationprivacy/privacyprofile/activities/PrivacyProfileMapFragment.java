@@ -10,6 +10,7 @@ import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.util.Utils;
 
+import android.app.Activity;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -60,7 +61,12 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 	public PrivacyProfileMapFragment() {
 		super();
-		gridDBDataSource = GridDBDataSource.getInstance(getActivity());
+	}
+
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		gridDBDataSource = GridDBDataSource.getInstance(this.getActivity());
 	}
 
 	@Override
