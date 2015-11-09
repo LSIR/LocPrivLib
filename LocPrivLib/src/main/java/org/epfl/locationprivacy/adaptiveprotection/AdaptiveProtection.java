@@ -159,7 +159,6 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 			//--> Phase 1:
 			// Generate obfuscation Region
-			// FIXME : do not use cell ID
 			gridEnds = generateRandomObfRegion(cell, ObfRegionHeightCells,
 					                              ObfRegionWidthCells);
 			log("Lambda: " + lambda);
@@ -204,19 +203,17 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 		//===========================================================================================
 		// The top left LngLat point is the first point of first gridcell
+		// TODO : remove useless code
 		//int topLeftGridCellID = grid.first;
-		// FIXME : problem here
 		LatLng obfRegionTopLeft = gridEnds.first;
 		//gridDBDataSource.findGridCell(topLeftGridCellID).getPoints().get(0);
 
 		// The bottom right LngLat point is the third point of the last gridcell
 		//int bottomRightGridCellID = obfRegionCellIDs.get(obfRegionCellIDs.size() - 1);
-		// FIXME : problem here too
 		LatLng obfRegionBottomRight = gridEnds.second;
 		//gridDBDataSource.findGridCell(bottomRightGridCellID).getPoints().get(2);
 
 		//-->test
-		// FIXME : won't work
 		logObfRegion = new ArrayList<>();
 		LatLng[][] mapGrid = Utils.generateMapGrid(ObfRegionHeightCells, ObfRegionWidthCells, obfRegionTopLeft);
 		for (LatLng[] positions : mapGrid) {

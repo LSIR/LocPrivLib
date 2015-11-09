@@ -307,10 +307,15 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		if (ACTIVATE_REACHABILITY_FORMULA) {
 			ArrayList<Event> parents = new ArrayList<Event>();
 
-			// FIXME : not sure this request will work because not all cells are stored in memory
 			LatLng centroid1 = gridDBDataSource.getCentroid(currLevelEvent.cell);
+			if (centroid1 == null) {
+				centroid1 = Utils.findCellCenter(currLevelEvent.cell);
+			}
 			for (Event previousLevelEvent : previousLevelEvents) {
 				LatLng centroid2 = gridDBDataSource.getCentroid(previousLevelEvent.cell);
+				if (centroid2 == null) {
+					centroid2 = Utils.findCellCenter(previousLevelEvent.cell);
+				}
 				double travelDistanceInKm = Utils.distance(centroid1.latitude, centroid1.longitude,
 						                                          centroid2.latitude, centroid2.longitude, 'K');
 				double travelTimeInHr = (double) (currLevelEvent.timeStamp - previousLevelEvent.timeStamp)
