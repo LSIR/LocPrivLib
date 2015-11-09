@@ -156,13 +156,31 @@ public class Utils {
 	}
 
 	/**
+	 * Compute the center of cell given its top left and bottom right points
+	 * @param topLeft
+	 * @param bottomRight
+	 * @return
+	 */
+	public static LatLng findCellCenter(LatLng topLeft) {
+		double topLeftLatitude = topLeft.latitude + 90;
+		double topLeftLongitude = topLeft.longitude + 180;
+
+		double bottomRightLatitude = topLeftLatitude - INITIAL_DEGREES_CELL_SIZE;
+		double bottomRightLongitude = bottomRightLatitude + getDegreesFor100m(topLeft, 90);
+
+		double latDistance = topLeftLatitude - bottomRightLatitude;
+		double longDistance = topLeftLongitude - bottomRightLongitude;
+
+		return new LatLng((topLeftLatitude + latDistance / 2) - 90, topLeftLongitude + longDistance / 2 + 180);
+	}
+
+	/**
 	 * Compute the width (longitude) of a cell in degrees to have in it approx. 100 meters
 	 *
 	 * @param position
 	 * @param bearing
 	 * @return
 	 */
-	//public static double getDegreesFor100m(double latitude, double initialWidth) {
 	public static double getDegreesFor100m(LatLng position, float bearing) {
 
 		// Get a point at 100 meters from position
