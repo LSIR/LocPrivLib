@@ -248,10 +248,15 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		for (Event e : currLevelEvents) {
 
 			double distance;
-			if (fineLocation == e.cell)
+			if (fineLocation == e.cell) {
 				distance = 0;
-			else
-				distance = calculateDistance(fineLocation, gridDBDataSource.getCentroid(e.cell));
+			} else {
+				LatLng centroid = gridDBDataSource.getCentroid(e.cell);
+				if (centroid == null) {
+					centroid = Utils.findCellCenter(e.cell);
+				}
+				distance = calculateDistance(fineLocation, centroid);
+			}
 			expectedDistortion += distance * e.probability;
 
 			//--> for logging
