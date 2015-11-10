@@ -187,7 +187,6 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 				} else {
 					for (Event parent : parentList) {
 						//--> transition probability
-						// FIXME : Not sure if it is correct to use ID here
 						double transitionProbability = userHistoryDBDataSource
 								                               .getTransitionProbability(parent.id, e.id);
 						parent.childrenTransProbSum += transitionProbability;
@@ -247,12 +246,12 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		for (Event e : currLevelEvents) {
 
 			double distance;
-			if (fineLocation == e.cell) {
+			if (fineLocation == Utils.computePostitionFromCellID(e.cellID)) {
 				distance = 0;
 			} else {
-				LatLng centroid = gridDBDataSource.getCentroid(e.cell);
+				LatLng centroid = gridDBDataSource.getCentroid(Utils.computePostitionFromCellID(e.cellID));
 				if (centroid == null) {
-					centroid = Utils.findCellCenter(e.cell);
+					centroid = Utils.findCellCenter(Utils.computePostitionFromCellID(e.cellID));
 				}
 				distance = calculateDistance(fineLocation, centroid);
 			}
@@ -311,14 +310,14 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		if (ACTIVATE_REACHABILITY_FORMULA) {
 			ArrayList<Event> parents = new ArrayList<Event>();
 
-			LatLng centroid1 = gridDBDataSource.getCentroid(currLevelEvent.cell);
+			LatLng centroid1 = gridDBDataSource.getCentroid(Utils.computePostitionFromCellID(currLevelEvent.cellID));
 			if (centroid1 == null) {
-				centroid1 = Utils.findCellCenter(currLevelEvent.cell);
+				centroid1 = Utils.findCellCenter(Utils.computePostitionFromCellID(currLevelEvent.cellID));
 			}
 			for (Event previousLevelEvent : previousLevelEvents) {
-				LatLng centroid2 = gridDBDataSource.getCentroid(previousLevelEvent.cell);
+				LatLng centroid2 = gridDBDataSource.getCentroid(Utils.computePostitionFromCellID(previousLevelEvent.cellID));
 				if (centroid2 == null) {
-					centroid2 = Utils.findCellCenter(previousLevelEvent.cell);
+					centroid2 = Utils.findCellCenter(Utils.computePostitionFromCellID(previousLevelEvent.cellID));
 				}
 				double travelDistanceInKm = Utils.distance(centroid1.latitude, centroid1.longitude,
 						                                          centroid2.latitude, centroid2.longitude, 'K');
@@ -358,7 +357,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		long tempCurrEventID = currEventID;
 		for (LatLng[] positions : mapGrid) {
 			for (LatLng position : positions) {
-				eventList.add(new Event(tempCurrEventID++, Utils.computeCellIDFromPosition(position), position, timeStampID, timeStamp, 0, 0));
+				eventList.add(new Event(tempCurrEventID++, Utils.computeCellIDFromPosition(position), timeStampID, timeStamp, 0, 0));
 			}
 		}
 		return eventList;
