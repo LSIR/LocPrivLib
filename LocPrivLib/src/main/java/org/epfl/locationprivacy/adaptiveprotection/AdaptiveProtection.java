@@ -105,7 +105,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		if (currLocGridCell == null) {
 			currLocGridCell = new MyPolygon(Utils.computeCellIDFromPosition(cell) + "", "", Utils.computeCellCornerPoints(cell));
 		}
-		int fineLocationID = Integer.parseInt(currLocGridCell.getName());
+		long fineLocationID = Long.parseLong(currLocGridCell.getName());
 		log("Getting fine Location ID took: " + (System.currentTimeMillis() - start) + " ms");
 		log("Current CellID: " + fineLocationID);
 
@@ -267,6 +267,8 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	private void log(String s) {
 		long startlogging = System.currentTimeMillis();
 		Log.d(LOGTAG, s);
+		Utils.createNewLoggingFolder(context);
+		Utils.createNewLoggingSubFolder(context);
 		Utils.appendLog(LOGTAG + ".txt", s, context);
 		totalLoggingTime += (System.currentTimeMillis() - startlogging);
 	}

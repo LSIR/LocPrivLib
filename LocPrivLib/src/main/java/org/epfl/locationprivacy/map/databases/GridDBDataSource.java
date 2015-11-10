@@ -198,7 +198,7 @@ public class GridDBDataSource {
 		saveGrid(mapGrid, gridHeightCells, gridWidthCells);
 	}
 
-	public MyPolygon findGridCell(Integer cellID) {
+	public MyPolygon findGridCell(long cellID) {
 		MyPolygon polygon = null;
 		try {
 			String query = "select  " + GridDBOpenHelper.COLUMN_ID + ", "
@@ -210,12 +210,11 @@ public class GridDBDataSource {
 
 			Stmt stmt = spatialDB.prepare(query);
 			while (stmt.step()) {
-				int id = stmt.column_int(0);
+				long id = stmt.column_long(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
 				String sensitivityString = stmt.column_string(3);
-				Integer sensitivity = sensitivityString == null ? null : Integer
-						                                                         .parseInt(sensitivityString);
+				Integer sensitivity = sensitivityString == null ? null : Integer.parseInt(sensitivityString);
 				if (polygon != null)
 					throw new Exception("Multiple results for cellID:" + cellID);
 				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon("POLYGON",
@@ -243,7 +242,7 @@ public class GridDBDataSource {
 					               + GridDBOpenHelper.COLUMN_SENSITIVITY
 					               + " FROM " + GridDBOpenHelper.TABLE_GRIDCELLS
 					               + " WHERE MBRContains( geometry, BuildMBR( " + longitude
-					               + "  ," + latitude + ", " + longitude + "  , " + latitude + " ) );";
+					               + " ," + latitude + " , " + longitude + " , " + latitude + " ) );";
 			Log.d(LOGTAG, query);
 
 			long s1 = System.currentTimeMillis();
@@ -253,7 +252,7 @@ public class GridDBDataSource {
 			long s2 = System.currentTimeMillis();
 			while (stmt.step()) {
 				Log.d(LOGTAG, "step time: " + (System.currentTimeMillis() - s2) + "ms ");
-				int id = stmt.column_int(0);
+				long id = stmt.column_long(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
 				String sensitivityString = stmt.column_string(3);
@@ -302,7 +301,7 @@ public class GridDBDataSource {
 		return centroid;
 	}
 
-	public void updateGridCellSensitivity(int gridId, Integer sensitivity) {
+	public void updateGridCellSensitivity(long gridId, Integer sensitivity) {
 		try {
 			String sensitivityString = sensitivity == null ? "NULL" : sensitivity + "";
 			String query = "UPDATE " + GridDBOpenHelper.TABLE_GRIDCELLS + " SET "

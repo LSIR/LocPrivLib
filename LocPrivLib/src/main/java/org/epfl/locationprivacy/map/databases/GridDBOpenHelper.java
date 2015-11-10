@@ -15,13 +15,15 @@ public class GridDBOpenHelper extends SQLiteOpenHelper {
 	private static final int DATABASE_VERSION = 1;
 
 	public static final String TABLE_GRIDCELLS = "gridcells";
-	public static final String COLUMN_ID = "id";
+	public static final String COLUMN_AUTO_ID = "id";
+	public static final String COLUMN_ID = "cellid";
 	public static final String COLUMN_GEOMETRY = "geometry";
 	public static final String COLUMN_SEMANTIC = "semantic";
 	public static final String COLUMN_SENSITIVITY = "sensitivity";
 	private static final String TABLE_GRIDCELLS_CREATE = "CREATE TABLE "
 			                                                     + TABLE_GRIDCELLS + " ("
-			                                                     + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT" + " , "
+			                                                     + COLUMN_AUTO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT" + " , "
+			                                                     + COLUMN_ID + " UNSIGNED BIG INT" + " , "
 			                                                     + COLUMN_GEOMETRY + " VARCHAR(50)" + " , "
 			                                                     + COLUMN_SEMANTIC + " VARCHAR(50)" + " , "
 			                                                     + COLUMN_SENSITIVITY + " INTEGER"

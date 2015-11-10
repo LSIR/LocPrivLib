@@ -104,7 +104,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 				//save sensitivity to db
 
-				int gridId = Integer.parseInt(currSelectedGridCell.getName());
+				long gridId = Long.parseLong(currSelectedGridCell.getName());
 				if (gridDBDataSource.findGridCell(gridId) == null) {
 					gridDBDataSource.insertPolygonIntoDB(currSelectedGridCell);
 				} else {
@@ -118,10 +118,35 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 		// seekbar
 		privacyBar = (SeekBar) rootView.findViewById(R.id.seekbar);
-		privacyBar.setProgressDrawable(getActivity().getResources().getDrawable(
-				                                                                       R.drawable.seekbarbgimage));
+		privacyBar.setProgressDrawable(getActivity().getResources().getDrawable(R.drawable.seekbarbgimage));
 		privacyBar.setEnabled(false);
-		privacyBar.setOnSeekBarChangeListener(this);
+		privacyBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+
+				int newSensitivity = seekBar.getProgress();
+
+				long cellId = Long.parseLong(currSelectedGridCell.getName());
+				if (gridDBDataSource.findGridCell(cellId) == null) {
+					Toast.makeText(getActivity(), "BIG PROBLEM",
+							              Toast.LENGTH_SHORT).show();
+				} else {
+					gridDBDataSource.updateGridCellSensitivity(cellId, newSensitivity);
+				}
+				Toast.makeText(getActivity(), "Successfully saved value: " + newSensitivity,
+						              Toast.LENGTH_SHORT).show();
+			}
+		});
 
 		MapsInitializer.initialize(getActivity());
 		mapView = (MapView) rootView.findViewById(R.id.privacyprofilemap);
@@ -146,14 +171,13 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
 				@Override
 				public void onMapClick(LatLng point) {
-					currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude, point.longitude);
+					LatLng cellPosition = Utils.findCellTopLeftPoint(point);
+					currSelectedGridCell = gridDBDataSource.findGridCell(cellPosition.latitude, cellPosition.longitude);
 					if (currSelectedGridCell == null) {
-						LatLng cellPosition = Utils.findCellTopLeftPoint(point);
 						long cellID = Utils.computeCellIDFromPosition(cellPosition);
 						ArrayList<LatLng> corners = Utils.computeCellCornerPoints(cellPosition);
 						currSelectedGridCell = new MyPolygon(cellID + "", "", corners);
 					}
-
 
 					//--> remove select grid
 					if (currDrawableGridCell != null)
@@ -181,7 +205,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 					// test sensitivity
 					Toast.makeText(
 							              getActivity(),
-							              "CellID: " + currSelectedGridCell.getName() + "Sensitivity : "
+							              "CellID: " + currSelectedGridCell.getName() + ", Sensitivity : "
 									              + currSelectedGridCell.getSensitivityAsDouble(),
 							              Toast.LENGTH_SHORT).show();
 
@@ -351,7 +375,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 	public void onStopTrackingTouch(SeekBar seekbar) {
 		// update gridcell
 		int sensitivity = seekbar.getProgress();
-		int gridId = Integer.parseInt(currSelectedGridCell.getName());
+		long gridId = Long.parseLong(currSelectedGridCell.getName());
 		gridDBDataSource.updateGridCellSensitivity(gridId, sensitivity);
 
 		Toast.makeText(getActivity(), "Successfully saved value: " + sensitivity,
