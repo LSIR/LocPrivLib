@@ -216,6 +216,27 @@ public class Utils {
 	}
 
 	/**
+	 * Compute the position of a cell given its id.
+	 * @param id
+	 * @return the position of a cell given its id.
+	 */
+	public static LatLng computePostitionFromCellID(long id) {
+
+		int precision = MAP_PRECISION;
+		double w = Math.floor((Math.sqrt(8 * id + 1) - 1) / 2);
+		double t = (w * w + w) / 2;
+		double longitudeTemp = id - t;
+		double latitudeTemp = w - longitudeTemp;
+
+
+		double latitude = latitudeTemp / precision - 90;
+		double longitude = longitudeTemp / precision - 180;
+
+		// FIXME : be sure it is ok in any cases
+		return findCellTopLeftPoint(new LatLng(latitude, longitude));
+	}
+
+	/**
 	 * Compute corners of a cell from the top left point of this cell
 	 *
 	 * @param topLeft the top left point of a cell
