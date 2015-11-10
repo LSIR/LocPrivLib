@@ -8,6 +8,8 @@ import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.privacyestimation.PrivacyEstimator;
 import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
+import org.epfl.locationprivacy.userhistory.databases.TransitionTableDataSource;
+import org.epfl.locationprivacy.userhistory.models.Transition;
 import org.epfl.locationprivacy.util.Utils;
 
 import android.content.Context;
@@ -38,6 +40,9 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	private long totalLoggingTime;
 	// Google client to interact with Google API
 	private GoogleApiClient mGoogleApiClient;
+
+	private long previousLocID = -1;
+	private int previousTimeID = -1;
 
 	// All the next variables which have the prefix log* are only used by ThirdPartyActivity for testing purposes, because
 	// the library returns only the obfuscation region. So, these variables can be removed safely without affecting the
@@ -88,6 +93,8 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 				                                                          .getInstance(context);
 		SemanticLocationsDataSource semanticLocationsDataSource = SemanticLocationsDataSource
 				                                                          .getInstance(context);
+		TransitionTableDataSource transitionTableDataSource = TransitionTableDataSource
+				                                                      .getInstance(context);
 
 		//===========================================================================================
 		//current Location ID
@@ -101,6 +108,21 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		int fineLocationID = Integer.parseInt(currLocGridCell.getName());
 		log("Getting fine Location ID took: " + (System.currentTimeMillis() - start) + " ms");
 		log("Current CellID: " + fineLocationID);
+
+		//===========================================================================================
+		// Create a new transition with the new position
+		long currTime = System.currentTimeMillis();
+		long currLocID = Utils.computeCellIDFromPosition(cell);
+		int currTimeID = Utils.findDayPortionID(currTime);
+		if (previousLocID != -1) {
+			Transition newTransition = new Transition(previousLocID, currLocID, previousTimeID,
+					                                         currTimeID, 1);
+			transitionTableDataSource.updateOrInsert(newTransition);
+		}
+		// FIXME : is it ok to have as init value -1 ?
+		previousLocID = currLocID;
+		previousTimeID = currTimeID;
+
 
 		//===========================================================================================
 		// getting sensitivity preference of location, if not existing then sensitivity of semantic of nearest venue
@@ -160,7 +182,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			//--> Phase 1:
 			// Generate obfuscation Region
 			gridEnds = generateRandomObfRegion(cell, ObfRegionHeightCells,
-					                              ObfRegionWidthCells);
+					                                  ObfRegionWidthCells);
 			log("Lambda: " + lambda);
 			log("ObfRegionSize: " + ObfRegionHeightCells + "X" + ObfRegionWidthCells);
 			logObfRegSize = ObfRegionHeightCells + "X" + ObfRegionWidthCells;

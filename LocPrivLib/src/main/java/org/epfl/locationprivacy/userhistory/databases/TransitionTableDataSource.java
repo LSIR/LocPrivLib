@@ -25,7 +25,7 @@ public class TransitionTableDataSource {
 	SQLiteDatabase db;
 	Context context;
 
-	private static final String[] allColums = {
+	private static final String[] allColumns = {
 			UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_FROMLOCID,
 			UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_TOLOCID,
 			UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_FROMTIMEID,
@@ -105,7 +105,7 @@ public class TransitionTableDataSource {
 	}
 
 	public int countRows() {
-		Cursor cursor = db.query(UserHistoryDBOpenHelper.TABLE_TRANSITIONS, allColums, null, null,
+		Cursor cursor = db.query(UserHistoryDBOpenHelper.TABLE_TRANSITIONS, allColumns, null, null,
 				null, null, null, null);
 		Log.i(LOGTAG, "Returned " + cursor.getCount() + " rows");
 		return cursor.getCount();
@@ -114,7 +114,7 @@ public class TransitionTableDataSource {
 	public ArrayList<Transition> findAll() {
 		ArrayList<Transition> transitions = new ArrayList<Transition>();
 
-		Cursor cursor = db.query(UserHistoryDBOpenHelper.TABLE_TRANSITIONS, allColums, null, null,
+		Cursor cursor = db.query(UserHistoryDBOpenHelper.TABLE_TRANSITIONS, allColumns, null, null,
 				null, null, null);
 		Log.i(LOGTAG, "Returned " + cursor.getCount() + " rows");
 		if (cursor.getCount() > 0)
@@ -183,7 +183,7 @@ public class TransitionTableDataSource {
 	private void loadTransitionTableInMemory() {
 
 		// query all transitions whose count > 0
-		Cursor cursor = db.query(UserHistoryDBOpenHelper.TABLE_TRANSITIONS, allColums,
+		Cursor cursor = db.query(UserHistoryDBOpenHelper.TABLE_TRANSITIONS, allColumns,
 				UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_COUNT + " > 0 ", null, null, null, null,
 				null);
 

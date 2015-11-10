@@ -140,7 +140,7 @@ public class LocationTrackingService extends Service implements
 		//			Log.d(LOGTAG, l.toString());
 
 		// Adding transition to transition table
-		MyPolygon currLocPolygon = gridDBDataSource.findGridCell(randomLatitude, randomLongitude);
+		//MyPolygon currLocPolygon = gridDBDataSource.findGridCell(randomLatitude, randomLongitude);
 		long currLocID = Utils.computeCellIDFromPosition(new LatLng(randomLatitude, randomLongitude));
 		int currTimeID = Utils.findDayPortionID(currTime);
 		if (previousLocID != -1) {
