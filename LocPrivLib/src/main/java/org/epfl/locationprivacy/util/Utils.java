@@ -149,6 +149,7 @@ public class Utils {
 
 		// width in degrees
 		double cellWidth = getDegreesFor100m(new LatLng(latitude, position.longitude), 90);
+		cellWidth = Math.floor(cellWidth * precision * 1000) / (precision * 1000);
 		double nbCellsLongFromOppositeOfOrigin = Math.floor(longitude / cellWidth);
 		longitude = cellWidth * nbCellsLongFromOppositeOfOrigin;
 		longitude -= 180;
@@ -160,7 +161,6 @@ public class Utils {
 	 * Compute the center of cell given its top left and bottom right points
 	 *
 	 * @param topLeft
-	 * @param bottomRight
 	 * @return
 	 */
 	public static LatLng findCellCenter(LatLng topLeft) {
