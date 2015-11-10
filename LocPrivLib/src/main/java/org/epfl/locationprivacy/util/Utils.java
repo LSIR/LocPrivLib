@@ -50,6 +50,7 @@ public class Utils {
 	public static final int GRID_WIDTH_CELLS = 31;
 	public static final LatLng MAP_ORIGIN = new LatLng(0, 0);
 	public static double INITIAL_DEGREES_CELL_SIZE = 0.0009; // in degrees (approx. 100 meters at MAP_ORIGIN)
+	private static int MAP_PRECISION = 1000; // 4 decimals, precision of 11 meters
 	private static String LOGTAG = "Utils";
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
@@ -157,6 +158,7 @@ public class Utils {
 
 	/**
 	 * Compute the center of cell given its top left and bottom right points
+	 *
 	 * @param topLeft
 	 * @param bottomRight
 	 * @return
@@ -197,17 +199,18 @@ public class Utils {
 	 * @param position
 	 * @return the id of a given point on the map
 	 */
-	public static int computeCellIDFromPosition(LatLng position) {
-		int precision = 1000; // 4 decimals, precision of 11 meters
+	public static long computeCellIDFromPosition(LatLng position) {
+		int precision = MAP_PRECISION;
 
 		double latitude = position.latitude + 90;
 		double longitude = position.longitude + 180;
 
-		int integerLatitude = (int) Math.floor(latitude * precision);
-		int integerLongitude = (int) Math.floor(longitude * precision);
+		long integerLatitude = (long) Math.floor(latitude * precision);
+		long integerLongitude = (long) Math.floor(longitude * precision);
 
 		// Cantor pairing Function
-		int id = 1 / 2 * (integerLatitude + integerLongitude) * (integerLatitude + integerLongitude + 1) + integerLongitude;
+		long id = ((integerLatitude + integerLongitude) * (integerLatitude + integerLongitude + 1)) / 2
+				          + integerLongitude;
 
 		return id;
 	}

@@ -19,7 +19,7 @@ import android.util.Log;
 public class TransitionTableDataSource {
 	private static final String LOGTAG = "TransitionTableDataSource";
 	private static TransitionTableDataSource instance;
-	private HashMap<Integer, HashMap<Integer, Integer>> inMemoryTransitionTable;
+	private HashMap<Long, HashMap<Long, Integer>> inMemoryTransitionTable;
 	private double eta = Math.pow(10, -5);
 	SQLiteOpenHelper dbHelper;
 	SQLiteDatabase db;
@@ -44,7 +44,7 @@ public class TransitionTableDataSource {
 		open();
 
 		//load transitions table in memory for fast access
-		inMemoryTransitionTable = new HashMap<Integer, HashMap<Integer, Integer>>();
+		inMemoryTransitionTable = new HashMap<>();
 		loadTransitionTableInMemory();
 	}
 
@@ -76,7 +76,7 @@ public class TransitionTableDataSource {
 					new String[] { transition.fromLocID + "", transition.toLocID + "" });
 
 			//--> update in-memory
-			HashMap<Integer, Integer> destinationsMap = inMemoryTransitionTable
+			HashMap<Long, Integer> destinationsMap = inMemoryTransitionTable
 					.get(transition.fromLocID);
 			destinationsMap.remove(transition.toLocID);
 			destinationsMap.put(transition.toLocID, count + 1);
@@ -95,10 +95,10 @@ public class TransitionTableDataSource {
 			db.insert(UserHistoryDBOpenHelper.TABLE_TRANSITIONS, null, values);
 
 			//--> insert into memory
-			HashMap<Integer, Integer> destinationsMap = inMemoryTransitionTable
+			HashMap<Long, Integer> destinationsMap = inMemoryTransitionTable
 					.get(transition.fromLocID);
 			if (destinationsMap == null)
-				destinationsMap = new HashMap<Integer, Integer>();
+				destinationsMap = new HashMap<>();
 			destinationsMap.put(transition.toLocID, transition.count);
 			inMemoryTransitionTable.put(transition.fromLocID, destinationsMap);
 		}
@@ -123,7 +123,7 @@ public class TransitionTableDataSource {
 		return transitions;
 	}
 
-	public double getTransitionProbability(int fromLocID, int toLocID) {
+	public double getTransitionProbability(long fromLocID, long toLocID) {
 
 		int transitionCountFromLocToLoc = getTransitionCount(fromLocID, toLocID);
 		int transitionCountFromLoc = getTransitionCount(fromLocID);
@@ -132,27 +132,27 @@ public class TransitionTableDataSource {
 				/ ((double) (transitionCountFromLoc + (numberOfGridCells * eta)));
 	}
 
-	private int getTransitionCount(int fromLocID, int toLocID) {
+	private int getTransitionCount(long fromLocID, long toLocID) {
 
 		if (!inMemoryTransitionTable.containsKey(fromLocID))
 			return 0;
-		HashMap<Integer, Integer> destinationsMap = inMemoryTransitionTable.get(fromLocID);
+		HashMap<Long, Integer> destinationsMap = inMemoryTransitionTable.get(fromLocID);
 		if (!destinationsMap.containsKey(toLocID))
 			return 0;
 		return destinationsMap.get(toLocID);
 	}
 
-	private Integer getTransitionCount(int fromID) {
+	private Integer getTransitionCount(long fromID) {
 
 		if (!inMemoryTransitionTable.containsKey(fromID))
 			return 0;
 
 		//iterate over the destinations map
-		HashMap<Integer, Integer> destinationsMap = inMemoryTransitionTable.get(fromID);
+		HashMap<Long, Integer> destinationsMap = inMemoryTransitionTable.get(fromID);
 		int totalTransitionCount = 0;
-		Iterator<Entry<Integer, Integer>> it = destinationsMap.entrySet().iterator();
+		Iterator<Entry<Long, Integer>> it = destinationsMap.entrySet().iterator();
 		while (it.hasNext()) {
-			Map.Entry<Integer, Integer> pairs = (Map.Entry<Integer, Integer>) it.next();
+			Map.Entry<Long, Integer> pairs = it.next();
 			totalTransitionCount += pairs.getValue();
 			it.remove(); // avoids a ConcurrentModificationException
 		}
@@ -190,18 +190,18 @@ public class TransitionTableDataSource {
 		if (cursor.getCount() > 0) {
 			while (cursor.moveToNext()) {
 
-				int transitionFromID = cursor.getInt(cursor
+				long transitionFromID = cursor.getInt(cursor
 						.getColumnIndex(UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_FROMLOCID));
-				int transitionToID = cursor.getInt(cursor
+				long transitionToID = cursor.getInt(cursor
 						.getColumnIndex(UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_TOLOCID));
 				int transitionCount = cursor.getInt(cursor
 						.getColumnIndex(UserHistoryDBOpenHelper.COLUMN_TRANSITIONS_COUNT));
 
 				//update the in-memory data structure
-				HashMap<Integer, Integer> destinationsMap = inMemoryTransitionTable
+				HashMap<Long, Integer> destinationsMap = inMemoryTransitionTable
 						.get(transitionFromID);
 				if (destinationsMap == null)
-					destinationsMap = new HashMap<Integer, Integer>();
+					destinationsMap = new HashMap<>();
 				destinationsMap.put(transitionToID, transitionCount);
 				inMemoryTransitionTable.put(transitionFromID, destinationsMap);
 

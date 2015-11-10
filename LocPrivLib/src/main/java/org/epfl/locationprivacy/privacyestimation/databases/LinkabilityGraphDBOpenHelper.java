@@ -16,6 +16,7 @@ public class LinkabilityGraphDBOpenHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_EVENTS_ID = "id";
 	public static final String COLUMN_EVENTS_LEVELID = "levelid";
 	public static final String COLUMN_EVENTS_LOCID = "locid";
+	public static final String COLUMN_EVENTS_CELL = "cell";
 	public static final String COLUMN_EVENTS_TIMESTAMP = "timestamp";
 	public static final String COLUMN_EVENTS_TIMESTAMPID = "timestampid";
 	public static final String COLUMN_EVENTS_PROBABILITY = "probability";

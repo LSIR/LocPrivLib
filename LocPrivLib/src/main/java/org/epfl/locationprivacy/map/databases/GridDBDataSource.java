@@ -134,7 +134,7 @@ public class GridDBDataSource {
 				cornerPoints.add(mapGrid[i][j + 1]);
 				cornerPoints.add(mapGrid[i + 1][j + 1]);
 				cornerPoints.add(mapGrid[i + 1][j]);
-				int cellID = Utils.computeCellIDFromPosition(mapGrid[i][j]);
+				long cellID = Utils.computeCellIDFromPosition(mapGrid[i][j]);
 				MyPolygon polygon = new MyPolygon(cellID + "", "", cornerPoints);
 				insertPolygonIntoDB(polygon);
 			}

@@ -149,7 +149,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 					currSelectedGridCell = gridDBDataSource.findGridCell(point.latitude, point.longitude);
 					if (currSelectedGridCell == null) {
 						LatLng cellPosition = Utils.findCellTopLeftPoint(point);
-						int cellID = Utils.computeCellIDFromPosition(cellPosition);
+						long cellID = Utils.computeCellIDFromPosition(cellPosition);
 						ArrayList<LatLng> corners = Utils.computeCellCornerPoints(cellPosition);
 						currSelectedGridCell = new MyPolygon(cellID + "", "", corners);
 					}

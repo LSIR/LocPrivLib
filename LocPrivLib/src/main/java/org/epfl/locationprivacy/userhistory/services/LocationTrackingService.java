@@ -39,7 +39,7 @@ public class LocationTrackingService extends Service implements
 	private LocationRequest mLocationRequest;
 
 	Random random;
-	int previousLocID = -1;
+	long previousLocID = -1;
 	int previousTimeID = -1;
 
 	@Override
@@ -141,7 +141,7 @@ public class LocationTrackingService extends Service implements
 
 		// Adding transition to transition table
 		MyPolygon currLocPolygon = gridDBDataSource.findGridCell(randomLatitude, randomLongitude);
-		int currLocID = Utils.computeCellIDFromPosition(new LatLng(randomLatitude, randomLongitude));
+		long currLocID = Utils.computeCellIDFromPosition(new LatLng(randomLatitude, randomLongitude));
 		int currTimeID = Utils.findDayPortionID(currTime);
 		if (previousLocID != -1) {
 			Transition newTransition = new Transition(previousLocID, currLocID, previousTimeID,

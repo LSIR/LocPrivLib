@@ -189,8 +189,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 						//--> transition probability
 						// FIXME : Not sure if it is correct to use ID here
 						double transitionProbability = userHistoryDBDataSource
-								                               .getTransitionProbability(Utils.computeCellIDFromPosition(parent.cell),
-										                                                        Utils.computeCellIDFromPosition(e.cell));
+								                               .getTransitionProbability(parent.id, e.id);
 						parent.childrenTransProbSum += transitionProbability;
 						parent.children.add(e);
 						e.parents.add(new Pair<Event, Double>(parent, transitionProbability));
@@ -359,7 +358,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		long tempCurrEventID = currEventID;
 		for (LatLng[] positions : mapGrid) {
 			for (LatLng position : positions) {
-				eventList.add(new Event(tempCurrEventID++, position, timeStampID, timeStamp, 0, 0));
+				eventList.add(new Event(tempCurrEventID++, Utils.computeCellIDFromPosition(position), position, timeStampID, timeStamp, 0, 0));
 			}
 		}
 		return eventList;

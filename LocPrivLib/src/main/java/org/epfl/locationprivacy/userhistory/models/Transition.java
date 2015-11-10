@@ -2,13 +2,13 @@ package org.epfl.locationprivacy.userhistory.models;
 
 public class Transition {
 
-	public int fromLocID;
-	public int toLocID;
+	public long fromLocID;
+	public long toLocID;
 	public int fromTimeID;
 	public int toTimeID;
 	public int count;
 
-	public Transition(int fromLocID, int toLocID, int fromTimeID, int toTimeID, int count) {
+	public Transition(long fromLocID, long toLocID, int fromTimeID, int toTimeID, int count) {
 		super();
 		this.fromLocID = fromLocID;
 		this.toLocID = toLocID;

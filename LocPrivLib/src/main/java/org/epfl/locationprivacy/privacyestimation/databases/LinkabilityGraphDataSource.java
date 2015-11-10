@@ -46,7 +46,8 @@ public class LinkabilityGraphDataSource {
 		ContentValues values = new ContentValues();
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_ID, e.id);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_LEVELID, levelID);
-		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_LOCID, e.cell);
+		// FIXME : to check this value
+		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_LOCID, e.cellID);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMP, e.timeStamp);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMPID, e.timeStampID);
 		values.put(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_PROBABILITY, e.probability);
@@ -170,7 +171,7 @@ public class LinkabilityGraphDataSource {
 				double transProp = cursor
 						.getDouble(cursor
 								.getColumnIndex(LinkabilityGraphDBOpenHelper.COLUMN_PARENTCHILDREN_TRANSPROBABILITY));
-				parentsInfo.add(new Pair<Long, Double>(parentID, transProp));
+				parentsInfo.add(new Pair<>(parentID, transProp));
 			}
 		}
 		return parentsInfo;
@@ -190,7 +191,8 @@ public class LinkabilityGraphDataSource {
 		int timeStampID = cursor.getInt(cursor
 				.getColumnIndex(LinkabilityGraphDBOpenHelper.COLUMN_EVENTS_TIMESTAMPID));
 
-		Event event = new Event(eventID, locID, timeStampID, timeStamp, prop, childrenTransProbSum);
+		// FIXME : find a way to store the position in DB
+		Event event = new Event(eventID, locID, null, timeStampID, timeStamp, prop, childrenTransProbSum);
 		return event;
 	}
 
