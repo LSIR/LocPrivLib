@@ -202,16 +202,9 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		}
 
 		//===========================================================================================
-		// The top left LngLat point is the first point of first gridcell
-		// TODO : remove useless code
-		//int topLeftGridCellID = grid.first;
-		LatLng obfRegionTopLeft = gridEnds.first;
-		//gridDBDataSource.findGridCell(topLeftGridCellID).getPoints().get(0);
 
-		// The bottom right LngLat point is the third point of the last gridcell
-		//int bottomRightGridCellID = obfRegionCellIDs.get(obfRegionCellIDs.size() - 1);
+		LatLng obfRegionTopLeft = gridEnds.first;
 		LatLng obfRegionBottomRight = gridEnds.second;
-		//gridDBDataSource.findGridCell(bottomRightGridCellID).getPoints().get(2);
 
 		//-->test
 		logObfRegion = new ArrayList<>();
@@ -256,8 +249,6 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		totalLoggingTime += (System.currentTimeMillis() - startlogging);
 	}
 
-	//FIXME : remove useless code
-	//private ArrayList<Integer> generateRandomObfRegion(LatLng cell,
 	private Pair<LatLng, LatLng> generateRandomObfRegion(LatLng cell,
 	                                                     int obfRegionHeightCells, int obfRegionWidthCells) {
 		ArrayList<Integer> obfRegionCellIDs = new ArrayList<Integer>();
@@ -270,38 +261,6 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		LatLng bottomRightPoint = Utils.findGridBottomRightPoint(topLeftPoint, obfRegionHeightCells, obfRegionWidthCells);
 
 		return new Pair<>(topLeftPoint, bottomRightPoint);
-
-		/*//curr row and col
-		int currRow = fineLocationID / Utils.GRID_WIDTH_CELLS;
-		int currCol = fineLocationID % Utils.GRID_WIDTH_CELLS;
-
-		// top left cell id
-		int topLeftRowDelta = random.nextInt(obfRegionHeightCells);
-		int topLeftRow = currRow - topLeftRowDelta;
-		topLeftRow = topLeftRow < 0 ? 0 : topLeftRow;
-
-		int topLeftColDelta = random.nextInt(obfRegionWidthCells);
-		int topLeftCol = currCol - topLeftColDelta;
-		topLeftCol = topLeftCol < 0 ? 0 : topLeftCol;
-
-
-		// bottom right cell id
-		int bottomRightRow = topLeftRow + obfRegionHeightCells - 1;
-		bottomRightRow = bottomRightRow >= Utils.GRID_HEIGHT_CELLS ? Utils.GRID_HEIGHT_CELLS - 1
-				                 : bottomRightRow;
-
-		int bottomRightCol = topLeftCol + obfRegionWidthCells - 1;
-		bottomRightCol = bottomRightCol >= Utils.GRID_WIDTH_CELLS ? Utils.GRID_WIDTH_CELLS - 1
-				                 : bottomRightCol;
-
-		// generate cell ids
-		for (int r = topLeftRow; r <= bottomRightRow; r++)
-			for (int c = topLeftCol; c <= bottomRightCol; c++)
-				obfRegionCellIDs.add(r * Utils.GRID_WIDTH_CELLS + c);
-		log("Actual Location gridCellID: " + (topLeftRowDelta + 1) + "X" + (topLeftColDelta + 1));
-
-		return obfRegionCellIDs;
-		*/
 	}
 
 	//===========================================================================
