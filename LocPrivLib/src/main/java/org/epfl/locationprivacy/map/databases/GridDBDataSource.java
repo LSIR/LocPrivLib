@@ -198,6 +198,11 @@ public class GridDBDataSource {
 		saveGrid(mapGrid, gridHeightCells, gridWidthCells);
 	}
 
+	/**
+	 * find a grid cell for a given ID
+	 * @param cellID
+	 * @return the cell (or null if it does not exist)
+	 */
 	public MyPolygon findGridCell(long cellID) {
 		MyPolygon polygon = null;
 		try {
@@ -230,19 +235,27 @@ public class GridDBDataSource {
 		return polygon;
 	}
 
-	// find a grid cell for specific Location
+	/**
+	 * find a grid cell for specific Location
+	 * @param latitude
+	 * @param longitude
+	 * @return the cell (or null if it does not exist)
+	 */
 	public MyPolygon findGridCell(double latitude, double longitude) {
 		MyPolygon polygon = null;
 		Log.d(LOGTAG, "start query");
 		try {
+			// We need to create a Polygon because with one point, we can have a confusion
+			// in the query (common corner can return a wrong cell)
+			MyPolygon currentPolygon = new MyPolygon(null, null, Utils.computeCellCornerPoints(new LatLng(latitude, longitude)));
+			String spatialitePolygon = currentPolygon.convertToSpatialiteString();
 
 			String query = "SELECT " + GridDBOpenHelper.COLUMN_ID + ", "
 					               + GridDBOpenHelper.COLUMN_SEMANTIC + ", asText("
 					               + GridDBOpenHelper.COLUMN_GEOMETRY + ") , "
 					               + GridDBOpenHelper.COLUMN_SENSITIVITY
 					               + " FROM " + GridDBOpenHelper.TABLE_GRIDCELLS
-					               + " WHERE MBRContains( geometry, BuildMBR( " + longitude
-					               + " ," + latitude + " , " + longitude + " , " + latitude + " ) );";
+					               + " WHERE MBRContains( geometry, GeomFromText(" + spatialitePolygon + ", 4326));";
 			Log.d(LOGTAG, query);
 
 			long s1 = System.currentTimeMillis();
