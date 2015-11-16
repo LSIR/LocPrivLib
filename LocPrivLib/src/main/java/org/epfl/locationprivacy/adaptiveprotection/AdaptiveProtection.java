@@ -100,8 +100,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		//current Location ID
 		long start = System.currentTimeMillis();
 		LatLng cell = Utils.findCellTopLeftPoint(location);
-		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(cell.latitude,
-				                                                         cell.longitude);
+		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(Utils.computeCellIDFromPosition(cell));
 		if (currLocGridCell == null) {
 			currLocGridCell = new MyPolygon(Utils.computeCellIDFromPosition(cell) + "", "", Utils.computeCellCornerPoints(cell));
 		}
@@ -233,7 +232,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		LatLng[][] mapGrid = Utils.generateMapGrid(ObfRegionHeightCells, ObfRegionWidthCells, obfRegionTopLeft);
 		for (LatLng[] positions : mapGrid) {
 			for (LatLng position : positions) {
-				MyPolygon currentPolygon = GridDBDataSource.getInstance(context).findGridCell(position.latitude, position.longitude);
+				MyPolygon currentPolygon = GridDBDataSource.getInstance(context).findGridCell(Utils.computeCellIDFromPosition(position));
 				if (currentPolygon != null) {
 					logObfRegion.add(currentPolygon);
 				} else {

@@ -44,7 +44,7 @@ public class MyPolygon {
 		for (String point : points) {
 			point = point.trim();
 			LatLng latLngPoint = new LatLng(Double.parseDouble(point.split(" ")[1]),
-					Double.parseDouble(point.split(" ")[0]));
+					                               Double.parseDouble(point.split(" ")[0]));
 			latLngPoints.add(latLngPoint);
 		}
 		return latLngPoints;
@@ -65,7 +65,7 @@ public class MyPolygon {
 			for (String point : points) {
 				point = point.trim();
 				LatLng latLngPoint = new LatLng(Double.parseDouble(point.split(" ")[1]),
-						Double.parseDouble(point.split(" ")[0]));
+						                               Double.parseDouble(point.split(" ")[0]));
 				latLngPoints.add(latLngPoint);
 			}
 			return latLngPoints;

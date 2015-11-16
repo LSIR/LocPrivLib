@@ -200,6 +200,7 @@ public class GridDBDataSource {
 
 	/**
 	 * find a grid cell for a given ID
+	 *
 	 * @param cellID
 	 * @return the cell (or null if it does not exist)
 	 */
@@ -227,61 +228,6 @@ public class GridDBDataSource {
 
 			}
 			stmt.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			Log.e(LOGTAG, e.getMessage());
-		}
-		Log.d(LOGTAG, "ROWs 1");
-		return polygon;
-	}
-
-	/**
-	 * find a grid cell for specific Location
-	 * @param latitude
-	 * @param longitude
-	 * @return the cell (or null if it does not exist)
-	 */
-	public MyPolygon findGridCell(double latitude, double longitude) {
-		MyPolygon polygon = null;
-		Log.d(LOGTAG, "start query");
-		try {
-			// We need to create a Polygon because with one point, we can have a confusion
-			// in the query (common corner can return a wrong cell)
-			MyPolygon currentPolygon = new MyPolygon(null, null, Utils.computeCellCornerPoints(new LatLng(latitude, longitude)));
-			String spatialitePolygon = currentPolygon.convertToSpatialiteString();
-
-			String query = "SELECT " + GridDBOpenHelper.COLUMN_ID + ", "
-					               + GridDBOpenHelper.COLUMN_SEMANTIC + ", asText("
-					               + GridDBOpenHelper.COLUMN_GEOMETRY + ") , "
-					               + GridDBOpenHelper.COLUMN_SENSITIVITY
-					               + " FROM " + GridDBOpenHelper.TABLE_GRIDCELLS
-					               + " WHERE MBRContains( geometry, GeomFromText(" + spatialitePolygon + ", 4326));";
-			Log.d(LOGTAG, query);
-
-			long s1 = System.currentTimeMillis();
-			Stmt stmt = spatialDB.prepare(query);
-			Log.d(LOGTAG, "prepare time: " + (System.currentTimeMillis() - s1) + "ms ");
-
-			long s2 = System.currentTimeMillis();
-			while (stmt.step()) {
-				Log.d(LOGTAG, "step time: " + (System.currentTimeMillis() - s2) + "ms ");
-				long id = stmt.column_long(0);
-				String semantic = stmt.column_string(1);
-				String geometry = stmt.column_string(2);
-				String sensitivityString = stmt.column_string(3);
-				Integer sensitivity = sensitivityString == null ? null : Integer
-						                                                         .parseInt(sensitivityString);
-
-				if (polygon != null) {
-					throw new Exception("Multiple results for Lat/Lng:" + latitude + "/"
-							                    + longitude);
-				}
-				polygon = new MyPolygon(id + "", semantic, MyPolygon.parseSpatialPolygon("POLYGON",
-						                                                                        geometry), sensitivity);
-			}
-			stmt.close();
-
-			Log.d(LOGTAG, "end query");
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e(LOGTAG, e.getMessage());

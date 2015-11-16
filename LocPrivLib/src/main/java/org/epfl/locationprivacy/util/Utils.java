@@ -217,6 +217,7 @@ public class Utils {
 
 	/**
 	 * Compute the position of a cell given its id.
+	 *
 	 * @param id
 	 * @return the position of a cell given its id.
 	 */

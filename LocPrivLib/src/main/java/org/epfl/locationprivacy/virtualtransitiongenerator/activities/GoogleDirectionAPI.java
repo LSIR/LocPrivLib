@@ -53,8 +53,8 @@ class GoogleDirectionAPI extends AsyncTask<String, String, String> {
 	NumberFormat formatter = new DecimalFormat("#0.00");
 
 	public GoogleDirectionAPI(GoogleMap map, GridDBDataSource gridDB,
-			Pair<MyPolygon, LatLng> origin, Pair<MyPolygon, LatLng> destination,
-			String transportationMean, Context context) {
+	                          Pair<MyPolygon, LatLng> origin, Pair<MyPolygon, LatLng> destination,
+	                          String transportationMean, Context context) {
 		googleMap = map;
 		gridDBDataSource = gridDB;
 		this.originInfo = origin;
@@ -99,8 +99,8 @@ class GoogleDirectionAPI extends AsyncTask<String, String, String> {
 
 		if (result == null) {
 			Toast.makeText(context,
-					"Google API doesn't respond, You might have lost internet connection",
-					Toast.LENGTH_SHORT).show();
+					              "Google API doesn't respond, You might have lost internet connection",
+					              Toast.LENGTH_SHORT).show();
 			return;
 		}
 
@@ -114,7 +114,7 @@ class GoogleDirectionAPI extends AsyncTask<String, String, String> {
 
 		//--> draw origin
 		markers.add(googleMap.addMarker(new MarkerOptions().position(originInfo.second).title(
-				originInfo.first.getSemantic())));
+				                                                                                     originInfo.first.getSemantic())));
 		polygons.add(Utils.drawPolygon(originInfo.first, googleMap, 0x33FF0000));
 
 		LatLng previousPoint = originInfo.second;
@@ -125,25 +125,26 @@ class GoogleDirectionAPI extends AsyncTask<String, String, String> {
 			double lat = step.get("end_location").getAsJsonObject().get("lat").getAsDouble();
 			double lng = step.get("end_location").getAsJsonObject().get("lng").getAsDouble();
 			LatLng currPoint = new LatLng(lat, lng);
+			LatLng currentCell = Utils.findCellTopLeftPoint(currPoint);
 			accDuration += step.get("duration").getAsJsonObject().get("value").getAsLong();
 			String accDurationString = formatter.format(accDuration * 1.0 / 60.0) + " min "
-					+ transportationMean;
+					                           + transportationMean;
 
 			//--> draw grid cell
-			MyPolygon gridCell = gridDBDataSource.findGridCell(lat, lng);
+			MyPolygon gridCell = gridDBDataSource.findGridCell(Utils.computeCellIDFromPosition(currentCell));
 			if (gridCell != null)
 				polygons.add(Utils.drawPolygon(gridCell, googleMap, 0x3300FF00));
 
 			//--> draw marker
 			MarkerOptions markerOptions2 = new MarkerOptions().position(currPoint)
-					.title("Step: " + (i + 1)).snippet(accDurationString);
+					                               .title("Step: " + (i + 1)).snippet(accDurationString);
 			markers.add(googleMap.addMarker(markerOptions2));
 
 			//--> draw arrow
 			if (previousPoint != null) {
 				markers.add(Utils.DrawArrowHead(googleMap, previousPoint, currPoint));
 				polylines.add(googleMap.addPolyline(new PolylineOptions()
-						.add(previousPoint, currPoint).width(5).color(Color.BLUE)));
+						                                    .add(previousPoint, currPoint).width(5).color(Color.BLUE)));
 			}
 
 			previousPoint = currPoint;
@@ -152,14 +153,14 @@ class GoogleDirectionAPI extends AsyncTask<String, String, String> {
 		// time to destination
 		Long tripTimeInSec = firstLeg.get("duration").getAsJsonObject().get("value").getAsLong();
 		String tripTimeString = formatter.format(tripTimeInSec * 1.0 / 60.0) + " min "
-				+ transportationMean;
+				                        + transportationMean;
 
 		//--> draw destination
 		markers.add(Utils.DrawArrowHead(googleMap, previousPoint, destinationInfo.second));
 		polylines.add(googleMap.addPolyline(new PolylineOptions()
-				.add(previousPoint, destinationInfo.second).width(5).color(Color.BLUE)));
+				                                    .add(previousPoint, destinationInfo.second).width(5).color(Color.BLUE)));
 		markers.add(googleMap.addMarker(new MarkerOptions().position(destinationInfo.second)
-				.snippet(tripTimeString).title(destinationInfo.first.getSemantic())));
+				                                .snippet(tripTimeString).title(destinationInfo.first.getSemantic())));
 		polygons.add(Utils.drawPolygon(destinationInfo.first, googleMap, 0x33FF0000));
 
 		// move camera to origin centroid
