@@ -307,7 +307,7 @@ public class Utils {
 	public static LatLng[][] generateMapGrid(int arrRows, int arrCols, LatLng topLeftPoint) {
 		LatLng[][] grid = new LatLng[arrRows][arrCols];
 		grid[0][0] = topLeftPoint;
-		double defaultDist = 0.1;
+		double defaultDist = 0.1001;
 
 		//fill first column
 		for (int i = 1; i < arrRows; i++) {
