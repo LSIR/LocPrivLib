@@ -374,24 +374,42 @@ public class Utils {
 	 */
 	public static ArrayList<Polyline> drawMapGrid(LatLng[][] mapGrid, GoogleMap googleMap) {
 		ArrayList<Polyline> polylines = new ArrayList<>();
+		PolylineOptions polylineOptions;
 		int arrRows = mapGrid.length;
 		int arrCols = mapGrid[0].length;
 
+		LatLng[][] grid = new LatLng[arrRows + 1][arrCols + 1];
+		for (int i = 0; i < arrRows + 1; i++) {
+			for (int j = 0; j < arrCols; j++) {
+				if (i < arrRows) {
+					grid[i][j] = mapGrid[i][j];
+				} else {
+					grid[i][j] = getLatLong(grid[i - 1][j], 0.1, 180);
+				}
+			}
+			grid[i][arrCols] = getLatLong(grid[i][arrCols - 1], 0.1, 90);
+		}
+		grid[arrRows][arrCols] = getLatLong(grid[arrRows][arrCols - 1], 0.1, 90);
+
+		arrCols++;
+		arrRows++;
+
 		//draw horizontal polylines
 		for (int i = 0; i < arrRows; i++) {
-			PolylineOptions polylineOptions = new PolylineOptions().color(Color.BLUE).width(1)
-					                                  .add(mapGrid[i][0]).add(mapGrid[i][arrCols - 1]);
+			polylineOptions = new PolylineOptions().color(Color.BLUE).width(1)
+					                  .add(grid[i][0]).add(grid[i][arrCols - 1]);
 			polylines.add(googleMap.addPolyline(polylineOptions));
 		}
 
 		//draw vertical polylines
 		for (int i = 0; i < arrCols; i++) {
-			PolylineOptions polylineOptions = new PolylineOptions().color(Color.BLUE).width(1);
+			polylineOptions = new PolylineOptions().color(Color.BLUE).width(1);
 			for (int j = 0; j < arrRows - 1; j++) {
-				LatLng bottomLeftJ = new LatLng(mapGrid[j + 1][i].latitude, mapGrid[j][i].longitude);
-				polylineOptions.add(mapGrid[j][i]).add(bottomLeftJ);
-				polylineOptions.add(bottomLeftJ).add(mapGrid[j + 1][i]);
+				LatLng bottomLeftJ = new LatLng(grid[j + 1][i].latitude, grid[j][i].longitude);
+				polylineOptions.add(grid[j][i]).add(bottomLeftJ);
+				polylineOptions.add(bottomLeftJ).add(grid[j + 1][i]);
 			}
+
 			polylines.add(googleMap.addPolyline(polylineOptions));
 		}
 
@@ -428,26 +446,42 @@ public class Utils {
 		int arrCols = mapGrid[0].length;
 		Log.d(LOGTAG, "Rows:" + arrRows + "  Cols:" + arrCols);
 
+		LatLng[][] grid = new LatLng[arrRows + 1][arrCols + 1];
+		for (int i = 0; i < arrRows + 1; i++) {
+			for (int j = 0; j < arrCols; j++) {
+				if (i < arrRows) {
+					grid[i][j] = mapGrid[i][j];
+				} else {
+					grid[i][j] = getLatLong(grid[i - 1][j], 0.1, 180);
+				}
+			}
+			grid[i][arrCols] = getLatLong(grid[i][arrCols - 1], 0.1, 90);
+		}
+		grid[arrRows][arrCols] = getLatLong(grid[arrRows][arrCols - 1], 0.1, 90);
+
+		arrCols++;
+		arrRows++;
+
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(0x330000FF)
 				                                .strokeColor(Color.BLUE).strokeWidth(1);
 
 		// Left side
 		for (int j = 0; j < arrRows - 1; j++) {
 			// Bottom Right of cell j
-			LatLng bottomLeftJ = new LatLng(mapGrid[j + 1][0].latitude, mapGrid[j][0].longitude);
-			polygonOptions.add(mapGrid[j][0]).add(bottomLeftJ);
-			polygonOptions.add(bottomLeftJ).add(mapGrid[j + 1][0]);
+			LatLng bottomLeftJ = new LatLng(grid[j + 1][0].latitude, grid[j][0].longitude);
+			polygonOptions.add(grid[j][0]).add(bottomLeftJ);
+			polygonOptions.add(bottomLeftJ).add(grid[j + 1][0]);
 		}
 
 		// Bottom
-		polygonOptions.add(mapGrid[arrRows - 1][0]).add(mapGrid[arrRows - 1][arrCols - 1]);
+		polygonOptions.add(grid[arrRows - 1][0]).add(grid[arrRows - 1][arrCols - 1]);
 
 		// Right side
 		for (int j = arrRows - 1; j > 0; j--) {
 			// Bottom Right of cell j - 1
-			LatLng bottomRightJ = new LatLng(mapGrid[j][arrCols - 1].latitude, mapGrid[j - 1][arrCols - 1].longitude);
-			polygonOptions.add(mapGrid[j][arrCols - 1]).add(bottomRightJ);
-			polygonOptions.add(bottomRightJ).add(mapGrid[j - 1][arrCols - 1]);
+			LatLng bottomRightJ = new LatLng(grid[j][arrCols - 1].latitude, grid[j - 1][arrCols - 1].longitude);
+			polygonOptions.add(grid[j][arrCols - 1]).add(bottomRightJ);
+			polygonOptions.add(bottomRightJ).add(grid[j - 1][arrCols - 1]);
 		}
 
 		// Top is done automatically

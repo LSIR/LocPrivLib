@@ -214,8 +214,8 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 		LatLng topLeftPoint = Utils.findGridTopLeftPoint(centerPoint, gridHeightCells, gridWidthCells);
 
 		// generate Map Grid
-		int arrRows = gridHeightCells + 1;
-		int arrCols = gridWidthCells + 1;
+		int arrRows = gridHeightCells;
+		int arrCols = gridWidthCells;
 		mapGrid = Utils.generateMapGrid(arrRows, arrCols, topLeftPoint);
 
 		//Remove old grid from map
