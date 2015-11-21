@@ -31,7 +31,7 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 
 public class ObfRegionActivity extends ActionBarActivity implements
-		GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+	GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
 	private static final int REQUEST_CODE = 100;
 	private static final String TAG = "ObfRegionActivity";
@@ -45,6 +45,8 @@ public class ObfRegionActivity extends ActionBarActivity implements
 	ArrayList<Polyline> polylines = new ArrayList<Polyline>();
 	Polygon polygon = null;
 	Location currentLocation = null;
+	// currGridHeightCells and currGridWidthCells are 2 times bigger than the obfuscation region
+	// This is for drawing correctly the random area
 	int currGridHeightCells = 1;
 	int currGridWidthCells = 1;
 	LatLng[][] mapGrid = null;
@@ -132,7 +134,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 	@Override
 	public void onConnectionFailed(ConnectionResult result) {
 		Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = "
-				           + result.getErrorCode());
+			+ result.getErrorCode());
 	}
 
 	@Override
@@ -152,7 +154,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 
 			//Animate
 			LatLng latLng = new LatLng(currentLocation.getLatitude(),
-					                          currentLocation.getLongitude());
+				currentLocation.getLongitude());
 			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
 			googleMap.moveCamera(cameraUpdate);
 
@@ -164,8 +166,8 @@ public class ObfRegionActivity extends ActionBarActivity implements
 
 			// top Left corner
 			LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
-					                               currentLocation.getLongitude());
-			LatLng topLeftPoint = Utils.findGridTopLeftPoint(centerPoint,currGridHeightCells,currGridWidthCells);
+				currentLocation.getLongitude());
+			LatLng topLeftPoint = Utils.findGridTopLeftPoint(centerPoint, currGridHeightCells, currGridWidthCells);
 
 			// generate Map Grid
 			int arrRows = currGridHeightCells;
@@ -181,7 +183,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 
 			// refresh map
 			refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
-					              obfRegionTopLeftPoint);
+				obfRegionTopLeftPoint);
 
 		} else {
 			Toast.makeText(this, "Current Location is not available, Can't Access GPS data", Toast.LENGTH_LONG).show();
@@ -210,13 +212,11 @@ public class ObfRegionActivity extends ActionBarActivity implements
 				//generate random  top left point for the obfuscation region
 				int randomRow = Utils.getRandom(0, currGridHeightCells / 2);
 				int randomCol = Utils.getRandom(0, currGridWidthCells / 2);
-				LatLng obfuscationRegionTopLeftPoint = new LatLng(
-						                                                 mapGrid[randomRow][randomCol].latitude,
-						                                                 mapGrid[randomRow][randomCol].longitude);
+				LatLng obfuscationRegionTopLeftPoint = new LatLng(mapGrid[randomRow][randomCol].latitude, mapGrid[randomRow][randomCol].longitude);
 
 				//refresh map
 				refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
-						              obfuscationRegionTopLeftPoint);
+					obfuscationRegionTopLeftPoint);
 				return true;
 
 			} else if (id == R.id.action_settings) {
@@ -226,7 +226,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 			}
 		} else {
 			Toast.makeText(this, "Sorry Can't Get the current location, Turn On the GPS",
-					              Toast.LENGTH_LONG).show();
+				Toast.LENGTH_LONG).show();
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -237,6 +237,7 @@ public class ObfRegionActivity extends ActionBarActivity implements
 
 		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+
 			int obfuscationRegionHeightCells = data.getIntExtra("ObfRegionHeightCells", 1);
 			int obfuscationRegionWidthCells = data.getIntExtra("ObfRegionWidthCells", 1);
 
@@ -245,8 +246,8 @@ public class ObfRegionActivity extends ActionBarActivity implements
 
 			// top Left corner for the grid
 			LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
-					                               currentLocation.getLongitude());
-			LatLng gridTopLeftPoint = Utils.findCellTopLeftPoint(centerPoint);
+				currentLocation.getLongitude());
+			LatLng gridTopLeftPoint = Utils.findGridTopLeftPoint(centerPoint, currGridHeightCells, currGridWidthCells);
 
 			// generate Map Grid
 			int arrRows = currGridHeightCells;
@@ -254,15 +255,15 @@ public class ObfRegionActivity extends ActionBarActivity implements
 			mapGrid = Utils.generateMapGrid(arrRows, arrCols, gridTopLeftPoint);
 
 			// top Left corner for the obfuscation region
-			LatLng obfRegionTopLeftPoint = Utils.findCellTopLeftPoint(centerPoint);
+			LatLng obfRegionTopLeftPoint = Utils.findGridTopLeftPoint(centerPoint, obfuscationRegionHeightCells, obfuscationRegionWidthCells);
 
 			// refresh map
 			refreshMapGrid(obfuscationRegionHeightCells, obfuscationRegionWidthCells,
-					              obfRegionTopLeftPoint);
+				obfRegionTopLeftPoint);
 
 			Toast.makeText(this,
-					              "Returned " + obfuscationRegionHeightCells + " " + obfuscationRegionWidthCells,
-					              Toast.LENGTH_SHORT).show();
+				"Returned " + obfuscationRegionHeightCells + " " + obfuscationRegionWidthCells,
+				Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -288,8 +289,8 @@ public class ObfRegionActivity extends ActionBarActivity implements
 	 */
 	protected synchronized void buildGoogleApiClient() {
 		mGoogleApiClient = new GoogleApiClient.Builder(this)
-				                   .addConnectionCallbacks(this)
-				                   .addOnConnectionFailedListener(this)
-				                   .addApi(LocationServices.API).build();
+			.addConnectionCallbacks(this)
+			.addOnConnectionFailedListener(this)
+			.addApi(LocationServices.API).build();
 	}
 }

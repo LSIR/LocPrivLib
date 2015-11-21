@@ -33,7 +33,7 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 
 public class ObfRegionSettingActivity extends ActionBarActivity implements
-		GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnSeekBarChangeListener {
+	GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, OnSeekBarChangeListener {
 
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 	private static final String TAG = "ObfRegionSettingActivity";
@@ -135,7 +135,7 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 	@Override
 	public void onConnectionFailed(ConnectionResult result) {
 		Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = "
-				           + result.getErrorCode());
+			+ result.getErrorCode());
 	}
 
 	@Override
@@ -154,7 +154,7 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 
 			//Animate
 			LatLng latLng = new LatLng(currentLocation.getLatitude(),
-					                          currentLocation.getLongitude());
+				currentLocation.getLongitude());
 			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
 			googleMap.moveCamera(cameraUpdate);
 
@@ -193,7 +193,7 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 
 			Toast.makeText(this, "Successfully Saved", Toast.LENGTH_SHORT).show();
 
-			//return to pervious activity
+			//return to previous activity
 			Intent intent = new Intent();
 			intent.putExtra("ObfRegionHeightCells", currObfRegionHeightCells);
 			intent.putExtra("ObfRegionWidthCells", currObfRegionWidthCells);
@@ -210,7 +210,7 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 	private void refreshMapGrid(int gridHeightCells, int gridWidthCells, Location currentLocation) {
 		// top Left corner
 		LatLng centerPoint = new LatLng(currentLocation.getLatitude(),
-				                               currentLocation.getLongitude());
+			currentLocation.getLongitude());
 		LatLng topLeftPoint = Utils.findGridTopLeftPoint(centerPoint, gridHeightCells, gridWidthCells);
 
 		// generate Map Grid
@@ -241,7 +241,7 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 		currObfRegionWidthCells = 2 * seekBar.getProgress() + 1;
 		currObfRegionHeightCells = 2 * seekBar.getProgress() + 1;
 		refreshMapGrid(currObfRegionHeightCells, currObfRegionWidthCells,
-				              LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient));
+			LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient));
 	}
 
 	/**
@@ -249,8 +249,8 @@ public class ObfRegionSettingActivity extends ActionBarActivity implements
 	 */
 	protected synchronized void buildGoogleApiClient() {
 		mGoogleApiClient = new GoogleApiClient.Builder(this)
-				                   .addConnectionCallbacks(this)
-				                   .addOnConnectionFailedListener(this)
-				                   .addApi(LocationServices.API).build();
+			.addConnectionCallbacks(this)
+			.addOnConnectionFailedListener(this)
+			.addApi(LocationServices.API).build();
 	}
 }

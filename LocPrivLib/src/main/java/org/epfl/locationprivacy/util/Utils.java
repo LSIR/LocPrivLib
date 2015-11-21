@@ -73,9 +73,9 @@ public class Utils {
 		double lon1 = Math.toRadians(src.longitude);
 
 		double lat2 = Math.asin(Math.sin(lat1) * Math.cos(dist) + Math.cos(lat1) * Math.sin(dist)
-				                                                          * Math.cos(brng));
+			* Math.cos(brng));
 		double a = Math.atan2(Math.sin(brng) * Math.sin(dist) * Math.cos(lat1), Math.cos(dist)
-				                                                                        - Math.sin(lat1) * Math.sin(lat2));
+			- Math.sin(lat1) * Math.sin(lat2));
 		double lon2 = lon1 + a;
 		lon2 = (lon2 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
 
@@ -100,8 +100,8 @@ public class Utils {
 		double dLat = Math.toRadians(lat2 - lat1);
 		double dLon = Math.toRadians(lon2 - lon1);
 		double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-				           Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-						           Math.sin(dLon / 2) * Math.sin(dLon / 2);
+			Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+				Math.sin(dLon / 2) * Math.sin(dLon / 2);
 		double c = 2 * Math.asin(Math.sqrt(a));
 		double d = R * c;
 		return d / 10000;
@@ -210,7 +210,7 @@ public class Utils {
 
 		// Cantor pairing Function
 		long id = ((integerLatitude + integerLongitude) * (integerLatitude + integerLongitude + 1)) / 2
-				          + integerLongitude;
+			+ integerLongitude;
 
 		return id;
 	}
@@ -233,7 +233,6 @@ public class Utils {
 		double latitude = latitudeTemp / precision - 90;
 		double longitude = longitudeTemp / precision - 180;
 
-		// FIXME : be sure it is ok in any cases
 		return findCellTopLeftPoint(new LatLng(latitude, longitude));
 	}
 
@@ -260,21 +259,18 @@ public class Utils {
 	}
 
 	/**
-	 * Find the top left point of a grid given then central cell
+	 * Find the top left point of a grid given a central point
 	 *
 	 * @param centerPoint     the center of the grid
 	 * @param gridHeightCells the height of the grid
 	 * @param gridWidthCells  the width of the grid
-	 * @return the top left point of a grid given then central cell
+	 * @return the top left point of a grid given a central point
 	 */
 	public static LatLng findGridTopLeftPoint(LatLng centerPoint, int gridHeightCells,
-	                                          int gridWidthCells) {
+						  int gridWidthCells) {
 
-		// Top left point of a cell the central cell
-		LatLng cell = findCellTopLeftPoint(centerPoint);
-
-		double latitude = cell.latitude + (gridHeightCells - 1) / 2 * INITIAL_DEGREES_CELL_SIZE;
-		double longitude = cell.longitude - (gridWidthCells - 1) / 2 * getDegreesFor100m(new LatLng(latitude, cell.longitude), -90);
+		double latitude = centerPoint.latitude + (Math.floor(gridHeightCells / 2.0)) * INITIAL_DEGREES_CELL_SIZE;
+		double longitude = centerPoint.longitude - (Math.floor(gridWidthCells / 2.0)) * getDegreesFor100m(new LatLng(latitude, centerPoint.longitude), -90);
 		LatLng topLeftPoint = findCellTopLeftPoint(new LatLng(latitude, longitude));
 
 		return topLeftPoint;
@@ -397,7 +393,7 @@ public class Utils {
 		//draw horizontal polylines
 		for (int i = 0; i < arrRows; i++) {
 			polylineOptions = new PolylineOptions().color(Color.BLUE).width(1)
-					                  .add(grid[i][0]).add(grid[i][arrCols - 1]);
+				.add(grid[i][0]).add(grid[i][arrCols - 1]);
 			polylines.add(googleMap.addPolyline(polylineOptions));
 		}
 
@@ -426,7 +422,7 @@ public class Utils {
 	 */
 	public static Polygon drawPolygon(MyPolygon polygon, GoogleMap googleMap, int fillColor) {
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(fillColor)
-				                                .strokeColor(Color.BLUE).strokeWidth(1);
+			.strokeColor(Color.BLUE).strokeWidth(1);
 		for (LatLng p : polygon.getPoints()) {
 			polygonOptions.add(p);
 		}
@@ -463,7 +459,7 @@ public class Utils {
 		arrRows++;
 
 		PolygonOptions polygonOptions = new PolygonOptions().fillColor(0x330000FF)
-				                                .strokeColor(Color.BLUE).strokeWidth(1);
+			.strokeColor(Color.BLUE).strokeWidth(1);
 
 		// Left side
 		for (int j = 0; j < arrRows - 1; j++) {
@@ -509,7 +505,7 @@ public class Utils {
 	public static double distance(double lat1, double lon1, double lat2, double lon2, char unit) {
 		double theta = lon1 - lon2;
 		double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1))
-				                                                                  * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+			* Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
 		dist = Math.acos(dist);
 		dist = rad2deg(dist);
 		dist = dist * 60 * 1.1515;
@@ -557,7 +553,7 @@ public class Utils {
 
 		try {
 			url = new URL("http://www.google.com/intl/en_ALL/mapfiles/dir_"
-					              + String.valueOf((int) adjBearing) + ".png");
+				+ String.valueOf((int) adjBearing) + ".png");
 			try {
 				image = BitmapFactory.decodeStream(url.openConnection().getInputStream());
 			} catch (IOException e) {
@@ -628,7 +624,7 @@ public class Utils {
 
 			// Create larger bitmap 4 times the size of arrow head image
 			wideBmp = Bitmap.createBitmap(image.getWidth() * 2, image.getHeight() * 2,
-					                             image.getConfig());
+				image.getConfig());
 
 			wideBmpCanvas = new Canvas(wideBmp);
 
@@ -639,7 +635,7 @@ public class Utils {
 			wideBmpCanvas.drawBitmap(image, src, dest, null);
 
 			return mMap.addMarker(new MarkerOptions().position(to)
-					                      .icon(BitmapDescriptorFactory.fromBitmap(wideBmp)).anchor(anchorX, anchorY));
+				.icon(BitmapDescriptorFactory.fromBitmap(wideBmp)).anchor(anchorX, anchorY));
 		}
 		return null;
 	}
@@ -652,9 +648,9 @@ public class Utils {
 
 		// Compute the angle.
 		double angle = -Math.atan2(
-				                          Math.sin(lon1 - lon2) * Math.cos(lat2),
-				                          Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)
-						                                                            * Math.cos(lon1 - lon2));
+			Math.sin(lon1 - lon2) * Math.cos(lat2),
+			Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2)
+				* Math.cos(lon1 - lon2));
 
 		if (angle < 0.0)
 			angle += Math.PI * 2.0;
@@ -729,7 +725,7 @@ public class Utils {
 	}
 
 	public static void logLinkabilityGraph(Queue<ArrayList<Event>> levels, String nodesFileName,
-	                                       String edgesFileName, Context context) {
+					       String edgesFileName, Context context) {
 		try {
 			// open nodes and edges files
 			File pathNodes;
@@ -809,15 +805,15 @@ public class Utils {
 	 */
 	public static boolean checkPlayServices(Activity activity, Context ctx) {
 		int resultCode = GooglePlayServicesUtil
-				                 .isGooglePlayServicesAvailable(ctx);
+			.isGooglePlayServicesAvailable(ctx);
 		if (resultCode != ConnectionResult.SUCCESS) {
 			if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
 				GooglePlayServicesUtil.getErrorDialog(resultCode, activity,
-						                                     PLAY_SERVICES_RESOLUTION_REQUEST).show();
+					PLAY_SERVICES_RESOLUTION_REQUEST).show();
 			} else {
 				Toast.makeText(ctx.getApplicationContext(),
-						              "This device is not supported.", Toast.LENGTH_LONG)
-						.show();
+					"This device is not supported.", Toast.LENGTH_LONG)
+					.show();
 				activity.finish();
 			}
 			return false;
