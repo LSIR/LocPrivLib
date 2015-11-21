@@ -172,9 +172,9 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 				@Override
 				public void onMapClick(LatLng point) {
 					LatLng cellPosition = Utils.findCellTopLeftPoint(point);
-					currSelectedGridCell = gridDBDataSource.findGridCell(Utils.computeCellIDFromPosition(cellPosition));
+					long cellID = Utils.computeCellIDFromPosition(cellPosition);
+					currSelectedGridCell = gridDBDataSource.findGridCell(cellID);
 					if (currSelectedGridCell == null) {
-						long cellID = Utils.computeCellIDFromPosition(cellPosition);
 						ArrayList<LatLng> corners = Utils.computeCellCornerPoints(cellPosition);
 						currSelectedGridCell = new MyPolygon(cellID + "", "", corners);
 					}

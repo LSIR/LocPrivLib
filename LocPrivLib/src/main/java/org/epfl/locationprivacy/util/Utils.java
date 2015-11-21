@@ -197,7 +197,7 @@ public class Utils {
 	 * @return the id of a given point on the map
 	 */
 	public static long computeCellIDFromPosition(LatLng position) {
-		int precision = MAP_PRECISION;
+		int precision = MAP_PRECISION * 100;
 
 		double latitude = position.latitude + 90;
 		double longitude = position.longitude + 180;
