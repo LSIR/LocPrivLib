@@ -100,9 +100,10 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		//current Location ID
 		long start = System.currentTimeMillis();
 		LatLng cell = Utils.findCellTopLeftPoint(location);
-		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(Utils.computeCellIDFromPosition(cell));
+		long cellID = Utils.computeCellIDFromPosition(cell);
+		MyPolygon currLocGridCell = gridDBDataSource.findGridCell(cellID);
 		if (currLocGridCell == null) {
-			currLocGridCell = new MyPolygon(Utils.computeCellIDFromPosition(cell) + "", "", Utils.computeCellCornerPoints(cell));
+			currLocGridCell = new MyPolygon(cellID + "", "", Utils.computeCellCornerPoints(cell));
 		}
 		long fineLocationID = Long.parseLong(currLocGridCell.getName());
 		log("Getting fine Location ID took: " + (System.currentTimeMillis() - start) + " ms");
@@ -111,7 +112,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		//===========================================================================================
 		// Create a new transition with the new position
 		long currTime = System.currentTimeMillis();
-		long currLocID = Utils.computeCellIDFromPosition(cell);
+		long currLocID = cellID;
 		int currTimeID = Utils.findDayPortionID(currTime);
 		if (previousLocID != -1) {
 			Transition newTransition = new Transition(previousLocID, currLocID, previousTimeID,
@@ -180,7 +181,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 			//--> Phase 1:
 			// Generate obfuscation Region
-			gridEnds = generateRandomObfRegion(cell, ObfRegionHeightCells,
+			gridEnds = generateRandomObfRegion(location, ObfRegionHeightCells,
 					                                  ObfRegionWidthCells);
 			log("Lambda: " + lambda);
 			log("ObfRegionSize: " + ObfRegionHeightCells + "X" + ObfRegionWidthCells);

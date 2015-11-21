@@ -191,7 +191,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 								                               .getTransitionProbability(parent.id, e.id);
 						parent.childrenTransProbSum += transitionProbability;
 						parent.children.add(e);
-						e.parents.add(new Pair<Event, Double>(parent, transitionProbability));
+						e.parents.add(new Pair<>(parent, transitionProbability));
 					}
 				}
 			}

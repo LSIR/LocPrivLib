@@ -320,7 +320,6 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
 			googleMap.moveCamera(cameraUpdate);
 
-			// FIXME : Keep the marker ?
 			//Adding Marker
 			String timeStamp = dateFormat.format(new Date());
 			String markerTitle = timeStamp + " " + latLng.toString();
