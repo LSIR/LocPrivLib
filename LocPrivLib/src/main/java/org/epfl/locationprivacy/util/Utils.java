@@ -167,13 +167,10 @@ public class Utils {
 		double topLeftLatitude = topLeft.latitude + 90;
 		double topLeftLongitude = topLeft.longitude + 180;
 
-		double bottomRightLatitude = topLeftLatitude - INITIAL_DEGREES_CELL_SIZE;
-		double bottomRightLongitude = bottomRightLatitude + getDegreesFor100m(topLeft, 90);
+		double middleLatitude = topLeftLatitude - (INITIAL_DEGREES_CELL_SIZE / 2);
+		double middleLongitude = topLeftLongitude + (getDegreesFor100m(topLeft, 90) / 2);
 
-		double latDistance = topLeftLatitude - bottomRightLatitude;
-		double longDistance = topLeftLongitude - bottomRightLongitude;
-
-		return new LatLng((topLeftLatitude + latDistance / 2) - 90, topLeftLongitude + longDistance / 2 + 180);
+		return new LatLng(middleLatitude - 90, middleLongitude - 180);
 	}
 
 	/**
@@ -267,7 +264,7 @@ public class Utils {
 	 * @return the top left point of a grid given a central point
 	 */
 	public static LatLng findGridTopLeftPoint(LatLng centerPoint, int gridHeightCells,
-						  int gridWidthCells) {
+											  int gridWidthCells) {
 
 		double latitude = centerPoint.latitude + (Math.floor(gridHeightCells / 2.0)) * INITIAL_DEGREES_CELL_SIZE;
 		double longitude = centerPoint.longitude - (Math.floor(gridWidthCells / 2.0)) * getDegreesFor100m(new LatLng(latitude, centerPoint.longitude), -90);
@@ -277,16 +274,17 @@ public class Utils {
 	}
 
 	/**
-	 * Find the bottom point right of a grid given the top left point and sizes of grid
+	 * Find the bottom right point of a grid given the top left point and sizes of grid
+	 * The bottom point on the right is the bottom right bpoint of the bottom right cell
 	 *
 	 * @param topLeft        the top left point of the grid (the top left point of the top left cell of the grid)
 	 * @param gridHeightCell the height of the grid
 	 * @param gridWidthCell  the width of the grid
-	 * @return the bottom point right of a grid given the top left point and sizes of grid
+	 * @return the bottom right point of a grid given the top left point and sizes of grid
 	 */
 	public static LatLng findGridBottomRightPoint(LatLng topLeft, int gridHeightCell, int gridWidthCell) {
-		double latitude = topLeft.latitude + gridHeightCell * INITIAL_DEGREES_CELL_SIZE + INITIAL_DEGREES_CELL_SIZE / 2;
-		double longitude = topLeft.longitude + (gridWidthCell + 1 / 2) * getDegreesFor100m(new LatLng(latitude, topLeft.longitude), 90);
+		double latitude = topLeft.latitude - ((gridHeightCell + 1) * (INITIAL_DEGREES_CELL_SIZE)) + INITIAL_DEGREES_CELL_SIZE / 2;
+		double longitude = topLeft.longitude + ((gridWidthCell + 3 / 2) * getDegreesFor100m(new LatLng(latitude, topLeft.longitude), 90));
 		return findCellTopLeftPoint(new LatLng(latitude, longitude));
 	}
 
@@ -725,7 +723,7 @@ public class Utils {
 	}
 
 	public static void logLinkabilityGraph(Queue<ArrayList<Event>> levels, String nodesFileName,
-					       String edgesFileName, Context context) {
+										   String edgesFileName, Context context) {
 		try {
 			// open nodes and edges files
 			File pathNodes;
