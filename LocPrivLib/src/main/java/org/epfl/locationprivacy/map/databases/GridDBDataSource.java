@@ -285,7 +285,7 @@ public class GridDBDataSource {
 					               + GridDBOpenHelper.COLUMN_SENSITIVITY + " IS NOT NULL ";
 			Stmt stmt = spatialDB.prepare(query);
 			while (stmt.step()) {
-				int id = stmt.column_int(0);
+				long id = stmt.column_long(0);
 				String semantic = stmt.column_string(1);
 				String geometry = stmt.column_string(2);
 				String sensitivityString = stmt.column_string(3);

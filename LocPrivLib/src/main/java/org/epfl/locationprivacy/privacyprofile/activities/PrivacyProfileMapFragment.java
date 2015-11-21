@@ -39,7 +39,7 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 
 public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChangeListener,
-		                                                                   GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+	GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
 	private static final String TAG = "PrivacyProfileMapFragment";
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -54,7 +54,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 	MyPolygon currSelectedGridCell = null;
 	SeekBar privacyBar;
 	CheckBox checkBox;
-	HashMap<String, Polygon> idToDrawablePolygon = new HashMap<String, Polygon>();
+	HashMap<String, Polygon> idToDrawablePolygon = new HashMap<>();
 	GridDBDataSource gridDBDataSource;
 	Location currentLocation = null;
 	LatLng[][] mapGrid = null;
@@ -90,7 +90,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 					// draw new map red layer (sensitive grid cell)
 					Polygon newPolygon = Utils.drawPolygon(currSelectedGridCell, googleMap,
-							                                      0x33FF0000);
+						0x33FF0000);
 					idToDrawablePolygon.put(currSelectedGridCell.getName(), newPolygon);
 				} else {
 					//disable privacy bar
@@ -111,7 +111,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 					gridDBDataSource.updateGridCellSensitivity(gridId, newSensitivity);
 				}
 				Toast.makeText(getActivity(), "Successfully saved value: " + newSensitivity,
-						              Toast.LENGTH_SHORT).show();
+					Toast.LENGTH_SHORT).show();
 
 			}
 		});
@@ -138,13 +138,13 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 				long cellId = Long.parseLong(currSelectedGridCell.getName());
 				if (gridDBDataSource.findGridCell(cellId) == null) {
-					Toast.makeText(getActivity(), "BIG PROBLEM",
-							              Toast.LENGTH_SHORT).show();
+					Toast.makeText(getActivity(), "There is an error with the DB when inserting/updating cell",
+						Toast.LENGTH_SHORT).show();
 				} else {
 					gridDBDataSource.updateGridCellSensitivity(cellId, newSensitivity);
 				}
 				Toast.makeText(getActivity(), "Successfully saved value: " + newSensitivity,
-						              Toast.LENGTH_SHORT).show();
+					Toast.LENGTH_SHORT).show();
 			}
 		});
 
@@ -185,7 +185,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 					//--> add new one
 					currDrawableGridCell = Utils.drawPolygon(currSelectedGridCell,
-							                                        googleMap, 0x3300FF00);
+						googleMap, 0x3300FF00);
 
 					// activate scroll & checkbox
 					if (currSelectedGridCell.getSensitivityAsInteger() != null) {
@@ -194,7 +194,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 						// update sensitivity bar
 						int currSensitivity = currSelectedGridCell
-								                      .getSensitivityAsInteger();
+							.getSensitivityAsInteger();
 						privacyBar.setProgress(currSensitivity);
 					} else {
 						// deactivate scroll and check box
@@ -204,10 +204,10 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 
 					// test sensitivity
 					Toast.makeText(
-							              getActivity(),
-							              "CellID: " + currSelectedGridCell.getName() + ", Sensitivity : "
-									              + currSelectedGridCell.getSensitivityAsDouble(),
-							              Toast.LENGTH_SHORT).show();
+						getActivity(),
+						"CellID: " + currSelectedGridCell.getName() + ", Sensitivity : "
+							+ currSelectedGridCell.getSensitivityAsDouble(),
+						Toast.LENGTH_SHORT).show();
 
 				}
 			});
@@ -298,7 +298,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 	@Override
 	public void onConnectionFailed(ConnectionResult result) {
 		Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = "
-				           + result.getErrorCode());
+			+ result.getErrorCode());
 	}
 
 	@Override
@@ -378,7 +378,7 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 		gridDBDataSource.updateGridCellSensitivity(gridId, sensitivity);
 
 		Toast.makeText(getActivity(), "Successfully saved value: " + sensitivity,
-				              Toast.LENGTH_SHORT).show();
+			Toast.LENGTH_SHORT).show();
 	}
 
 	/**
@@ -386,8 +386,8 @@ public class PrivacyProfileMapFragment extends Fragment implements OnSeekBarChan
 	 */
 	protected synchronized void buildGoogleApiClient() {
 		mGoogleApiClient = new GoogleApiClient.Builder(this.getActivity().getApplicationContext())
-				                   .addConnectionCallbacks(this)
-				                   .addOnConnectionFailedListener(this)
-				                   .addApi(LocationServices.API).build();
+			.addConnectionCallbacks(this)
+			.addOnConnectionFailedListener(this)
+			.addApi(LocationServices.API).build();
 	}
 }
