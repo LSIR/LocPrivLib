@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -667,8 +668,8 @@ public class Utils {
 	public static String filePathPart2;
 	public static String filePathPart3;
 
-	public static void createNewLoggingFolder(Context context) {
-		filePathPart2 = System.currentTimeMillis() + "";
+	public static void createNewLoggingFolder(Context context, String task) {
+		filePathPart2 = task + "_" + System.currentTimeMillis();
 		File path;
 		if (isExternalStorageWritable()) {
 			path = context.getExternalFilesDir(null);
@@ -688,7 +689,7 @@ public class Utils {
 			path = context.getFilesDir();
 		}
 		File completePath = new File(path, filePathPart1 + File.separator + filePathPart2 + File.separator + filePathPart3);
-		completePath.mkdirs();
+		//completePath.mkdirs();
 	}
 
 	public static void appendLog(String fileName, String text, Context context) {
@@ -698,7 +699,7 @@ public class Utils {
 		} else {
 			path = context.getFilesDir();
 		}
-		File completePath = new File(path, filePathPart1 + File.separator + filePathPart2 + File.separator + filePathPart3);
+		File completePath = new File(path, filePathPart1 + File.separator + filePathPart2);
 		File logFile = new File(completePath, fileName);
 		if (!logFile.exists()) {
 			try {
@@ -724,66 +725,68 @@ public class Utils {
 
 	public static void logLinkabilityGraph(Queue<ArrayList<Event>> levels, String nodesFileName,
 										   String edgesFileName, Context context) {
-		try {
-			// open nodes and edges files
-			File pathNodes;
-			if (isExternalStorageWritable()) {
-				pathNodes = context.getExternalFilesDir(null);
-			} else {
-				pathNodes = context.getFilesDir();
-			}
-			File completeNodesPath = new File(pathNodes, filePathPart1 + File.separator + filePathPart2 + File.separator + filePathPart3);
-			File nodesFile = new File(completeNodesPath, nodesFileName);
-
-			File pathEdges;
-			if (isExternalStorageWritable()) {
-				pathEdges = context.getExternalFilesDir(null);
-			} else {
-				pathEdges = context.getFilesDir();
-			}
-			File completeEdgesPath = new File(pathEdges, filePathPart1 + File.separator + filePathPart2 + File.separator + filePathPart3);
-			File edgesFile = new File(completeEdgesPath, edgesFileName);
-
-			nodesFile.createNewFile();
-			edgesFile.createNewFile();
-			BufferedWriter bufNodes = new BufferedWriter(new FileWriter(nodesFile, true));
-			BufferedWriter bufEdges = new BufferedWriter(new FileWriter(edgesFile, true));
-
-			// logging
-			//--> Nodes
-			bufNodes.append("Id,Level,Label\n");
-			int currLevel = 0;
-			for (ArrayList<Event> level : levels) {
-				currLevel++;
-				for (Event e : level) {
-					String nodeLabel = "ID: " + e.id + " prob: " + formatter.format(e.probability);
-					String nodeID = e.id + "";
-					bufNodes.append(nodeID + "," + currLevel + "," + nodeLabel + "\n");
+		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+			try {
+				// open nodes and edges files
+				File pathNodes;
+				if (isExternalStorageWritable()) {
+					pathNodes = context.getExternalFilesDir(null);
+				} else {
+					pathNodes = context.getFilesDir();
 				}
-			}
-			//--> Edges
-			bufEdges.append("Source,Target,Label\n");
-			for (ArrayList<Event> level : levels) {
-				for (Event e : level) {
-					ArrayList<Pair<Event, Double>> parents = e.parents;
+				File completeNodesPath = new File(pathNodes, filePathPart1 + File.separator + filePathPart2);
+				File nodesFile = new File(completeNodesPath, nodesFileName);
 
-					for (Pair<Event, Double> parentInfo : parents) {
-						Event parent = parentInfo.first;
-						double transProp = parentInfo.second;
-						double normalizedTransProp = transProp / parent.childrenTransProbSum;
-						String source = parent.id + "";
-						String target = e.id + "";
-						String label = formatter.format(normalizedTransProp);
-						bufEdges.append(source + "," + target + "," + label + "\n");
+				File pathEdges;
+				if (isExternalStorageWritable()) {
+					pathEdges = context.getExternalFilesDir(null);
+				} else {
+					pathEdges = context.getFilesDir();
+				}
+				File completeEdgesPath = new File(pathEdges, filePathPart1 + File.separator + filePathPart2);
+				File edgesFile = new File(completeEdgesPath, edgesFileName);
+
+				nodesFile.createNewFile();
+				edgesFile.createNewFile();
+				BufferedWriter bufNodes = new BufferedWriter(new FileWriter(nodesFile, true));
+				BufferedWriter bufEdges = new BufferedWriter(new FileWriter(edgesFile, true));
+
+				// logging
+				//--> Nodes
+				bufNodes.append("Id,Level,Label\n");
+				int currLevel = 0;
+				for (ArrayList<Event> level : levels) {
+					currLevel++;
+					for (Event e : level) {
+						String nodeLabel = "ID: " + e.id + " prob: " + formatter.format(e.probability);
+						String nodeID = e.id + "";
+						bufNodes.append(nodeID + "," + currLevel + "," + nodeLabel + "\n");
 					}
 				}
-			}
+				//--> Edges
+				bufEdges.append("Source,Target,Label\n");
+				for (ArrayList<Event> level : levels) {
+					for (Event e : level) {
+						ArrayList<Pair<Event, Double>> parents = e.parents;
 
-			// close nodes and edges files
-			bufNodes.close();
-			bufEdges.close();
-		} catch (Exception e) {
-			e.printStackTrace();
+						for (Pair<Event, Double> parentInfo : parents) {
+							Event parent = parentInfo.first;
+							double transProp = parentInfo.second;
+							double normalizedTransProp = transProp / parent.childrenTransProbSum;
+							String source = parent.id + "";
+							String target = e.id + "";
+							String label = formatter.format(normalizedTransProp);
+							bufEdges.append(source + "," + target + "," + label + "\n");
+						}
+					}
+				}
+
+				// close nodes and edges files
+				bufNodes.close();
+				bufEdges.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -817,5 +820,27 @@ public class Utils {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Gets a field from the project's BuildConfig. This is useful when, for example, flavors
+	 * are used at the project level to set custom fields.
+	 * @param context       Used to find the correct file
+	 * @param fieldName     The name of the field-to-access
+	 * @return              The value of the field, or {@code null} if the field is not found.
+	 */
+	public static Object getBuildConfigValue(Context context, String fieldName) {
+		try {
+			Class<?> clazz = Class.forName(context.getPackageName() + ".BuildConfig");
+			Field field = clazz.getField(fieldName);
+			return field.get(null);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

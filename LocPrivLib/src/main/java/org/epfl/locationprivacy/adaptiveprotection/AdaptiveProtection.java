@@ -3,6 +3,7 @@ package org.epfl.locationprivacy.adaptiveprotection;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.epfl.locationprivacy.BuildConfig;
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
@@ -25,7 +26,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 
 public class AdaptiveProtection implements AdaptiveProtectionInterface,
-		                                           GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+	GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
 	private static final String LOGTAG = "AdaptiveProtection";
 
@@ -81,6 +82,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	public Pair<LatLng, LatLng> getObfuscationLocation(LatLng location) {
 
 		// Logging
+		initLog();
 		long startGetLocationTimeStamp = System.currentTimeMillis();
 		totalLoggingTime = 0;
 		log("================================");
@@ -90,11 +92,11 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		// DBs preparation
 		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(context);
 		VenuesCondensedDBDataSource venuesCondensedDBDataSource = VenuesCondensedDBDataSource
-				                                                          .getInstance(context);
+			.getInstance(context);
 		SemanticLocationsDataSource semanticLocationsDataSource = SemanticLocationsDataSource
-				                                                          .getInstance(context);
+			.getInstance(context);
 		TransitionTableDataSource transitionTableDataSource = TransitionTableDataSource
-				                                                      .getInstance(context);
+			.getInstance(context);
 
 		//===========================================================================================
 		//current Location ID
@@ -116,7 +118,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		int currTimeID = Utils.findDayPortionID(currTime);
 		if (previousLocID != -1) {
 			Transition newTransition = new Transition(previousLocID, currLocID, previousTimeID,
-					                                         currTimeID, 1);
+				currTimeID, 1);
 			transitionTableDataSource.updateOrInsert(newTransition);
 		}
 		// FIXME : is it ok to have as init value -1 ?
@@ -133,7 +135,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			//--> get semantics of current location
 			long startGetNearVenues = System.currentTimeMillis();
 			ArrayList<MyPolygon> currentLocationVenues = venuesCondensedDBDataSource
-					                                             .findVenuesContainingLocation(cell.latitude, cell.longitude);
+				.findVenuesContainingLocation(cell.latitude, cell.longitude);
 			String semantic = null;
 			if (!currentLocationVenues.isEmpty()) {
 				semantic = currentLocationVenues.get(0).getSemantic();
@@ -144,7 +146,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			//--> what if no venues contains the current location ? get the nearest location
 			if (currentLocationVenues.isEmpty()) {
 				Pair<MyPolygon, Double> nearestVenueAndDistance = venuesCondensedDBDataSource
-						                                                  .findNearestVenue(cell.latitude, cell.longitude);
+					.findNearestVenue(cell.latitude, cell.longitude);
 				semantic = nearestVenueAndDistance.first.getSemantic();
 				logVenue = nearestVenueAndDistance.first;
 				logVenueDistance = "nearest";
@@ -158,7 +160,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			log("Nearest Venue: " + logVenue.getName());
 			log("Relationship: " + logVenueDistance);
 			log("Nearest Venue Query took " + (System.currentTimeMillis() - startGetNearVenues)
-					    + " ms");
+				+ " ms");
 			log("Semantic: " + semantic);
 			log("Semantic Sensitivity: " + sensitivity);
 		}
@@ -182,7 +184,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			//--> Phase 1:
 			// Generate obfuscation Region
 			gridEnds = generateRandomObfRegion(location, ObfRegionHeightCells,
-					                                  ObfRegionWidthCells);
+				ObfRegionWidthCells);
 			log("Lambda: " + lambda);
 			log("ObfRegionSize: " + ObfRegionHeightCells + "X" + ObfRegionWidthCells);
 			logObfRegSize = ObfRegionHeightCells + "X" + ObfRegionWidthCells;
@@ -244,11 +246,11 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 		// Logging
 		log("Total Adaptive Protection Time : "
-				    + (System.currentTimeMillis() - startGetLocationTimeStamp) + " ms");
+			+ (System.currentTimeMillis() - startGetLocationTimeStamp) + " ms");
 		log("Total logging time: " + totalLoggingTime + "ms");
 		log("Total Adaptive Protection Time without logging : "
-				    + (System.currentTimeMillis() - startGetLocationTimeStamp - totalLoggingTime)
-				    + " ms");
+			+ (System.currentTimeMillis() - startGetLocationTimeStamp - totalLoggingTime)
+			+ " ms");
 
 		return new Pair<>(obfRegionTopLeft, obfRegionBottomRight);
 
@@ -264,17 +266,25 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		return 1 + (int) Math.floor(lambda / 2.0);
 	}
 
+
+	private void initLog() {
+		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+			Utils.createNewLoggingFolder(context, LOGTAG);
+		}
+	}
+
 	private void log(String s) {
-		long startlogging = System.currentTimeMillis();
-		Log.d(LOGTAG, s);
-		Utils.createNewLoggingFolder(context);
-		Utils.createNewLoggingSubFolder(context);
-		Utils.appendLog(LOGTAG + ".txt", s, context);
-		totalLoggingTime += (System.currentTimeMillis() - startlogging);
+		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+			long startlogging = System.currentTimeMillis();
+			Log.d(LOGTAG, s);
+			Utils.createNewLoggingSubFolder(context);
+			Utils.appendLog(LOGTAG + ".txt", s, context);
+			totalLoggingTime += (System.currentTimeMillis() - startlogging);
+		}
 	}
 
 	private Pair<LatLng, LatLng> generateRandomObfRegion(LatLng cell,
-	                                                     int obfRegionHeightCells, int obfRegionWidthCells) {
+														 int obfRegionHeightCells, int obfRegionWidthCells) {
 		ArrayList<Integer> obfRegionCellIDs = new ArrayList<Integer>();
 
 		int topLeftRow = random.nextInt(obfRegionHeightCells);
@@ -296,7 +306,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	@Override
 	public void onConnectionFailed(ConnectionResult result) {
 		Log.i(LOGTAG, "Connection failed: ConnectionResult.getErrorCode() = "
-				              + result.getErrorCode());
+			+ result.getErrorCode());
 	}
 
 	@Override
@@ -314,8 +324,8 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	 */
 	protected synchronized void buildGoogleApiClient() {
 		mGoogleApiClient = new GoogleApiClient.Builder(this.context)
-				                   .addConnectionCallbacks(this)
-				                   .addOnConnectionFailedListener(this)
-				                   .addApi(LocationServices.API).build();
+			.addConnectionCallbacks(this)
+			.addOnConnectionFailedListener(this)
+			.addApi(LocationServices.API).build();
 	}
 }

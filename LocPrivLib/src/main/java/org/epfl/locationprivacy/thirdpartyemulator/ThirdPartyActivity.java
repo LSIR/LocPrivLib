@@ -120,7 +120,7 @@ public class ThirdPartyActivity extends ActionBarActivity {
 		Utils.removeMarkers(markers);
 
 		//Create Logging folder
-		Utils.createNewLoggingFolder(view.getContext());
+		Utils.createNewLoggingFolder(view.getContext(), LOGTAG);
 
 		long startExperiment = System.currentTimeMillis();
 		for (int index = 0; index < mockLocations.size(); index++) {

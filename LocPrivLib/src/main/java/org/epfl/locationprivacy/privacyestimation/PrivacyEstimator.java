@@ -65,11 +65,11 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 				long startLoading = System.currentTimeMillis();
 				logLG("Loading LG from DB");
 				loadLinkabilityGraphFromDB();
-				Utils.createNewLoggingFolder(context);
+				Utils.createNewLoggingFolder(context, LOGTAG);
 				Utils.createNewLoggingSubFolder(context);
 				Utils.logLinkabilityGraph(linkabilityGraphLevels, "nodes.txt", "edges.txt", context);
 				logLG("Finished Loading LG from DB in "
-						      + (System.currentTimeMillis() - startLoading) + " ms");
+					+ (System.currentTimeMillis() - startLoading) + " ms");
 			}
 		}
 	}
@@ -97,7 +97,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 			//--> query parent child table
 			ArrayList<Pair<Long, Double>> parentInformation = linkabilityGraphDataSource
-					                                                  .findAllParents(childID);
+				.findAllParents(childID);
 			for (Pair<Long, Double> parentInfo : parentInformation) {
 				Long parentID = parentInfo.first;
 				Event parent = storedEvents.get(parentID);
@@ -128,20 +128,20 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//--> check in-db graph size
 		if (SAVE_LINKABILITYGRAPH_IN_DB) {
 			linkabilityGraphDataSource.removeGraphEventsWithLevelLowerThanOrEqual(currLevelID
-					                                                                      - MAX_INDB_GRAPH_LEVELS);
+				- MAX_INDB_GRAPH_LEVELS);
 			linkabilityGraphDataSource.removeGraphEdgesWithLevelLowerThanOrEqual(currLevelID
-					                                                                     - MAX_INDB_GRAPH_LEVELS);
+				- MAX_INDB_GRAPH_LEVELS);
 		}
 
 		//--> Add currLevelEvents in DB
 		ArrayList<Event> lastLevelEvents = ((LinkedList<ArrayList<Event>>) linkabilityGraphLevels)
-				                                   .getLast();
+			.getLast();
 		if (SAVE_LINKABILITYGRAPH_IN_DB) {
 			long startSaving = System.currentTimeMillis();
 			logLG("start saving");
 			linkabilityGraphDataSource.saveLinkabilityGraphLevel(lastLevelEvents, currLevelID);
 			logLG("end saving " + lastLevelEvents.size() + " events  in "
-					      + (System.currentTimeMillis() - startSaving) + " ms");
+				+ (System.currentTimeMillis() - startSaving) + " ms");
 		}
 
 		//--> update variables [must be after saving into the db]
@@ -162,15 +162,15 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 		// Phase 0: preparation
 		TransitionTableDataSource userHistoryDBDataSource = TransitionTableDataSource
-				                                                    .getInstance(context);
+			.getInstance(context);
 		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(context);
 
 		int timeStampID = Utils.findDayPortionID(timeStamp);
 		LinkedList<ArrayList<Event>> linkabilityGraphCopy = getLinkabilityGraphCopy();
 		ArrayList<Event> previousLevelEvents = (!linkabilityGraphCopy.isEmpty()) ? linkabilityGraphCopy
-				                                                                           .getLast() : null;
+			.getLast() : null;
 		ArrayList<Event> currLevelEvents = createNewEventList(mapGrid, timeStampID,
-				                                                     timeStamp);
+			timeStamp);
 
 		// Phase 1: transition probabilities
 		long startPhaseOne = System.currentTimeMillis();
@@ -179,7 +179,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 			while (currLevelEventsIterator.hasNext()) {
 				Event e = currLevelEventsIterator.next();
 				ArrayList<Event> parentList = detectReachability(previousLevelEvents, e,
-						                                                gridDBDataSource);
+					gridDBDataSource);
 
 				if (parentList.isEmpty()) {
 					//--> remove unreachable event from current level
@@ -188,7 +188,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 					for (Event parent : parentList) {
 						//--> transition probability
 						double transitionProbability = userHistoryDBDataSource
-								                               .getTransitionProbability(parent.id, e.id);
+							.getTransitionProbability(parent.id, e.id);
 						parent.childrenTransProbSum += transitionProbability;
 						parent.children.add(e);
 						e.parents.add(new Pair<>(parent, transitionProbability));
@@ -204,9 +204,10 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//--> testing update propagation
 		if (TEST_UPDATES_PROPAGATION) {
 			Utils.logLinkabilityGraph(linkabilityGraphCopy,
-					                         "ObfRegionSize" + mapGrid.length + "_BeforePropagation_nodes.txt",
-					                         "ObfRegionSize" + mapGrid.length + "_BeforePropagation_edges.txt",
-					                         context);
+				"ObfRegionSize" + mapGrid.length + "_BeforePropagation_nodes.txt",
+				"ObfRegionSize" + mapGrid.length + "_BeforePropagation_edges.txt",
+				context);
+
 		}
 
 		// Phase 3: propagate graph updates
@@ -223,7 +224,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 					Event parent = parentRelation.first;
 					Double transitionProbability = parentRelation.second;
 					Double normalizedTransitionProbability = transitionProbability
-							                                         / parent.childrenTransProbSum;
+						/ parent.childrenTransProbSum;
 					e.probability += normalizedTransitionProbability * parent.probability;
 
 				}
@@ -233,9 +234,9 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 		//--> testing update propagation
 		if (TEST_UPDATES_PROPAGATION) {
 			Utils.logLinkabilityGraph(linkabilityGraphCopy,
-					                         "ObfRegionSize" + mapGrid.length + "_AfterPropagation_nodes.txt",
-					                         "ObfRegionSize" + mapGrid.length + "_AfterPropagation_edges.txt",
-					                         context);
+				"ObfRegionSize" + mapGrid.length + "_AfterPropagation_nodes.txt",
+				"ObfRegionSize" + mapGrid.length + "_AfterPropagation_edges.txt",
+				context);
 		}
 
 		// Phase 5: calculate expected distortion
@@ -267,7 +268,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 			log("Prob of first event: " + formatter.format(currLevelEvents.get(0).probability));
 		}
 		log("Distances: " + distanceLogString.toString() + " SUM: "
-				    + formatter2.format(distanceSum));
+			+ formatter2.format(distanceSum));
 		log("Expected Distortion: " + expectedDistortion);
 		log("Phase 5 took: " + (System.currentTimeMillis() - startPhase5) + " ms");
 
@@ -282,14 +283,14 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 		//--> logging time
 		log("Privacy Estimation took: " + (System.currentTimeMillis() - startPrivacyEstimation)
-				    + " ms");
+			+ " ms");
 
 		return expectedDistortion;
 	}
 
 	private double calculateDistance(LatLng fineLocation, LatLng coarseLocation) {
 		return Utils.distance(fineLocation.latitude, fineLocation.longitude,
-				                     coarseLocation.latitude, coarseLocation.longitude, 'K');
+			coarseLocation.latitude, coarseLocation.longitude, 'K');
 	}
 
 	private void removeLevel(ArrayList<Event> toBeDeletedLevel) {
@@ -302,7 +303,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	}
 
 	private ArrayList<Event> detectReachability(ArrayList<Event> previousLevelEvents,
-	                                            Event currLevelEvent, GridDBDataSource gridDBDataSource) {
+												Event currLevelEvent, GridDBDataSource gridDBDataSource) {
 
 		if (TEST_UPDATES_PROPAGATION)
 			return pickRandomParents(previousLevelEvents);
@@ -320,9 +321,9 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 					centroid2 = Utils.findCellCenter(Utils.computePostitionFromCellID(previousLevelEvent.cellID));
 				}
 				double travelDistanceInKm = Utils.distance(centroid1.latitude, centroid1.longitude,
-						                                          centroid2.latitude, centroid2.longitude, 'K');
+					centroid2.latitude, centroid2.longitude, 'K');
 				double travelTimeInHr = (double) (currLevelEvent.timeStamp - previousLevelEvent.timeStamp)
-						                        / (double) MILLISECONDS_IN_HOUR;
+					/ (double) MILLISECONDS_IN_HOUR;
 				double travelSpeedInKmPerHr = travelDistanceInKm / travelTimeInHr;
 				if (travelSpeedInKmPerHr <= MAX_USER_SPEED_IN_KM_PER_HOUR)
 					parents.add(previousLevelEvent);
@@ -352,7 +353,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	}
 
 	private ArrayList<Event> createNewEventList(LatLng[][] mapGrid,
-	                                            int timeStampID, long timeStamp) {
+												int timeStampID, long timeStamp) {
 		ArrayList<Event> eventList = new ArrayList<Event>();
 		long tempCurrEventID = currEventID;
 		for (LatLng[] positions : mapGrid) {
@@ -364,12 +365,16 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 	}
 
 	private void log(String s) {
-		Log.d(LOGTAG, s);
-		Utils.appendLog(LOGTAG + ".txt", s, context);
+		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+			Log.d(LOGTAG, s);
+			Utils.appendLog(LOGTAG + ".txt", s, context);
+		}
 	}
 
 	private void logLG(String s) {
-		Log.d("LG", s);
+		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+			Log.d("LG", s);
+		}
 	}
 
 	private long maxEventID(ArrayList<Event> currLevelEvents) {
@@ -421,7 +426,7 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 
 		//Phase 0: get events with no children
 		ArrayList<Event> beforeLastLevelEvents = linkabilityGraphCopy.get(linkabilityGraphCopy
-				                                                                  .size() - 2);
+			.size() - 2);
 		Queue<Event> eventsHaveNoChildren = new LinkedList<Event>();
 		for (Event e : beforeLastLevelEvents) {
 			if (e.children.isEmpty()) {
