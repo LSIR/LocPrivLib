@@ -3,7 +3,6 @@ package org.epfl.locationprivacy.adaptiveprotection;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.epfl.locationprivacy.BuildConfig;
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
