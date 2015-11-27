@@ -105,7 +105,6 @@ public class ThirdPartyActivity extends ActionBarActivity {
 		ArrayList<LatLng> mockLocations = new ArrayList<LatLng>();
 
 		if (view.getId() == R.id.thirdpartytestlocations) {
-			// cell ids : 10367, 17609, 11003
 			mockLocations.add(new LatLng(46.533114299838836, 6.573491469025612));
 			mockLocations.add(new LatLng(46.522422470139205, 6.585019938647747));
 			mockLocations.add(new LatLng(46.53251253519775, 6.595497317612171));

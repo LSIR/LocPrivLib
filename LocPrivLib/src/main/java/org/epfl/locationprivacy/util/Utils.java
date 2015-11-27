@@ -51,7 +51,7 @@ public class Utils {
 	public static final int GRID_WIDTH_CELLS = 31;
 	public static final LatLng MAP_ORIGIN = new LatLng(0, 0);
 	public static double INITIAL_DEGREES_CELL_SIZE = 0.0009; // in degrees (approx. 100 meters at MAP_ORIGIN)
-	private static int MAP_PRECISION = 1000; // 4 decimals, precision of 11 meters
+	private static int MAP_PRECISION = 100000; // 4 decimals means precision of 11 meters, 6 means precision to centimeter (used for ID)
 	private static String LOGTAG = "Utils";
 	private static final int GPS_ERRORDIALOG_REQUEST = 9001;
 	private static Random rand = new Random();
@@ -198,7 +198,7 @@ public class Utils {
 	 * @return the id of a given point on the map
 	 */
 	public static long computeCellIDFromPosition(LatLng position) {
-		int precision = MAP_PRECISION * 100;
+		int precision = MAP_PRECISION;
 
 		double latitude = position.latitude + 90;
 		double longitude = position.longitude + 180;
@@ -825,9 +825,10 @@ public class Utils {
 	/**
 	 * Gets a field from the project's BuildConfig. This is useful when, for example, flavors
 	 * are used at the project level to set custom fields.
-	 * @param context       Used to find the correct file
-	 * @param fieldName     The name of the field-to-access
-	 * @return              The value of the field, or {@code null} if the field is not found.
+	 *
+	 * @param context   Used to find the correct file
+	 * @param fieldName The name of the field-to-access
+	 * @return The value of the field, or {@code null} if the field is not found.
 	 */
 	public static Object getBuildConfigValue(Context context, String fieldName) {
 		try {
