@@ -143,7 +143,7 @@ public class GridDBDataSource {
 	}
 
 	public void insertPolygonIntoDB(MyPolygon polygon) {
-		String spatialitePolygon = polygon.convertToSpatialiteString();
+		String spatialitePolygon = polygon.convertPolygonToSpatialiteString();
 		String query = "INSERT INTO " + GridDBOpenHelper.TABLE_GRIDCELLS + " ("
 				               + GridDBOpenHelper.COLUMN_ID + ", " + GridDBOpenHelper.COLUMN_GEOMETRY
 				               + ") VALUES (" + polygon.getName() + ",GeomFromText(" + spatialitePolygon

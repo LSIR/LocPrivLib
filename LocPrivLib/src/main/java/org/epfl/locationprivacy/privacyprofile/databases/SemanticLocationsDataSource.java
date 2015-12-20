@@ -18,7 +18,8 @@ import android.util.Log;
 
 public class SemanticLocationsDataSource {
 	private static final String LOGTAG = "SemanticLocationsDataSource";
-	private static final int DEFAULT_USERSENSITIVITY = 0;
+	private static final int DEFAULT_USER_SENSITIVITY = 0;
+	private static final String SEMANTIC_FILE = "semantic_locations.txt";
 
 	private static SemanticLocationsDataSource instance = null;
 
@@ -26,7 +27,7 @@ public class SemanticLocationsDataSource {
 	SQLiteDatabase db;
 	Context context;
 
-	private static final String[] allColums = { LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_ID,
+	private static final String[] allColumns = { LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_ID,
 			LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME,
 			LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY };
 
@@ -41,10 +42,8 @@ public class SemanticLocationsDataSource {
 		dbHelper = LocationDBOpenHelper.getInstance(context);
 		open();
 
-		List<SemanticLocation> semanticLocations = finaAll();
-		if (semanticLocations.size() == 0) {
-			populateDB();
-		}
+		List<SemanticLocation> semanticLocations = findAll();
+		populateDB(semanticLocations);
 	}
 
 	private void open() {
@@ -62,19 +61,27 @@ public class SemanticLocationsDataSource {
 		ContentValues values = new ContentValues();
 		values.put(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME, semanticLocation.name);
 		values.put(LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY,
-				semanticLocation.userSentivity);
+			semanticLocation.userSentivity);
 
 		long semanticLocationId = db.insert(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, null,
-				values);
+			values);
 		semanticLocation.id = semanticLocationId;
 		return semanticLocation;
 	}
 
-	public List<SemanticLocation> finaAll() {
+	public void delete(SemanticLocation semanticLocation) {
+
+		String strSQL = "DELETE FROM " + LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS + " WHERE "
+			+ LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME + " = '" + semanticLocation.name+"'";
+
+		db.execSQL(strSQL);
+	}
+
+	public List<SemanticLocation> findAll() {
 		List<SemanticLocation> semanticLocations = new ArrayList<SemanticLocation>();
 
-		Cursor cursor = db.query(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, allColums, null,
-				null, null, null, LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY+" DESC", null);
+		Cursor cursor = db.query(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, allColumns, null,
+			null, null, null, LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_USERSENSITIVITY + " DESC", null);
 		Log.i(LOGTAG, "Returned " + cursor.getCount() + " rows");
 		if (cursor.getCount() > 0) {
 			while (cursor.moveToNext()) {
@@ -98,7 +105,7 @@ public class SemanticLocationsDataSource {
 	public Double findSemanticSensitivity(String semanticTag) {
 
 
-		Cursor cursor = db.query(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, allColums,
+		Cursor cursor = db.query(LocationDBOpenHelper.TABLE_SEMANTICLOCATIONS, allColumns,
 				LocationDBOpenHelper.COLUMN_SEMANTICLOCATION_NAME + " ='" + semanticTag + "'",
 				null, null, null, null, null);
 		Log.i(LOGTAG, "Returned " + cursor.getCount() + " rows");
@@ -110,13 +117,12 @@ public class SemanticLocationsDataSource {
 		return null; // problem
 	}
 
-	public void populateDB() {
-		// read file
+	private HashSet<String> readSemanticLocationFile() {
 		HashSet<String> semanticLocations = new HashSet<String>();
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new InputStreamReader(context.getAssets().open(
-					"semantic_locations.txt")));
+				SEMANTIC_FILE)));
 			String mLine = reader.readLine();
 			while (mLine != null) {
 				semanticLocations.add(mLine);
@@ -126,12 +132,27 @@ public class SemanticLocationsDataSource {
 		} catch (IOException e) {
 			Log.e(LOGTAG, "Failed While reading semantic_locations.txt");
 		}
+		return semanticLocations;
+	}
 
-		// add data to DB
+	public void populateDB(List<SemanticLocation> semanticLocationsFound) {
+		// read file
+		HashSet<String> semanticLocations = readSemanticLocationFile();
+
+		// add data to DB if it does not exist yet.
+		if (semanticLocations.size() < semanticLocationsFound.size()) {
+			for (SemanticLocation sl : semanticLocationsFound) {
+				if (!semanticLocations.contains(sl)) {
+
+				}
+			}
+		}
 		for (String semanticLocationName : semanticLocations) {
 			SemanticLocation sl = new SemanticLocation(semanticLocationName,
-					DEFAULT_USERSENSITIVITY);
-			create(sl);
+				DEFAULT_USER_SENSITIVITY);
+			if (!semanticLocationsFound.contains(sl)) {
+				create(sl);
+			}
 		}
 	}
 

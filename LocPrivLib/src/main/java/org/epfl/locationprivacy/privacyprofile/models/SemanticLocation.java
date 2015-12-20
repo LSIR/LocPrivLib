@@ -18,4 +18,20 @@ public class SemanticLocation {
 		this.name = name;
 		this.userSentivity = userSentivity;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		SemanticLocation that = (SemanticLocation) o;
+
+		return name.equals(that.name);
+
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
 }

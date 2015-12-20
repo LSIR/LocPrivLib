@@ -7,7 +7,6 @@ import org.epfl.locationprivacy.privacyprofile.adapters.SemanticLocationAdapter;
 import org.epfl.locationprivacy.privacyprofile.databases.SemanticLocationsDataSource;
 import org.epfl.locationprivacy.privacyprofile.models.SemanticLocation;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -28,7 +27,7 @@ public class PrivacyProfileSemanticsFragment extends Fragment {
 
 		// Data
 		semanticLocationsDataSource = SemanticLocationsDataSource.getInstance(getActivity());
-		List<SemanticLocation> semanticLocations = semanticLocationsDataSource.finaAll();
+		List<SemanticLocation> semanticLocations = semanticLocationsDataSource.findAll();
 		Toast.makeText(getActivity(),
 				"Number of semantic locations are " + semanticLocations.size(), Toast.LENGTH_LONG)
 				.show();

@@ -73,7 +73,7 @@ public class MyPolygon {
 		return null;
 	}
 
-	public String convertToSpatialiteString() {
+	public String convertPolygonToSpatialiteString() {
 
 		String ret = "'POLYGON((";
 		for (LatLng point : points)
@@ -83,6 +83,18 @@ public class MyPolygon {
 		ret += points.get(0).longitude + " " + points.get(0).latitude;
 
 		ret += "))'";
+
+		return ret;
+	}
+
+	public String convertPointToSpatialiteString() {
+
+		String ret = "'Point(";
+		if (points.size() == 1) {
+			ret += points.get(0).longitude + " " + points.get(0).latitude;
+		}
+
+		ret += ")'";
 
 		return ret;
 	}
