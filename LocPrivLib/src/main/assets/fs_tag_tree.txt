@@ -1,0 +1,724 @@
+root,Arts & Entertainment
+Arts & Entertainment,Aquarium
+Arts & Entertainment,Arcade
+Arts & Entertainment,Art Gallery
+Arts & Entertainment,Bowling Alley
+Arts & Entertainment,Casino
+Arts & Entertainment,Circus
+Arts & Entertainment,Comedy Club
+Arts & Entertainment,Concert Hall
+Arts & Entertainment,Country Dance Club
+Arts & Entertainment,Disc Golf
+Arts & Entertainment,General Entertainment
+Arts & Entertainment,Go Kart Track
+Arts & Entertainment,Historic Site
+Arts & Entertainment,Laser Tag
+Arts & Entertainment,Mini Golf
+Arts & Entertainment,Movie Theater
+Movie Theater,Indie Movie Theater
+Movie Theater,Multiplex
+Arts & Entertainment,Museum
+Museum,Art Museum
+Museum,Erotic Museum
+Museum,History Museum
+Museum,Planetarium
+Museum,Science Museum
+Arts & Entertainment,Music Venue
+Music Venue,Jazz Club
+Music Venue,Piano Bar
+Music Venue,Rock Club
+Arts & Entertainment,Performing Arts Venue
+Performing Arts Venue,Dance Studio
+Performing Arts Venue,Indie Theater
+Performing Arts Venue,Opera House
+Performing Arts Venue,Theater
+Arts & Entertainment,Pool Hall
+Arts & Entertainment,Public Art
+Public Art,Outdoor Sculpture
+Public Art,Street Art
+Arts & Entertainment,Racetrack
+Arts & Entertainment,Roller Rink
+Arts & Entertainment,Salsa Club
+Arts & Entertainment,Stadium
+Stadium,Baseball Stadium
+Stadium,Basketball Stadium
+Stadium,Cricket Ground
+Stadium,Football Stadium
+Stadium,Hockey Arena
+Stadium,Soccer Stadium
+Stadium,Tennis
+Stadium,Track Stadium
+Arts & Entertainment,Theme Park
+Theme Park,Theme Park Ride / Attraction
+Arts & Entertainment,Water Park
+Arts & Entertainment,Zoo
+root,College & University
+College & University,College Academic Building
+College Academic Building,College Arts Building
+College Academic Building,College Communications Building
+College Academic Building,College Engineering Building
+College Academic Building,College History Building
+College Academic Building,College Math Building
+College Academic Building,College Science Building
+College Academic Building,College Technology Building
+College & University,College Administrative Building
+College & University,College Auditorium
+College & University,College Bookstore
+College & University,College Cafeteria
+College & University,College Classroom
+College & University,College Gym
+College & University,College Lab
+College & University,College Library
+College & University,College Quad
+College & University,College Rec Center
+College & University,College Residence Hall
+College & University,College Stadium
+College Stadium,College Baseball Diamond
+College Stadium,College Basketball Court
+College Stadium,College Cricket Pitch
+College Stadium,College Football Field
+College Stadium,College Hockey Rink
+College Stadium,College Soccer Field
+College Stadium,College Tennis Court
+College Stadium,College Track
+College & University,College Theater
+College & University,Community College
+College & University,Fraternity House
+College & University,General College & University
+College & University,Law School
+College & University,Medical School
+College & University,Sorority House
+College & University,Student Center
+College & University,Trade School
+College & University,University
+root,Event
+Event,Conference
+Event,Convention
+Event,Festival
+Event,Music Festival
+Event,Other Event
+Event,Parade
+Event,Stoop Sale
+Event,Street Fair
+root,Food
+Food,Afghan Restaurant
+Food,African Restaurant
+African Restaurant,Ethiopian Restaurant
+Food,American Restaurant
+American Restaurant,New American Restaurant
+Food,Asian Restaurant
+Asian Restaurant,Cambodian Restaurant
+Asian Restaurant,Filipino Restaurant
+Asian Restaurant,Himalayan Restaurant
+Asian Restaurant,Hotpot Restaurant
+Asian Restaurant,Japanese Restaurant
+Asian Restaurant,Korean Restaurant
+Asian Restaurant,Malaysian Restaurant
+Asian Restaurant,Mongolian Restaurant
+Asian Restaurant,Ramen / Noodle House
+Asian Restaurant,Noodle House
+Asian Restaurant,Sushi Restaurant
+Asian Restaurant,Thai Restaurant
+Asian Restaurant,Tibetan Restaurant
+Asian Restaurant,Vietnamese Restaurant
+Food,Australian Restaurant
+Food,Austrian Restaurant
+Food,BBQ Joint
+Food,Bagel Shop
+Food,Bakery
+Food,Belgian Restaurant
+Food,Bistro
+Food,Brazilian Restaurant
+Brazilian Restaurant,Acai House
+Brazilian Restaurant,Baiano Restaurant
+Brazilian Restaurant,Central Brazilian Restaurant
+Brazilian Restaurant,Churrascaria
+Brazilian Restaurant,Empada House
+Brazilian Restaurant,Goiano Restaurant
+Brazilian Restaurant,Mineiro Restaurant
+Brazilian Restaurant,Northeastern Brazilian Restaurant
+Brazilian Restaurant,Northern Brazilian Restaurant
+Brazilian Restaurant,Pastelaria
+Brazilian Restaurant,Southeastern Brazilian Restaurant
+Brazilian Restaurant,Southern Brazilian Restaurant
+Brazilian Restaurant,Tapiocaria
+Food,Breakfast Spot
+Food,Bubble Tea Shop
+Food,Buffet
+Food,Burger Joint
+Food,Cafeteria
+Food,Café
+Food,Cajun / Creole Restaurant
+Food,Caribbean Restaurant
+Food,Caucasian Restaurant
+Food,Chinese Restaurant
+Chinese Restaurant,Anhui Restaurant
+Chinese Restaurant,Beijing Restaurant
+Chinese Restaurant,Cantonese Restaurant
+Chinese Restaurant,Chinese Aristocrat Restaurant
+Chinese Restaurant,Chinese Breakfast Place
+Chinese Restaurant,Dim Sum Restaurant
+Chinese Restaurant,Dongbei Restaurant
+Chinese Restaurant,Fujian Restaurant
+Chinese Restaurant,Guizhou Restaurant
+Chinese Restaurant,Hainan Restaurant
+Chinese Restaurant,Hakka Restaurant
+Chinese Restaurant,Henan Restaurant
+Chinese Restaurant,Hong Kong Restaurant
+Chinese Restaurant,Huaiyang Restaurant
+Chinese Restaurant,Hubei Restaurant
+Chinese Restaurant,Hunan Restaurant
+Chinese Restaurant,Imperial Restaurant
+Chinese Restaurant,Jiangsu Restaurant
+Chinese Restaurant,Jiangxi Restaurant
+Chinese Restaurant,Macanese Restaurant
+Chinese Restaurant,Manchu Restaurant
+Chinese Restaurant,Peking Duck Restaurant
+Chinese Restaurant,Shaanxi Restaurant
+Chinese Restaurant,Shandong Restaurant
+Chinese Restaurant,Shanghai Restaurant
+Chinese Restaurant,Shanxi Restaurant
+Chinese Restaurant,Szechuan Restaurant
+Chinese Restaurant,Taiwanese Restaurant
+Chinese Restaurant,Tianjin Restaurant
+Chinese Restaurant,Xinjiang Restaurant
+Chinese Restaurant,Yunnan Restaurant
+Chinese Restaurant,Zhejiang Restaurant
+Food,Coffee Shop
+Food,Comfort Food Restaurant
+Food,Creperie
+Food,Czech Restaurant
+Food,Deli / Bodega
+Food,Dessert Shop
+Dessert Shop,Cupcake Shop
+Dessert Shop,Donut Shop
+Dessert Shop,Ice Cream Shop
+Dessert Shop,Pie Shop
+Dessert Shop,Frozen Yogurt
+Food,Diner
+Food,Distillery
+Food,Dumpling Restaurant
+Food,Eastern European Restaurant
+Eastern European Restaurant,Belarusian Restaurant
+Eastern European Restaurant,Romanian Restaurant
+Eastern European Restaurant,Tatar Restaurant
+Food,English Restaurant
+Food,Falafel Restaurant
+Food,Fast Food Restaurant
+Food,Fish & Chips Shop
+Food,Fondue Restaurant
+Food,Food Court
+Food,Food Truck
+Food,French Restaurant
+Food,Fried Chicken Joint
+Food,Gastropub
+Food,German Restaurant
+Food,Gluten-free Restaurant
+Food,Greek Restaurant
+Greek Restaurant,Bougatsa Shop
+Greek Restaurant,Cretan Restaurant
+Greek Restaurant,Fish Taverna
+Greek Restaurant,Grilled Meat Restaurant
+Greek Restaurant,Kafenio
+Greek Restaurant,Magirio
+Greek Restaurant,Meze Restaurant
+Greek Restaurant,Modern Greek Restaurant
+Greek Restaurant,Ouzeri
+Greek Restaurant,Patsa Restaurant
+Greek Restaurant,Souvlaki Shop
+Greek Restaurant,Taverna
+Greek Restaurant,Tsipouro Restaurant
+Food,Halal Restaurant
+Food,Hawaiian Restaurant
+Food,Hot Dog Joint
+Food,Hungarian Restaurant
+Food,Indian Restaurant
+Indian Restaurant,Andhra Restaurant
+Indian Restaurant,Awadhi Restaurant
+Indian Restaurant,Bengali Restaurant
+Indian Restaurant,Chaat Place
+Indian Restaurant,Chettinad Restaurant
+Indian Restaurant,Dhaba
+Indian Restaurant,Dosa Place
+Indian Restaurant,Goan Restaurant
+Indian Restaurant,Gujarati Restaurant
+Indian Restaurant,Hyderabadi Restaurant
+Indian Restaurant,Indian Chinese Restaurant
+Indian Restaurant,Indian Sweet Shop
+Indian Restaurant,Irani Cafe
+Indian Restaurant,Jain Restaurant
+Indian Restaurant,Karnataka Restaurant
+Indian Restaurant,Kerala Restaurant
+Indian Restaurant,Maharashtrian Restaurant
+Indian Restaurant,Mughlai Restaurant
+Indian Restaurant,Multicuisine Indian Restaurant
+Indian Restaurant,North Indian Restaurant
+Indian Restaurant,Northeast Indian Restaurant
+Indian Restaurant,Parsi Restaurant
+Indian Restaurant,Punjabi Restaurant
+Indian Restaurant,Rajasthani Restaurant
+Indian Restaurant,South Indian Restaurant
+Indian Restaurant,Sweet Shop
+Indian Restaurant,Udupi Restaurant
+Food,Indonesian Restaurant
+Indonesian Restaurant,Acehnese Restaurant
+Indonesian Restaurant,Balinese Restaurant
+Indonesian Restaurant,Betawinese Restaurant
+Indonesian Restaurant,Indonesian Meatball Place
+Indonesian Restaurant,Javanese Restaurant
+Indonesian Restaurant,Manadonese Restaurant
+Indonesian Restaurant,Meatball Place
+Indonesian Restaurant,Padangnese Restaurant
+Indonesian Restaurant,Sundanese Restaurant
+Food,Irish Pub
+Food,Italian Restaurant
+Food,Jewish Restaurant
+Jewish Restaurant,Kosher Restaurant
+Food,Juice Bar
+Food,Latin American Restaurant
+Latin American Restaurant,Arepa Restaurant
+Latin American Restaurant,Cuban Restaurant
+Latin American Restaurant,Empanada Restaurant
+Food,Mac & Cheese Joint
+Food,Mediterranean Restaurant
+Mediterranean Restaurant,Moroccan Restaurant
+Food,Mexican Restaurant
+Mexican Restaurant,Burrito Place
+Mexican Restaurant,Taco Place
+Food,Middle Eastern Restaurant
+Middle Eastern Restaurant,Persian Restaurant
+Food,Modern European Restaurant
+Food,Molecular Gastronomy Restaurant
+Food,Pakistani Restaurant
+Food,Pizza Place
+Food,Polish Restaurant
+Food,Portuguese Restaurant
+Food,Restaurant
+Food,Russian Restaurant
+Russian Restaurant,Blini House
+Russian Restaurant,Pelmeni House
+Food,Salad Place
+Food,Sandwich Place
+Food,Scandinavian Restaurant
+Food,Seafood Restaurant
+Food,Snack Place
+Food,Soup Place
+Food,South American Restaurant
+South American Restaurant,Argentinian Restaurant
+South American Restaurant,Peruvian Restaurant
+Food,Southern / Soul Food Restaurant
+Food,Spanish Restaurant
+Spanish Restaurant,Paella Restaurant
+Spanish Restaurant,Tapas Restaurant
+Food,Sri Lankan Restaurant
+Food,Steakhouse
+Food,Swiss Restaurant
+Food,Tea Room
+Food,Turkish Restaurant
+Turkish Restaurant,Borek Place
+Turkish Restaurant,Cigkofte Place
+Turkish Restaurant,Doner Restaurant
+Turkish Restaurant,Gozleme Place
+Turkish Restaurant,Home Cooking Restaurant
+Turkish Restaurant,Kebab Restaurant
+Turkish Restaurant,Kofte Place
+Turkish Restaurant,Kokoreç Restaurant
+Turkish Restaurant,Manti Place
+Turkish Restaurant,Meyhane
+Turkish Restaurant,Pide Place
+Turkish Restaurant,Turkish Home Cooking Restaurant
+Food,Ukrainian Restaurant
+Ukrainian Restaurant,Varenyky restaurant
+Ukrainian Restaurant,West-Ukrainian Restaurant
+Food,Vegetarian / Vegan Restaurant
+Food,Winery
+Food,Wings Joint
+root,Nightlife Spot
+Nightlife Spot,Bar
+Bar,Beach Bar
+Bar,Beer Garden
+Bar,Champagne Bar
+Bar,Cocktail Bar
+Bar,Dive Bar
+Bar,Gay Bar
+Bar,Hookah Bar
+Bar,Hotel Bar
+Bar,Karaoke Bar
+Bar,Pub
+Bar,Sake Bar
+Bar,Sports Bar
+Bar,Whisky Bar
+Bar,Wine Bar
+Nightlife Spot,Brewery
+Nightlife Spot,Lounge
+Nightlife Spot,Night Market
+Nightlife Spot,Nightclub
+Nightlife Spot,Other Nightlife
+Nightlife Spot,Speakeasy
+Nightlife Spot,Strip Club
+root,Outdoors & Recreation
+Outdoors & Recreation,Athletics & Sports
+Athletics & Sports,Badminton Court
+Athletics & Sports,Baseball Field
+Athletics & Sports,Basketball Court
+Athletics & Sports,Bowling Green
+Athletics & Sports,Golf Course
+Athletics & Sports,Hockey Field
+Athletics & Sports,Paintball Field
+Athletics & Sports,Rugby Pitch
+Athletics & Sports,Skate Park
+Athletics & Sports,Skating Rink
+Athletics & Sports,Soccer Field
+Athletics & Sports,Sports Club
+Athletics & Sports,Squash Court
+Athletics & Sports,Tennis Court
+Athletics & Sports,Volleyball Court
+Outdoors & Recreation,Bath House
+Outdoors & Recreation,Bathing Area
+Outdoors & Recreation,Beach
+Beach,Nudist Beach
+Beach,Surf Spot
+Outdoors & Recreation,Botanical Garden
+Outdoors & Recreation,Bridge
+Outdoors & Recreation,Campground
+Outdoors & Recreation,Castle
+Outdoors & Recreation,Cemetery
+Outdoors & Recreation,Dive Spot
+Outdoors & Recreation,Dog Run
+Outdoors & Recreation,Farm
+Outdoors & Recreation,Field
+Outdoors & Recreation,Fishing Spot
+Outdoors & Recreation,Forest
+Outdoors & Recreation,Garden
+Outdoors & Recreation,Gun Range
+Outdoors & Recreation,Harbor / Marina
+Outdoors & Recreation,Hot Spring
+Outdoors & Recreation,Island
+Outdoors & Recreation,Lake
+Outdoors & Recreation,Lighthouse
+Outdoors & Recreation,Mountain
+Outdoors & Recreation,National Park
+Outdoors & Recreation,Nature Preserve
+Outdoors & Recreation,Other Great Outdoors
+Outdoors & Recreation,Palace
+Outdoors & Recreation,Park
+Outdoors & Recreation,Pedestrian Plaza
+Outdoors & Recreation,Playground
+Outdoors & Recreation,Plaza
+Outdoors & Recreation,Pool
+Outdoors & Recreation,Rafting
+Outdoors & Recreation,Recreation Center
+Outdoors & Recreation,River
+Outdoors & Recreation,Rock Climbing Spot
+Outdoors & Recreation,Scenic Lookout
+Outdoors & Recreation,Sculpture Garden
+Outdoors & Recreation,Ski Area
+Ski Area,Apres Ski Bar
+Ski Area,Ski Chairlift
+Ski Area,Ski Chalet
+Ski Area,Ski Lodge
+Ski Area,Ski Trail
+Outdoors & Recreation,Stables
+Outdoors & Recreation,States & Municipalities
+States & Municipalities,City
+States & Municipalities,County
+States & Municipalities,Country
+States & Municipalities,Neighborhood
+States & Municipalities,State
+States & Municipalities,Town
+States & Municipalities,Village
+Outdoors & Recreation,Summer Camp
+Outdoors & Recreation,Trail
+Outdoors & Recreation,Tree
+Outdoors & Recreation,Vineyard
+Outdoors & Recreation,Volcano
+Outdoors & Recreation,Well
+root,Professional & Other Places
+Professional & Other Places,Animal Shelter
+Professional & Other Places,Auditorium
+Professional & Other Places,Building
+Professional & Other Places,Club House
+Professional & Other Places,Community Center
+Professional & Other Places,Convention Center
+Convention Center,Meeting Room
+Professional & Other Places,Cultural Center
+Professional & Other Places,Distribution Center
+Professional & Other Places,Event Space
+Professional & Other Places,Factory
+Professional & Other Places,Fair
+Professional & Other Places,Funeral Home
+Professional & Other Places,Government Building
+Government Building,Capitol Building
+Government Building,City Hall
+Government Building,Courthouse
+Government Building,Embassy / Consulate
+Government Building,Fire Station
+Government Building,Monument / Landmark
+Government Building,Police Station
+Government Building,Town Hall
+Professional & Other Places,Library
+Professional & Other Places,Medical Center
+Medical Center,Acupuncturist
+Medical Center,Alternative Healer
+Medical Center,Chiropractor
+Medical Center,Dentist's Office
+Medical Center,Doctor's Office
+Medical Center,Emergency Room
+Medical Center,Eye Doctor
+Medical Center,Hospital
+Medical Center,Laboratory
+Medical Center,Mental Health Office
+Medical Center,Veterinarian
+Professional & Other Places,Military Base
+Professional & Other Places,Non-Profit
+Professional & Other Places,Office
+Office,Advertising Agency
+Office,Campaign Office
+Office,Conference Room
+Office,Corporate Cafeteria
+Office,Coworking Space
+Office,Tech Startup
+Professional & Other Places,Parking
+Professional & Other Places,Post Office
+Professional & Other Places,Prison
+Professional & Other Places,Radio Station
+Professional & Other Places,Recruiting Agency
+Professional & Other Places,School
+School,Circus School
+School,Driving School
+School,Elementary School
+School,Flight School
+School,High School
+School,Language School
+School,Middle School
+School,Music School
+School,Nursery School
+School,Preschool
+School,Private School
+School,Religious School
+School,Swim School
+Professional & Other Places,Social Club
+Professional & Other Places,Spiritual Center
+Spiritual Center,Buddhist Temple
+Spiritual Center,Church
+Spiritual Center,Hindu Temple
+Spiritual Center,Monastery
+Spiritual Center,Mosque
+Spiritual Center,Prayer Room
+Spiritual Center,Shrine
+Spiritual Center,Synagogue
+Spiritual Center,Temple
+Professional & Other Places,TV Station
+Professional & Other Places,Voting Booth
+Professional & Other Places,Warehouse
+root,Residence
+Residence,Assisted Living
+Residence,Home (private)
+Residence,Housing Development
+Residence,Residential Building (Apartment / Condo)
+Residence,Trailer Park
+root,Shop & Service
+Shop & Service,ATM
+Shop & Service,Adult Boutique
+Shop & Service,Antique Shop
+Shop & Service,Arts & Crafts Store
+Shop & Service,Astrologer
+Shop & Service,Auto Garage
+Shop & Service,Automotive Shop
+Shop & Service,Baby Store
+Shop & Service,Bank
+Shop & Service,Betting Shop
+Shop & Service,Big Box Store
+Shop & Service,Bike Shop
+Shop & Service,Board Shop
+Shop & Service,Bookstore
+Shop & Service,Bridal Shop
+Shop & Service,Business Service
+Shop & Service,Camera Store
+Shop & Service,Candy Store
+Shop & Service,Car Dealership
+Shop & Service,Car Wash
+Shop & Service,Carpet Store
+Shop & Service,Check Cashing Service
+Shop & Service,Chocolate Shop
+Shop & Service,Christmas Market
+Shop & Service,Clothing Store
+Clothing Store,Accessories Store
+Clothing Store,Boutique
+Clothing Store,Kids Store
+Clothing Store,Lingerie Store
+Clothing Store,Men's Store
+Clothing Store,Shoe Store
+Clothing Store,Women's Store
+Shop & Service,Comic Shop
+Shop & Service,Construction & Landscaping
+Shop & Service,Convenience Store
+Shop & Service,Cosmetics Shop
+Shop & Service,Costume Shop
+Shop & Service,Credit Union
+Shop & Service,Daycare
+Shop & Service,Department Store
+Shop & Service,Design Studio
+Shop & Service,Discount Store
+Shop & Service,Dive Shop
+Shop & Service,Drugstore / Pharmacy
+Shop & Service,Dry Cleaner
+Shop & Service,EV Charging Station
+Shop & Service,Electronics Store
+Shop & Service,Event Service
+Shop & Service,Fabric Shop
+Shop & Service,Financial or Legal Service
+Shop & Service,Fireworks Store
+Shop & Service,Fishing Store
+Shop & Service,Flea Market
+Shop & Service,Flower Shop
+Shop & Service,Food & Drink Shop
+Food & Drink Shop,Beer Store
+Food & Drink Shop,Butcher
+Food & Drink Shop,Cheese Shop
+Food & Drink Shop,Farmers Market
+Food & Drink Shop,Fish Market
+Food & Drink Shop,Gourmet Shop
+Food & Drink Shop,Grocery Store
+Food & Drink Shop,Health Food Store
+Food & Drink Shop,Liquor Store
+Food & Drink Shop,Organic Grocery
+Food & Drink Shop,Street Food Gathering
+Food & Drink Shop,Supermarket
+Food & Drink Shop,Wine Shop
+Shop & Service,Frame Store
+Shop & Service,Fruit & Vegetable Store
+Shop & Service,Furniture / Home Store
+Furniture / Home Store,Lighting Store
+Shop & Service,Gaming Cafe
+Shop & Service,Garden Center
+Shop & Service,Gas Station / Garage
+Shop & Service,Gift Shop
+Shop & Service,Gun Shop
+Shop & Service,Gym / Fitness Center
+Gym / Fitness Center,Boxing Gym
+Gym / Fitness Center,Climbing Gym
+Gym / Fitness Center,Cycle Studio
+Gym / Fitness Center,Gym Pool
+Gym / Fitness Center,Gymnastics Gym
+Gym / Fitness Center,Gym
+Gym / Fitness Center,Martial Arts Dojo
+Gym / Fitness Center,Track
+Gym / Fitness Center,Yoga Studio
+Shop & Service,Hardware Store
+Shop & Service,Health & Beauty Service
+Shop & Service,Herbs & Spices Store
+Shop & Service,Hobby Shop
+Shop & Service,Home Service
+Shop & Service,Hunting Supply
+Shop & Service,IT Services
+Shop & Service,Internet Cafe
+Shop & Service,Jewelry Store
+Shop & Service,Knitting Store
+Shop & Service,Laundromat
+Shop & Service,Laundry Service
+Shop & Service,Lawyer
+Shop & Service,Leather Goods Store
+Shop & Service,Locksmith
+Shop & Service,Lottery Retailer
+Shop & Service,Luggage Store
+Shop & Service,Mall
+Shop & Service,Marijuana Dispensary
+Shop & Service,Market
+Shop & Service,Massage Studio
+Shop & Service,Mattress Store
+Shop & Service,Miscellaneous Shop
+Shop & Service,Mobile Phone Shop
+Shop & Service,Motorcycle Shop
+Shop & Service,Music Store
+Shop & Service,Nail Salon
+Shop & Service,Newsstand
+Shop & Service,Optical Shop
+Shop & Service,Other Repair Shop
+Shop & Service,Outdoor Supply Store
+Shop & Service,Outlet Store
+Shop & Service,Paper / Office Supplies Store
+Shop & Service,Pawn Shop
+Shop & Service,Perfume Shop
+Shop & Service,Pet Service
+Shop & Service,Pet Store
+Shop & Service,Photography Lab
+Shop & Service,Photography Studio
+Shop & Service,Piercing Parlor
+Shop & Service,Pop-Up Shop
+Shop & Service,Print Shop
+Shop & Service,Real Estate Office
+Shop & Service,Record Shop
+Shop & Service,Recording Studio
+Shop & Service,Recycling Facility
+Shop & Service,Salon / Barbershop
+Shop & Service,Shipping Store
+Shop & Service,Shoe Repair
+Shop & Service,Smoke Shop
+Shop & Service,Smoothie Shop
+Shop & Service,Souvenir Shop
+Shop & Service,Spa
+Shop & Service,Sporting Goods Shop
+Shop & Service,Stationery Store
+Shop & Service,Storage Facility
+Shop & Service,Tailor Shop
+Shop & Service,Tanning Salon
+Shop & Service,Tattoo Parlor
+Shop & Service,Thrift / Vintage Store
+Shop & Service,Toy / Game Store
+Shop & Service,Travel Agency
+Shop & Service,Used Bookstore
+Shop & Service,Video Game Store
+Shop & Service,Video Store
+Shop & Service,Warehouse Store
+Shop & Service,Watch Repair Shop
+root,Travel & Transport
+Travel & Transport,Airport
+Airport,Airport Food Court
+Airport,Airport Gate
+Airport,Airport Lounge
+Airport,Airport Terminal
+Airport,Airport Tram
+Airport,Plane
+Travel & Transport,Bike Rental / Bike Share
+Travel & Transport,Boat or Ferry
+Travel & Transport,Border Crossing
+Travel & Transport,Bus Station
+Bus Station,Bus Line
+Travel & Transport,Bus Stop
+Travel & Transport,Cable Car
+Travel & Transport,Cruise
+Travel & Transport,General Travel
+Travel & Transport,Hotel
+Hotel,Bed & Breakfast
+Hotel,Boarding House
+Hotel,Hostel
+Hotel,Hotel Pool
+Hotel,Motel
+Hotel,Resort
+Hotel,Roof Deck
+Travel & Transport,Intersection
+Travel & Transport,Light Rail
+Travel & Transport,Light Rail Station
+Travel & Transport,Moving Target
+Travel & Transport,Pier
+Travel & Transport,RV Park
+Travel & Transport,Rental Car Location
+Travel & Transport,Rest Area
+Travel & Transport,Road
+Travel & Transport,Street
+Travel & Transport,Subway
+Travel & Transport,Metro Station
+Travel & Transport,Taxi Stand
+Travel & Transport,Taxi
+Travel & Transport,Toll Booth
+Travel & Transport,Toll Plaza
+Travel & Transport,Tourist Information Center
+Travel & Transport,Train Station
+Train Station,Platform
+Train Station,Train
+Travel & Transport,Tram
+Travel & Transport,Transportation Service
+Travel & Transport,Travel Lounge
+Travel & Transport,Tunnel
+Travel & Transport,Tram Station
