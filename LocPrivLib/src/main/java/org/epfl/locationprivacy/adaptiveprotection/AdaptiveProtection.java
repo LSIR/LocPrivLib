@@ -146,17 +146,29 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			if (currentLocationVenues.isEmpty()) {
 				Pair<MyPolygon, Double> nearestVenueAndDistance = venuesCondensedDBDataSource
 					.findNearestVenue(cell.latitude, cell.longitude);
-				semantic = nearestVenueAndDistance.first.getSemantic();
-				logVenue = nearestVenueAndDistance.first;
-				logVenueDistance = "nearest";
+				if (nearestVenueAndDistance.first != null) {
+					semantic = nearestVenueAndDistance.first.getSemantic();
+					logVenue = nearestVenueAndDistance.first;
+					logVenueDistance = "nearest";
+				} else {
+					logVenue = null;
+					logVenueDistance = "nearest";
+					semantic = null;
+				}
 			}
 
 			//--> get user sensitivity of current location semantic
-			sensitivity = semanticLocationsDataSource.findSemanticSensitivity(semantic);
+			if (semantic != null) {
+				sensitivity = semanticLocationsDataSource.findSemanticSensitivity(semantic);
+			} else {
+				sensitivity = 0.0;
+			}
 
 			//--> logging
 			log("No Location Sensitivity");
-			log("Nearest Venue: " + logVenue.getName());
+			if (logVenue != null) {
+				log("Nearest Venue: " + logVenue.getName());
+			}
 			log("Relationship: " + logVenueDistance);
 			log("Nearest Venue Query took " + (System.currentTimeMillis() - startGetNearVenues)
 				+ " ms");
