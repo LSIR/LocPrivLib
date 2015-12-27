@@ -78,6 +78,12 @@
             android:theme="@style/CustomActionBarStyle">
         </activity>
 
+        <activity
+            android:name=".map.activities.SemanticActivity"
+            android:label="@string/title_activity_semantic"
+            android:theme="@style/CustomActionBarStyle">
+        </activity>
+
 
 
         <meta-data

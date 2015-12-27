@@ -77,6 +77,10 @@ public class SemanticLocationsDataSource {
 		db.execSQL(strSQL);
 	}
 
+	/**
+	 * Get semantic locations from db
+	 * @return
+	 */
 	public List<SemanticLocation> findAll() {
 		List<SemanticLocation> semanticLocations = new ArrayList<SemanticLocation>();
 

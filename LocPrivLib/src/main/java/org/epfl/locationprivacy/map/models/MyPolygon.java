@@ -61,7 +61,7 @@ public class MyPolygon {
 				polygon = polygon.substring(0, polygon.length() - 1);
 
 			String[] points = polygon.split(",");
-			ArrayList<LatLng> latLngPoints = new ArrayList<LatLng>();
+			ArrayList<LatLng> latLngPoints = new ArrayList<>();
 			for (String point : points) {
 				point = point.trim();
 				LatLng latLngPoint = new LatLng(Double.parseDouble(point.split(" ")[1]),

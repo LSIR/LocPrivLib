@@ -236,7 +236,6 @@ public class GridDBDataSource {
 		return polygon;
 	}
 
-	// FIXME : need to be tested
 	public LatLng getCentroid(LatLng position) {
 		LatLng centroid = null;
 		try {

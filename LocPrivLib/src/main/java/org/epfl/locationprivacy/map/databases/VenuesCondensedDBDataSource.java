@@ -83,6 +83,12 @@ public class VenuesCondensedDBDataSource {
 		}
 	}
 
+	/**
+	 * Insert a polygon into the DB
+	 *
+	 * @param element
+	 * @param polygon
+	 */
 	public void insertPolygonIntoDB(OSMSemantic element, MyPolygon polygon) {
 		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
 			Log.d(LOGTAG, "Insert " + element.toString() + " into DB");
@@ -108,6 +114,11 @@ public class VenuesCondensedDBDataSource {
 		}
 	}
 
+	/**
+	 * Delete an OSMSemantic location
+	 *
+	 * @param semanticLocation
+	 */
 	public void delete(OSMSemantic semanticLocation) {
 		String table;
 		if (semanticLocation.getClass().equals(OSMNode.class)) {
@@ -184,7 +195,9 @@ public class VenuesCondensedDBDataSource {
 	}
 
 	public ArrayList<MyPolygon> findVenuesContainingLocation(double latitude, double longitude) {
-		Log.d(LOGTAG, "================");
+		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+			Log.d(LOGTAG, "================");
+		}
 		long startTime = System.currentTimeMillis();
 		ArrayList<MyPolygon> polygons = new ArrayList<>();
 		String table = VenuesCondensedDBOpenHelper.TABLE_POLYGONS;
@@ -194,7 +207,6 @@ public class VenuesCondensedDBDataSource {
 			+ VenuesCondensedDBOpenHelper.COLUMN_GEOMETRY + ") from " + table
 			+ " where sub_type!='yes' and MBRContains( Geometry,  BuildMBR( " + longitude
 			+ " , " + latitude + " , " + longitude + " , " + latitude + " ));";
-		//			Log.d(LOGTAG, "SQL: " + sql);
 
 		TableResult tableResult = null;
 		try {
@@ -213,25 +225,33 @@ public class VenuesCondensedDBDataSource {
 				ArrayList<LatLng> points = MyPolygon.parseSpatialMulipolygon(row[2]);
 				MyPolygon polygon = new MyPolygon(name, semantic, points);
 				polygons.add(polygon);
-				Log.d(LOGTAG, "table: " + table + " --> " + polygon.toString());
+				if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+					Log.d(LOGTAG, "table: " + table + " --> " + polygon.toString());
+				}
 			}
 		}
 
-		Log.d(LOGTAG,
-			"Polygons returned: " + polygons.size() + " rows in "
-				+ (System.currentTimeMillis() - startTime) + " ms");
+		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+			Log.d(LOGTAG,
+				"Polygons returned: " + polygons.size() + " rows in "
+					+ (System.currentTimeMillis() - startTime) + " ms");
+		}
 		return polygons;
 	}
 
 	public Pair<MyPolygon, Double> findNearestVenue(double latitude, double longitude) {
-		Log.d(LOGTAG, "================");
+		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+			Log.d(LOGTAG, "================");
+		}
 		long startTime = System.currentTimeMillis();
 		Double minDistance = Double.MAX_VALUE;
 		MyPolygon minPolygon = null;
 
 		String[] tables = {VenuesCondensedDBOpenHelper.TABLE_POLYGONS, VenuesCondensedDBOpenHelper.TABLE_POINTS};
 		for (String table : tables) {
-			Log.d(LOGTAG, "table:" + table);
+			if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+				Log.d(LOGTAG, "table:" + table);
+			}
 			Pair<MyPolygon, Double> nearest = findNearestVenueInTable(latitude, longitude, table);
 			if (nearest != null && nearest.second < minDistance) {
 				minDistance = nearest.second;
@@ -239,8 +259,10 @@ public class VenuesCondensedDBDataSource {
 			}
 		}
 
-		Log.d(LOGTAG, "Time of NearestVenue Query: " + (System.currentTimeMillis() - startTime)
-			+ " ms");
+		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+			Log.d(LOGTAG, "Time of NearestVenue Query: " + (System.currentTimeMillis() - startTime)
+				+ " ms");
+		}
 
 		return new Pair<>(minPolygon, minDistance);
 	}
@@ -272,7 +294,8 @@ public class VenuesCondensedDBDataSource {
 				String name = row[0];
 				String semantic = row[1];
 				Double distance = Double.parseDouble(row[2]);
-				ArrayList<LatLng> points = MyPolygon.parseSpatialMulipolygon(row[3]);
+				String geometry = row[3].trim().replaceAll("[\\(]*([0-9]+.[0-9]+| |,|\\))+", "");
+				ArrayList<LatLng> points = MyPolygon.parseSpatialPolygon(geometry, row[3]);
 				MyPolygon polygon = new MyPolygon(name, semantic, points);
 				polygonWithDistance = new Pair<>(polygon, distance);
 			}

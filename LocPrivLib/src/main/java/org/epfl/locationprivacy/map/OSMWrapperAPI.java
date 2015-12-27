@@ -4,27 +4,18 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
 import org.epfl.locationprivacy.map.models.OSMNode;
 
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +39,6 @@ import org.xml.sax.SAXException;
 
 /**
  * The OpenStreetMap Wrapper to get semantic locations
- * <p/>
  * Code inspired by http://wiki.openstreetmap.org/wiki/Java_Access_Example
  */
 public final class OSMWrapperAPI {
@@ -68,10 +58,14 @@ public final class OSMWrapperAPI {
 
 		ArrayList<String> amenitiesIds = new ArrayList<>();
 
+		// Read XML file
 		Node osmRoot = xmlDocument.getFirstChild();
 		NodeList osmXMLNodes = osmRoot.getChildNodes();
+
+		// First we search all positions that have a wanted tag (from amenities list given in argument)
 		for (int i = 1; i < osmXMLNodes.getLength(); i++) {
 			Node item = osmXMLNodes.item(i);
+			// NODE
 			if (item.getNodeName().equals("node")) {
 				NamedNodeMap attributes = item.getAttributes();
 				NodeList tagXMLNodes = item.getChildNodes();
@@ -104,6 +98,7 @@ public final class OSMWrapperAPI {
 					name = tags.get("name");
 				}
 				osmElements.put(id, new OSMNode(id, name, tags.get("amenity"), latitude, longitude, tags, version));
+				// WAY
 			} else if (item.getNodeName().equals("way")) {
 				NamedNodeMap attributes = item.getAttributes();
 				NodeList tagXMLNodes = item.getChildNodes();
@@ -135,6 +130,7 @@ public final class OSMWrapperAPI {
 					name = tags.get("name");
 				}
 				osmElements.put(id, new OSMWay(id, name, tags.get("amenity"), nd, tags, version));
+				// RELATION
 			} else if (item.getNodeName().equals("relation")) {
 				NamedNodeMap attributes = item.getAttributes();
 				NodeList tagXMLNodes = item.getChildNodes();
@@ -172,12 +168,15 @@ public final class OSMWrapperAPI {
 
 		}
 		VenuesCondensedDBDataSource dataSource = VenuesCondensedDBDataSource.getInstance(context);
+		// We get the already existing tags from the db
 		HashMap<String, OSMSemantic> elementsInDB = dataSource.findAllSemanticLocationsInDB();
 
+		// Then we add each element to the db if it has a subtype and is not already in the db
+		// If it is already in the db, we simply compare the 'version' field.
 		for (int i = 0; i < amenitiesIds.size(); i++) {
 			OSMSemantic element = osmElements.get(amenitiesIds.get(i));
 			if (element == null || element.getSubtype() == null) {
-				System.out.println("An element is null or without subtype for id " + amenitiesIds.get(i));
+				Log.i(LOGTAG, "An element is null or without subtype for id " + amenitiesIds.get(i));
 				continue;
 			}
 			if (elementsInDB.containsKey(element.getId())) {
@@ -199,7 +198,7 @@ public final class OSMWrapperAPI {
 			} else if (element.getClass().equals(OSMWay.class)) {
 				OSMWay way = (OSMWay) osmElements.get(element.getId());
 				if (!(way.getNodes().get(0).equals(way.getNodes().get(way.getNodes().size() - 1)))) {
-					System.out.println("There are ways that are not considered :" + way.toString());
+					Log.i(LOGTAG, "There are ways that are not considered :" + way.toString());
 					continue;
 				}
 				ArrayList<LatLng> points = new ArrayList<>();
@@ -214,8 +213,7 @@ public final class OSMWrapperAPI {
 			} else if (element.getClass().equals(OSMRelation.class)) {
 				OSMRelation rel = (OSMRelation) osmElements.get(element.getId());
 				if (rel.getTags().containsKey("type") && !rel.getTags().get("type").equals("multipolygon")) {
-					System.out.println("There are Relations that are not considered :");
-					System.out.println(rel.toString());
+					Log.i(LOGTAG, "There are Relations that are not considered :" + rel.toString());
 					continue;
 				}
 				ArrayList<LatLng> points = new ArrayList<>();
@@ -227,6 +225,7 @@ public final class OSMWrapperAPI {
 					}
 				}
 				MyPolygon point = new MyPolygon(rel.getId(), rel.getSubtype(), points);
+				// Insertion into the db
 				dataSource.insertPolygonIntoDB(rel, point);
 			}
 		}
@@ -275,6 +274,11 @@ public final class OSMWrapperAPI {
 		return docBuilder.parse(connection.getInputStream());
 	}
 
+	/**
+	 * Read semantic tags
+	 * @param context
+	 * @return
+	 */
 	private static List<String> loadSemanticTags(Context context) {
 		SemanticLocationsDataSource semanticLocationsDataSource = SemanticLocationsDataSource.getInstance(context);
 
@@ -294,6 +298,12 @@ public final class OSMWrapperAPI {
 		}
 	}
 
+	/**
+	 * Update the semantic location given two points
+	 * @param context
+	 * @param topRight the top right location of the area to load
+	 * @param bottomLeft the bottom left location of the area to load
+	 */
 	public static void updateSemanticLocations(Context context, LatLng topRight, LatLng bottomLeft) {
 
 		ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
