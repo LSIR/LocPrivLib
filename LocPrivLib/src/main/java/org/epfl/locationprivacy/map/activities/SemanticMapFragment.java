@@ -35,6 +35,7 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import org.epfl.locationprivacy.R;
 
 import org.epfl.locationprivacy.map.OSMWrapperAPI;
+import org.epfl.locationprivacy.map.databases.VenuesCondensedDBOpenHelper;
 import org.epfl.locationprivacy.util.Utils;
 
 import java.text.SimpleDateFormat;
@@ -54,6 +55,7 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 	private LatLng secondCorner = null;
 	private Button clearButton;
 	private Button getSemanticButton;
+	private Button deleteDatabase;
 	private ProgressDialog progressDialog;
 
 	public SemanticMapFragment() {
@@ -82,6 +84,15 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 				buildGoogleApiClient();
 			}
 
+			deleteDatabase = (Button) rootView.findViewById(R.id.delete_database_button);
+			deleteDatabase.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					VenuesCondensedDBOpenHelper dbOpenHelper = VenuesCondensedDBOpenHelper.getInstance(getActivity());
+					dbOpenHelper.onUpgrade(dbOpenHelper.getWritableDatabase(), 0, 0);
+					Toast.makeText(getActivity(), "The semantic locations database is now empty", Toast.LENGTH_LONG).show();
+				}
+			});
 			clearButton = (Button) rootView.findViewById(R.id.clear_points_button);
 			clearButton.setOnClickListener(new View.OnClickListener() {
 
@@ -150,7 +161,7 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 							}.execute();
 						}
 					} else {
-						Toast.makeText(getActivity(), "Please select two location on the map to create an area", Toast.LENGTH_LONG);
+						Toast.makeText(getActivity(), "Please select two locations on the map to create an area", Toast.LENGTH_LONG).show();
 					}
 				}
 			});

@@ -50,7 +50,7 @@ public class GridDBOpenHelper extends SQLiteOpenHelper {
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		Log.i(LOGTAG, "Helper onUpgrade, upgrading the database");
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_GRIDCELLS_CREATE);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_GRIDCELLS);
 		onCreate(db);
 	}
 

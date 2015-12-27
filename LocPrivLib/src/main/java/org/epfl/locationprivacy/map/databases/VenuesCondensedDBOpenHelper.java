@@ -78,9 +78,9 @@ public class VenuesCondensedDBOpenHelper extends SQLiteOpenHelper {
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		Log.i(LOGTAG, "Helper onUpgrade, upgrading the database");
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_POLYGONS_CREATE);
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_POINTS_CREATE);
-		db.execSQL("DROP TABLE IF EXISTS " + TABLE_LINES_CREATE);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_POLYGONS);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_POINTS);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_LINES);
 		onCreate(db);
 	}
 }
