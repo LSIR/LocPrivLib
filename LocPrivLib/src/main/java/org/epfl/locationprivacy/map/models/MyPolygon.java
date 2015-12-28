@@ -89,7 +89,7 @@ public class MyPolygon {
 
 	public String convertPointToSpatialiteString() {
 
-		String ret = "'Point(";
+		String ret = "'POINT(";
 		if (points.size() == 1) {
 			ret += points.get(0).longitude + " " + points.get(0).latitude;
 		}

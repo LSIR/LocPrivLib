@@ -844,4 +844,9 @@ public class Utils {
 		}
 		return null;
 	}
+
+	public static String removeSpecialCharactersFromString(String str) {
+		return str.replaceAll("[^a-zA-Z0-9 ]", "");
+
+	}
 }

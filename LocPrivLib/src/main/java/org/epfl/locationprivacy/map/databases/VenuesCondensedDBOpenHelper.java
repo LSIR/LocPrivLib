@@ -23,6 +23,13 @@ public class VenuesCondensedDBOpenHelper extends SQLiteOpenHelper {
 	public static final String COLUMN_GEOMETRY = "geometry";
 	public static final String COLUMN_VERSION = "version";
 
+	public static final String TABLE_SEMANTIC_AREA = "area";
+	public static final String COLUMN_FIRST_CORNER_LAT = "first_corner_lat";
+	public static final String COLUMN_FIRST_CORNER_LONG = "first_corner_long";
+	public static final String COLUMN_SECOND_CORNER_LAT = "second_corner_lat";
+	public static final String COLUMN_SECOND_CORNER_LONG = "second_corner_long";
+	public static final String COLUMN_DATE = "date";
+
 	private static final String TABLE_POLYGONS_CREATE = "CREATE TABLE "
 		+ TABLE_POLYGONS + " ("
 		+ COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT" + " , "
@@ -53,6 +60,16 @@ public class VenuesCondensedDBOpenHelper extends SQLiteOpenHelper {
 		+ COLUMN_GEOMETRY + " BLOB NOT NULL"
 		+ ")";
 
+	private static final String TABLE_SEMANTIC_AREA_CREATE = "CREATE TABLE "
+		+ TABLE_SEMANTIC_AREA + " ("
+		+ COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT" + " , "
+		+ COLUMN_FIRST_CORNER_LAT + " DOUBLE NOT NULL" + " , "
+		+ COLUMN_FIRST_CORNER_LONG + " DOUBLE NOT NULL" + " , "
+		+ COLUMN_SECOND_CORNER_LAT + " DOUBLE NOT NULL" + " , "
+		+ COLUMN_SECOND_CORNER_LONG + " DOUBLE NOT NULL" + " , "
+		+ COLUMN_DATE + " DATETIME NOT NULL"
+		+ ")";
+
 	private static VenuesCondensedDBOpenHelper venuesCondensedDBOpenHelper;
 
 	public static VenuesCondensedDBOpenHelper getInstance(Context context) {
@@ -73,6 +90,7 @@ public class VenuesCondensedDBOpenHelper extends SQLiteOpenHelper {
 		db.execSQL(TABLE_POLYGONS_CREATE);
 		db.execSQL(TABLE_POINTS_CREATE);
 		db.execSQL(TABLE_LINES_CREATE);
+		db.execSQL(TABLE_SEMANTIC_AREA_CREATE);
 	}
 
 	@Override
@@ -81,6 +99,7 @@ public class VenuesCondensedDBOpenHelper extends SQLiteOpenHelper {
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_POLYGONS);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_POINTS);
 		db.execSQL("DROP TABLE IF EXISTS " + TABLE_LINES);
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_SEMANTIC_AREA);
 		onCreate(db);
 	}
 }

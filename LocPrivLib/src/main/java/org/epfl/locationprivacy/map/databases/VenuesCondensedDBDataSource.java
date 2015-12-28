@@ -104,7 +104,7 @@ public class VenuesCondensedDBDataSource {
 		String query = "INSERT INTO " + table + " ("
 			+ VenuesCondensedDBOpenHelper.COLUMN_LOCATION_ID + ", " + VenuesCondensedDBOpenHelper.COLUMN_NAME + ", "
 			+ VenuesCondensedDBOpenHelper.COLUMN_SUBTYPE + ", " + VenuesCondensedDBOpenHelper.COLUMN_VERSION + ", " + VenuesCondensedDBOpenHelper.COLUMN_GEOMETRY
-			+ ") VALUES (" + element.getId() + ", " + "\"" + element.getName() + "\"" + ", " + "'" + element.getSubtype() + "'" + "," + element.getVersion() + "," + geometry + "(" + spatialitePolygon
+			+ ") VALUES (" + element.getId() + ", " + "\"" + Utils.removeSpecialCharactersFromString(element.getName()) + "\"" + ", " + "'" + element.getSubtype() + "'" + "," + element.getVersion() + "," + geometry + "(" + spatialitePolygon
 			+ ", 4326));";
 		try {
 			spatialdb.exec(query, null);
@@ -172,6 +172,63 @@ public class VenuesCondensedDBDataSource {
 			}
 		}
 		return elements;
+	}
+
+	/**
+	 * Insert an area in the database
+	 * The goal of this is just to know what are the area with semantic informations already downloaded
+	 *
+	 * @param corner1
+	 * @param corner2
+	 */
+	public void insertSemanticArea(LatLng corner1, LatLng corner2) {
+		String table = VenuesCondensedDBOpenHelper.TABLE_SEMANTIC_AREA;
+		String query = "INSERT INTO " + table + " ("
+			+ VenuesCondensedDBOpenHelper.COLUMN_FIRST_CORNER_LAT + ", " + VenuesCondensedDBOpenHelper.COLUMN_FIRST_CORNER_LONG + ", "
+			+ VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LAT + ", " + VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LONG + ", "
+			+ VenuesCondensedDBOpenHelper.COLUMN_DATE + ") VALUES ("
+			+ corner1.latitude + ", " + corner1.longitude + ", " + corner2.latitude + ", " + corner2.longitude + ", " + System.currentTimeMillis() + ");";
+		db.execSQL(query);
+	}
+
+	public void deleteSemanticArea(Pair<LatLng, LatLng> pair) {
+		String table = VenuesCondensedDBOpenHelper.TABLE_SEMANTIC_AREA;
+		String query = "DELETE FROM " + table + " WHERE "
+			+ VenuesCondensedDBOpenHelper.COLUMN_FIRST_CORNER_LAT + " = " + pair.first.latitude + " AND "
+		+VenuesCondensedDBOpenHelper.COLUMN_FIRST_CORNER_LONG + " = " + pair.first.longitude + " AND "
+		+VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LAT + " = " + pair.second.latitude + " AND "
+		+VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LONG + " = " + pair.second.longitude + ";";
+
+		Log.d(LOGTAG, query);
+		db.execSQL(query);
+	}
+
+	/**
+	 * Find all area stored in the database
+	 *
+	 * @return
+	 */
+	public ArrayList<Pair<LatLng, LatLng>> findAllStoredSemanticArea() {
+		ArrayList<Pair<LatLng, LatLng>> pairs = new ArrayList<>();
+		String table = VenuesCondensedDBOpenHelper.TABLE_SEMANTIC_AREA;
+		String[] columns = {VenuesCondensedDBOpenHelper.COLUMN_FIRST_CORNER_LAT,
+			VenuesCondensedDBOpenHelper.COLUMN_FIRST_CORNER_LONG,
+			VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LAT,
+			VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LONG,
+		};
+
+		Cursor cursor = db.query(table, columns, null,
+			null, null, null, null, null);
+		if (cursor.getCount() > 0) {
+			while (cursor.moveToNext()) {
+				LatLng firstCorner = new LatLng(cursor.getDouble(cursor.getColumnIndex(VenuesCondensedDBOpenHelper.COLUMN_FIRST_CORNER_LAT)),
+					(cursor.getDouble(cursor.getColumnIndex(VenuesCondensedDBOpenHelper.COLUMN_FIRST_CORNER_LONG))));
+				LatLng secondCorner = new LatLng(cursor.getDouble(cursor.getColumnIndex(VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LAT)),
+					(cursor.getDouble(cursor.getColumnIndex(VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LONG))));
+				pairs.add(new Pair<>(firstCorner, secondCorner));
+			}
+		}
+		return pairs;
 	}
 
 	public long findRowsCount(String tableName) {

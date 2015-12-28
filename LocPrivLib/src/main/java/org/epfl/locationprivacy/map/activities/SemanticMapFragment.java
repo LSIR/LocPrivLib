@@ -1,14 +1,18 @@
 package org.epfl.locationprivacy.map.activities;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.util.Pair;
@@ -16,7 +20,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -35,10 +38,12 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import org.epfl.locationprivacy.R;
 
 import org.epfl.locationprivacy.map.OSMWrapperAPI;
+import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
 import org.epfl.locationprivacy.map.databases.VenuesCondensedDBOpenHelper;
 import org.epfl.locationprivacy.util.Utils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class SemanticMapFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -57,6 +62,8 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 	private Button getSemanticButton;
 	private Button deleteDatabase;
 	private ProgressDialog progressDialog;
+	private VenuesCondensedDBOpenHelper dbOpenHelper;
+	private ArrayList<Pair<LatLng, LatLng>> pairs;
 
 	public SemanticMapFragment() {
 		super();
@@ -76,6 +83,8 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 		mapView = (MapView) rootView.findViewById(R.id.semantic_map);
 		mapView.onCreate(mBundle);
 
+		dbOpenHelper = VenuesCondensedDBOpenHelper.getInstance(getActivity());
+
 		if (initMap()) {
 			// First we need to check availability of play services
 			if (Utils.checkPlayServices(this.getActivity(), this.getActivity().getApplicationContext())) {
@@ -88,9 +97,37 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 			deleteDatabase.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					VenuesCondensedDBOpenHelper dbOpenHelper = VenuesCondensedDBOpenHelper.getInstance(getActivity());
-					dbOpenHelper.onUpgrade(dbOpenHelper.getWritableDatabase(), 0, 0);
-					Toast.makeText(getActivity(), "The semantic locations database is now empty", Toast.LENGTH_LONG).show();
+					new DialogFragment() {
+						@Override
+						public Dialog onCreateDialog(Bundle savedInstanceState) {
+							// Use the Builder class for convenient dialog construction
+							AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+							builder.setMessage("Are you sure you want to delete semantic informations ?")
+								.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog, int id) {
+										dbOpenHelper.onUpgrade(dbOpenHelper.getWritableDatabase(), 0, 0);
+										Toast.makeText(getActivity(), "The semantic locations database is now empty", Toast.LENGTH_LONG).show();
+										firstCorner = null;
+										secondCorner = null;
+										googleMap.clear();
+
+										//Adding Marker
+										String timeStamp = dateFormat.format(new Date());
+										String markerTitle = timeStamp + " " + currentLocation.toString();
+										MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+										googleMap.addMarker(markerOptions);
+										drawDownloadedArea();
+									}
+								})
+								.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog, int id) {
+										// User cancelled the dialog
+									}
+								});
+							// Create the AlertDialog object and return it
+							return builder.create();
+						}
+					}.show(getFragmentManager(), LOGTAG);
 				}
 			});
 			clearButton = (Button) rootView.findViewById(R.id.clear_points_button);
@@ -107,6 +144,7 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 					String markerTitle = timeStamp + " " + currentLocation.toString();
 					MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
 					googleMap.addMarker(markerOptions);
+					drawDownloadedArea();
 				}
 			});
 
@@ -116,49 +154,83 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 				public void onClick(View v) {
 					if (firstCorner != null && secondCorner != null) {
 						final Pair<LatLng, LatLng> corners = getCorners(firstCorner, secondCorner);
-						ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-						NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+						if (!checkAreaInclusion(corners)) {
+							ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+							NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
-						if (!mWifi.isConnected()) {
-							Toast.makeText(getActivity(), "You must be connected to Wifi to perform this operation !", Toast.LENGTH_LONG).show();
-						} else {
-							Toast.makeText(getActivity(), "Semantic Location is currently updating", Toast.LENGTH_SHORT).show();
-							new AsyncTask<Void, Integer, Void>() {
-								@Override
-								protected void onPreExecute() {
-									//Create a new progress dialog
-									progressDialog = new ProgressDialog(getActivity());
-									//Set the progress dialog to display a horizontal progress bar
-									progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-									//Set the dialog title to 'Loading...'
-									progressDialog.setTitle("Loading...");
-									//Set the dialog message to 'Loading application View, please wait...'
-									progressDialog.setMessage("Loading Semantic informations from OSM...");
-									//This dialog can't be canceled by pressing the back key
-									progressDialog.setCancelable(false);
-									//This dialog isn't indeterminate
-									progressDialog.setIndeterminate(true);
-									//Display the progress dialog
-									progressDialog.show();
-								}
-
-								//The code to be executed in a background thread.
-								@Override
-								protected Void doInBackground(Void... params) {
-									//Get the current thread's token
-									synchronized (this) {
-										OSMWrapperAPI.updateSemanticLocations(getActivity(), corners.first, corners.second);
+							if (!mWifi.isConnected()) {
+								Toast.makeText(getActivity(), "You must be connected to Wifi to perform this operation !", Toast.LENGTH_LONG).show();
+							} else {
+								new AsyncTask<Void, Integer, Void>() {
+									@Override
+									protected void onPreExecute() {
+										//Create a new progress dialog
+										progressDialog = new ProgressDialog(getActivity());
+										//Set the progress dialog to display a horizontal progress bar
+										progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+										//Set the dialog title to 'Loading...'
+										progressDialog.setTitle("Loading...");
+										//Set the dialog message to 'Loading application View, please wait...'
+										progressDialog.setMessage("Loading Semantic informations from OSM...");
+										//This dialog can't be canceled by pressing the back key
+										progressDialog.setCancelable(false);
+										//This dialog isn't indeterminate
+										progressDialog.setIndeterminate(true);
+										//Display the progress dialog
+										progressDialog.show();
 									}
-									return null;
-								}
 
-								//after executing the code in the thread
-								@Override
-								protected void onPostExecute(Void result) {
-									//close the progress dialog
-									progressDialog.dismiss();
-								}
-							}.execute();
+									//The code to be executed in a background thread.
+									@Override
+									protected Void doInBackground(Void... params) {
+										long start = System.currentTimeMillis();
+										//Get the current thread's token
+										synchronized (this) {
+											OSMWrapperAPI.updateSemanticLocations(getActivity(), corners.first, corners.second);
+										}
+										long end = System.currentTimeMillis();
+										if ((boolean) Utils.getBuildConfigValue(getActivity(), "LOGGING")) {
+											Log.d(LOGTAG, "Time to save semantic area : " + (end - start) + " ms.");
+										}
+										return null;
+									}
+
+									//after executing the code in the thread
+									@Override
+									protected void onPostExecute(Void result) {
+										// Save area into db
+										VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(getActivity());
+										dbDataSource.insertSemanticArea(corners.first, corners.second);
+										// Clear the map and show areas
+										firstCorner = null;
+										secondCorner = null;
+										googleMap.clear();
+
+										//Adding Marker
+										String timeStamp = dateFormat.format(new Date());
+										String markerTitle = timeStamp + " " + currentLocation.toString();
+										MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+										googleMap.addMarker(markerOptions);
+										drawDownloadedArea();
+
+										//close the progress dialog
+										progressDialog.dismiss();
+									}
+								}.execute();
+							}
+						} else {
+							Toast.makeText(getActivity(), "This area is already loaded", Toast.LENGTH_SHORT).show();
+							// Clear the map and show areas
+							firstCorner = null;
+							secondCorner = null;
+							googleMap.clear();
+
+							//Adding Marker
+							String timeStamp = dateFormat.format(new Date());
+							String markerTitle = timeStamp + " " + currentLocation.toString();
+							MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+							googleMap.addMarker(markerOptions);
+							drawDownloadedArea();
 						}
 					} else {
 						Toast.makeText(getActivity(), "Please select two locations on the map to create an area", Toast.LENGTH_LONG).show();
@@ -184,10 +256,12 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 						MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(point);
 						googleMap.addMarker(markerOptions);
 
-						drawArea(firstCorner,secondCorner,googleMap);
+						drawArea(firstCorner, secondCorner, googleMap);
 					}
 				}
 			});
+
+			drawDownloadedArea();
 		} else {
 			Toast.makeText(getActivity(), "Map not available", Toast.LENGTH_SHORT).show();
 		}
@@ -312,7 +386,7 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 	 * @param googleMap
 	 * @return
 	 */
-	public Polygon drawArea(LatLng corner1, LatLng corner2, GoogleMap googleMap) {
+	private Polygon drawArea(LatLng corner1, LatLng corner2, GoogleMap googleMap) {
 
 		Pair<LatLng, LatLng> corners = getCorners(corner1, corner2);
 		LatLng topRight = corners.first;
@@ -334,5 +408,44 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 		// Top is done automatically
 
 		return googleMap.addPolygon(polygonOptions);
+	}
+
+	/**
+	 * Get area from db and draw them
+	 */
+	private void drawDownloadedArea() {
+		VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(getActivity());
+		pairs = dbDataSource.findAllStoredSemanticArea();
+		for (Pair<LatLng, LatLng> pair : pairs) {
+			drawArea(pair.first, pair.second, googleMap);
+		}
+	}
+
+	/**
+	 * Check if pair is included in one of existing zone.
+	 * If an existing is included into pair, this area is removed from the db.
+	 *
+	 * @param pair
+	 * @return
+	 */
+	private boolean checkAreaInclusion(Pair<LatLng, LatLng> pair) {
+		double latFirst = pair.first.latitude;
+		double longFirst = pair.first.longitude;
+		double latSecond = pair.second.latitude;
+		double longSecond = pair.second.longitude;
+
+		for (Pair<LatLng, LatLng> p : pairs) {
+			double pLatFirst = p.first.latitude;
+			double pLongFirst = p.first.longitude;
+			double pLatSecond = p.second.latitude;
+			double pLongSecond = p.second.longitude;
+			if (pLatFirst >= latFirst && pLongFirst >= longFirst && pLatSecond <= latSecond && pLongSecond <= longSecond) {
+				return true;
+			}
+			if (pLatFirst <= latFirst && pLongFirst <= longFirst && pLatSecond >= latSecond && pLongSecond >= longSecond) {
+				VenuesCondensedDBDataSource.getInstance(getActivity()).deleteSemanticArea(p);
+			}
+		}
+		return false;
 	}
 }
