@@ -326,25 +326,6 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 			.addApi(LocationServices.API).build();
 	}
 
-	public Pair<LatLng, LatLng> getCorners(LatLng corner1, LatLng corner2) {
-		LatLng topRight, bottomLeft;
-		if (corner1.latitude > corner2.latitude && corner1.longitude > corner2.longitude) {
-			topRight = corner1;
-			bottomLeft = corner2;
-		} else if (corner1.latitude > corner2.latitude && corner1.longitude < corner2.longitude) {
-			topRight = new LatLng(corner1.latitude, corner2.longitude);
-			bottomLeft = new LatLng(corner2.latitude, corner1.longitude);
-		} else if (corner1.latitude < corner2.latitude && corner1.longitude < corner2.longitude) {
-			topRight = corner2;
-			bottomLeft = corner1;
-		} else {
-			topRight = new LatLng(corner2.latitude, corner1.longitude);
-			bottomLeft = new LatLng(corner1.latitude, corner2.longitude);
-		}
-
-		return new Pair<>(topRight, bottomLeft);
-	}
-
 	/**
 	 * Draw area
 	 *
@@ -389,17 +370,17 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 	}
 
 	/**
-	 * Check if pair is included in one of existing zone.
-	 * If an existing is included into pair, this area is removed from the db.
+	 * Check if corners are included in one of existing zone.
+	 * If an existing is included into corners, this area is removed from the db.
 	 *
-	 * @param pair
+	 * @param corners
 	 * @return
 	 */
-	private boolean checkAreaInclusion(Pair<LatLng, LatLng> pair) {
-		double latFirst = pair.first.latitude;
-		double longFirst = pair.first.longitude;
-		double latSecond = pair.second.latitude;
-		double longSecond = pair.second.longitude;
+	private boolean checkAreaInclusion(Pair<LatLng, LatLng> corners) {
+		double latFirst = corners.first.latitude;
+		double longFirst = corners.first.longitude;
+		double latSecond = corners.second.latitude;
+		double longSecond = corners.second.longitude;
 
 		for (Pair<LatLng, LatLng> p : pairs) {
 			double pLatFirst = p.first.latitude;
@@ -416,11 +397,31 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 		return false;
 	}
 
+	public static Pair<LatLng, LatLng> getCorners(LatLng corner1, LatLng corner2) {
+		LatLng topRight, bottomLeft;
+		if (corner1.latitude > corner2.latitude && corner1.longitude > corner2.longitude) {
+			topRight = corner1;
+			bottomLeft = corner2;
+		} else if (corner1.latitude > corner2.latitude && corner1.longitude < corner2.longitude) {
+			topRight = new LatLng(corner1.latitude, corner2.longitude);
+			bottomLeft = new LatLng(corner2.latitude, corner1.longitude);
+		} else if (corner1.latitude < corner2.latitude && corner1.longitude < corner2.longitude) {
+			topRight = corner2;
+			bottomLeft = corner1;
+		} else {
+			topRight = new LatLng(corner2.latitude, corner1.longitude);
+			bottomLeft = new LatLng(corner1.latitude, corner2.longitude);
+		}
+
+		return new Pair<>(topRight, bottomLeft);
+	}
+
 	/**
 	 * Async Task to download semantic informations
 	 */
 	private class DownloadSemanticMapAsyncTask extends AsyncTask<Pair<LatLng, LatLng>, Void, Pair<LatLng, LatLng>> {
 		ProgressDialog progressDialog;
+
 		@Override
 		protected void onPreExecute() {
 			//Create a new progress dialog
@@ -483,6 +484,7 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 	 */
 	private class UpdateSemanticMapAsyncTask extends AsyncTask<Pair<LatLng, LatLng>, Void, Pair<LatLng, LatLng>> {
 		ProgressDialog progressDialog;
+
 		@Override
 		protected void onPreExecute() {
 			//Create a new progress dialog

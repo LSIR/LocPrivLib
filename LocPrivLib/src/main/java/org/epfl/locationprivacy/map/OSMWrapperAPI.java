@@ -276,6 +276,7 @@ public final class OSMWrapperAPI {
 
 	/**
 	 * Read semantic tags
+	 *
 	 * @param context
 	 * @return
 	 */
@@ -300,23 +301,18 @@ public final class OSMWrapperAPI {
 
 	/**
 	 * Update the semantic location given two points
+	 *
 	 * @param context
-	 * @param topRight the top right location of the area to load
+	 * @param topRight   the top right location of the area to load
 	 * @param bottomLeft the bottom left location of the area to load
 	 */
 	public static void updateSemanticLocations(Context context, LatLng topRight, LatLng bottomLeft) {
-
-		ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-
-		if (mWifi.isConnected()) {
-			List<String> amenities = loadSemanticTags(context);
-			try {
-				loadSemanticLocations(context, getNodesViaOverpass(topRight, bottomLeft, amenities), amenities);
-			} catch (Exception e) {
-				log(context, "Error getting semantic Locations : " + e.getMessage());
-				e.printStackTrace();
-			}
+		List<String> amenities = loadSemanticTags(context);
+		try {
+			loadSemanticLocations(context, getNodesViaOverpass(topRight, bottomLeft, amenities), amenities);
+		} catch (Exception e) {
+			log(context, "Error getting semantic Locations : " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }

@@ -1,8 +1,11 @@
 package org.epfl.locationprivacy.adaptiveprotection;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 
+import org.epfl.locationprivacy.map.OSMWrapperAPI;
+import org.epfl.locationprivacy.map.activities.SemanticMapFragment;
 import org.epfl.locationprivacy.map.databases.GridDBDataSource;
 import org.epfl.locationprivacy.map.databases.VenuesCondensedDBDataSource;
 import org.epfl.locationprivacy.map.models.MyPolygon;
@@ -12,8 +15,12 @@ import org.epfl.locationprivacy.userhistory.databases.TransitionTableDataSource;
 import org.epfl.locationprivacy.userhistory.models.Transition;
 import org.epfl.locationprivacy.util.Utils;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -23,6 +30,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -109,6 +117,39 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		long fineLocationID = Long.parseLong(currLocGridCell.getName());
 		log("Getting fine Location ID took: " + (System.currentTimeMillis() - start) + " ms");
 		log("Current CellID: " + fineLocationID);
+
+		//===========================================================================================
+		// Checking and loading semantic locations
+		boolean inLoadedArea = false;
+		VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(context);
+		ArrayList<Pair<LatLng, LatLng>> pairs = dbDataSource.findAllStoredSemanticArea();
+		for (Pair<LatLng, LatLng> p : pairs) {
+			if (p.first.latitude >= location.latitude && p.first.longitude >= location.longitude &&
+				p.second.latitude <= location.latitude && p.second.longitude <= location.longitude) {
+				inLoadedArea = true;
+			}
+		}
+		log("Current position in loaded semantic area : " + inLoadedArea);
+		if (!inLoadedArea) {
+			// Load an area around current position
+			Pair<LatLng, LatLng> corners;
+
+			ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+			if (connManager.getActiveNetworkInfo() == null) {
+				log("No Network for loading new area");
+			} else {
+				log("Loading new area");
+				if (!mWifi.isConnected()) {
+					double distance = 1;
+					corners = SemanticMapFragment.getCorners(Utils.getLatLong(location, distance, 45), Utils.getLatLong(location, distance, 225));
+				} else {
+					double distance = 3;
+					corners = SemanticMapFragment.getCorners(Utils.getLatLong(location, distance, 45), Utils.getLatLong(location, distance, 225));
+				}
+				new DownloadSemanticMapAsyncTask().execute(corners);
+			}
+		}
 
 		//===========================================================================================
 		// Create a new transition with the new position
@@ -338,5 +379,51 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			.addConnectionCallbacks(this)
 			.addOnConnectionFailedListener(this)
 			.addApi(LocationServices.API).build();
+	}
+
+	/**
+	 * Async Task to automatically download semantic informations
+	 */
+	private class DownloadSemanticMapAsyncTask extends AsyncTask<Pair<LatLng, LatLng>, Void, Pair<LatLng, LatLng>> {
+
+		//The code to be executed in a background thread.
+		@Override
+		protected Pair<LatLng, LatLng> doInBackground(Pair<LatLng, LatLng>... params) {
+			long start = System.currentTimeMillis();
+			Pair<LatLng, LatLng> corners = params[0];
+			//Get the current thread's token
+			synchronized (this) {
+				OSMWrapperAPI.updateSemanticLocations(context, corners.first, corners.second);
+			}
+			long end = System.currentTimeMillis();
+			if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+				Log.d(LOGTAG, "Time to save automatic upload semantic area : " + (end - start) + " ms.");
+			}
+			return params[0];
+		}
+
+		//after executing the code in the thread
+		@Override
+		protected void onPostExecute(Pair<LatLng, LatLng> corners) {
+			// Remove area included in new area
+			VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(context);
+			ArrayList<Pair<LatLng, LatLng>> pairs = dbDataSource.findAllStoredSemanticArea();
+			double latFirst = corners.first.latitude;
+			double longFirst = corners.first.longitude;
+			double latSecond = corners.second.latitude;
+			double longSecond = corners.second.longitude;
+			for (Pair<LatLng, LatLng> p : pairs) {
+				double pLatFirst = p.first.latitude;
+				double pLongFirst = p.first.longitude;
+				double pLatSecond = p.second.latitude;
+				double pLongSecond = p.second.longitude;
+				if (pLatFirst <= latFirst && pLongFirst <= longFirst && pLatSecond >= latSecond && pLongSecond >= longSecond) {
+					VenuesCondensedDBDataSource.getInstance(context).deleteSemanticArea(p);
+				}
+			}
+			// Save new area into db
+			dbDataSource.insertSemanticArea(corners.first, corners.second);
+			log("Loading semantic area finished");
+		}
 	}
 }
