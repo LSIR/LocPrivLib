@@ -421,6 +421,7 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 	 */
 	private class DownloadSemanticMapAsyncTask extends AsyncTask<Pair<LatLng, LatLng>, Void, Pair<LatLng, LatLng>> {
 		ProgressDialog progressDialog;
+		private boolean retValue;
 
 		@Override
 		protected void onPreExecute() {
@@ -447,7 +448,7 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 			Pair<LatLng, LatLng> corners = params[0];
 			//Get the current thread's token
 			synchronized (this) {
-				OSMWrapperAPI.updateSemanticLocations(getActivity(), corners.first, corners.second);
+				retValue = OSMWrapperAPI.updateSemanticLocations(getActivity(), corners.first, corners.second);
 			}
 			long end = System.currentTimeMillis();
 			if ((boolean) Utils.getBuildConfigValue(getActivity(), "LOGGING")) {
@@ -459,9 +460,11 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 		//after executing the code in the thread
 		@Override
 		protected void onPostExecute(Pair<LatLng, LatLng> corners) {
-			// Save area into db
-			VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(getActivity());
-			dbDataSource.insertSemanticArea(corners.first, corners.second);
+			if (retValue) {
+				// Save area into db
+				VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(getActivity());
+				dbDataSource.insertSemanticArea(corners.first, corners.second);
+			}
 			// Clear the map and show areas
 			firstCorner = null;
 			secondCorner = null;
@@ -484,6 +487,7 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 	 */
 	private class UpdateSemanticMapAsyncTask extends AsyncTask<Pair<LatLng, LatLng>, Void, Pair<LatLng, LatLng>> {
 		ProgressDialog progressDialog;
+		private boolean retValue;
 
 		@Override
 		protected void onPreExecute() {
@@ -510,7 +514,7 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 			Pair<LatLng, LatLng> corners = params[0];
 			//Get the current thread's token
 			synchronized (this) {
-				OSMWrapperAPI.updateSemanticLocations(getActivity(), corners.first, corners.second);
+				retValue = OSMWrapperAPI.updateSemanticLocations(getActivity(), corners.first, corners.second);
 			}
 			long end = System.currentTimeMillis();
 			if ((boolean) Utils.getBuildConfigValue(getActivity(), "LOGGING")) {
@@ -522,9 +526,11 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 		//after executing the code in the thread
 		@Override
 		protected void onPostExecute(Pair<LatLng, LatLng> corners) {
-			// Save area into db
-			VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(getActivity());
-			dbDataSource.updateSemanticArea(corners.first, corners.second);
+			if (retValue) {
+				// Save area into db
+				VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(getActivity());
+				dbDataSource.updateSemanticArea(corners.first, corners.second);
+			}
 			// Clear the map and show areas
 			firstCorner = null;
 			secondCorner = null;

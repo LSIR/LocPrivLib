@@ -306,13 +306,15 @@ public final class OSMWrapperAPI {
 	 * @param topRight   the top right location of the area to load
 	 * @param bottomLeft the bottom left location of the area to load
 	 */
-	public static void updateSemanticLocations(Context context, LatLng topRight, LatLng bottomLeft) {
+	public static boolean updateSemanticLocations(Context context, LatLng topRight, LatLng bottomLeft) {
 		List<String> amenities = loadSemanticTags(context);
 		try {
 			loadSemanticLocations(context, getNodesViaOverpass(topRight, bottomLeft, amenities), amenities);
 		} catch (Exception e) {
 			log(context, "Error getting semantic Locations : " + e.getMessage());
 			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 }

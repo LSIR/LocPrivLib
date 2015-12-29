@@ -386,6 +386,8 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	 */
 	private class DownloadSemanticMapAsyncTask extends AsyncTask<Pair<LatLng, LatLng>, Void, Pair<LatLng, LatLng>> {
 
+		private boolean retValue;
+		
 		//The code to be executed in a background thread.
 		@Override
 		protected Pair<LatLng, LatLng> doInBackground(Pair<LatLng, LatLng>... params) {
@@ -393,7 +395,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			Pair<LatLng, LatLng> corners = params[0];
 			//Get the current thread's token
 			synchronized (this) {
-				OSMWrapperAPI.updateSemanticLocations(context, corners.first, corners.second);
+				retValue = OSMWrapperAPI.updateSemanticLocations(context, corners.first, corners.second);
 			}
 			long end = System.currentTimeMillis();
 			if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
@@ -405,24 +407,26 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		//after executing the code in the thread
 		@Override
 		protected void onPostExecute(Pair<LatLng, LatLng> corners) {
-			// Remove area included in new area
-			VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(context);
-			ArrayList<Pair<LatLng, LatLng>> pairs = dbDataSource.findAllStoredSemanticArea();
-			double latFirst = corners.first.latitude;
-			double longFirst = corners.first.longitude;
-			double latSecond = corners.second.latitude;
-			double longSecond = corners.second.longitude;
-			for (Pair<LatLng, LatLng> p : pairs) {
-				double pLatFirst = p.first.latitude;
-				double pLongFirst = p.first.longitude;
-				double pLatSecond = p.second.latitude;
-				double pLongSecond = p.second.longitude;
-				if (pLatFirst <= latFirst && pLongFirst <= longFirst && pLatSecond >= latSecond && pLongSecond >= longSecond) {
-					VenuesCondensedDBDataSource.getInstance(context).deleteSemanticArea(p);
+			if (retValue) {
+				// Remove area included in new area
+				VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(context);
+				ArrayList<Pair<LatLng, LatLng>> pairs = dbDataSource.findAllStoredSemanticArea();
+				double latFirst = corners.first.latitude;
+				double longFirst = corners.first.longitude;
+				double latSecond = corners.second.latitude;
+				double longSecond = corners.second.longitude;
+				for (Pair<LatLng, LatLng> p : pairs) {
+					double pLatFirst = p.first.latitude;
+					double pLongFirst = p.first.longitude;
+					double pLatSecond = p.second.latitude;
+					double pLongSecond = p.second.longitude;
+					if (pLatFirst <= latFirst && pLongFirst <= longFirst && pLatSecond >= latSecond && pLongSecond >= longSecond) {
+						VenuesCondensedDBDataSource.getInstance(context).deleteSemanticArea(p);
+					}
 				}
+				// Save new area into db
+				dbDataSource.insertSemanticArea(corners.first, corners.second);
 			}
-			// Save new area into db
-			dbDataSource.insertSemanticArea(corners.first, corners.second);
 			log("Loading semantic area finished");
 		}
 	}
