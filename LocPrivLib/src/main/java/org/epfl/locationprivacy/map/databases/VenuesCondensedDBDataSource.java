@@ -175,7 +175,7 @@ public class VenuesCondensedDBDataSource {
 	}
 
 	/**
-	 * Insert an area in the database
+	 * Insert an area into the database
 	 * The goal of this is just to know what are the area with semantic informations already downloaded
 	 *
 	 * @param corner1
@@ -191,6 +191,25 @@ public class VenuesCondensedDBDataSource {
 		db.execSQL(query);
 	}
 
+	/**
+	 * Update an area into the database
+	 * @param corner1
+	 * @param corner2
+	 */
+	public void updateSemanticArea(LatLng corner1, LatLng corner2) {
+		String table = VenuesCondensedDBOpenHelper.TABLE_SEMANTIC_AREA;
+		String query = "UPDATE " + table + " SET "
+			+ VenuesCondensedDBOpenHelper.COLUMN_DATE + " = " + System.currentTimeMillis() + " WHERE "
+			+ VenuesCondensedDBOpenHelper.COLUMN_FIRST_CORNER_LAT + " = " + corner1.latitude + " AND " + VenuesCondensedDBOpenHelper.COLUMN_FIRST_CORNER_LONG
+			+ " = " + corner1.longitude + " AND " + VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LAT + " = " + corner2.latitude + " AND "
+			+ VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LONG + " = " + corner2.longitude + ";";
+		db.execSQL(query);
+	}
+
+	/**
+	 * Delete an area in the database
+	 * @param pair
+	 */
 	public void deleteSemanticArea(Pair<LatLng, LatLng> pair) {
 		String table = VenuesCondensedDBOpenHelper.TABLE_SEMANTIC_AREA;
 		String query = "DELETE FROM " + table + " WHERE "
@@ -199,7 +218,6 @@ public class VenuesCondensedDBDataSource {
 		+VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LAT + " = " + pair.second.latitude + " AND "
 		+VenuesCondensedDBOpenHelper.COLUMN_SECOND_CORNER_LONG + " = " + pair.second.longitude + ";";
 
-		Log.d(LOGTAG, query);
 		db.execSQL(query);
 	}
 

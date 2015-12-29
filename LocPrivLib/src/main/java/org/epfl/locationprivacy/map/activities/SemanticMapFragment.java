@@ -60,8 +60,8 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 	private LatLng secondCorner = null;
 	private Button clearButton;
 	private Button getSemanticButton;
-	private Button deleteDatabase;
-	private ProgressDialog progressDialog;
+	private Button deleteDatabaseButton;
+	private Button updateSemanticButton;
 	private VenuesCondensedDBOpenHelper dbOpenHelper;
 	private ArrayList<Pair<LatLng, LatLng>> pairs;
 
@@ -93,8 +93,8 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 				buildGoogleApiClient();
 			}
 
-			deleteDatabase = (Button) rootView.findViewById(R.id.delete_database_button);
-			deleteDatabase.setOnClickListener(new View.OnClickListener() {
+			deleteDatabaseButton = (Button) rootView.findViewById(R.id.delete_database_button);
+			deleteDatabaseButton.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					new DialogFragment() {
@@ -161,62 +161,7 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 							if (!mWifi.isConnected()) {
 								Toast.makeText(getActivity(), "You must be connected to Wifi to perform this operation !", Toast.LENGTH_LONG).show();
 							} else {
-								new AsyncTask<Void, Integer, Void>() {
-									@Override
-									protected void onPreExecute() {
-										//Create a new progress dialog
-										progressDialog = new ProgressDialog(getActivity());
-										//Set the progress dialog to display a horizontal progress bar
-										progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-										//Set the dialog title to 'Loading...'
-										progressDialog.setTitle("Loading...");
-										//Set the dialog message to 'Loading application View, please wait...'
-										progressDialog.setMessage("Loading Semantic informations from OSM...");
-										//This dialog can't be canceled by pressing the back key
-										progressDialog.setCancelable(false);
-										//This dialog isn't indeterminate
-										progressDialog.setIndeterminate(true);
-										//Display the progress dialog
-										progressDialog.show();
-									}
-
-									//The code to be executed in a background thread.
-									@Override
-									protected Void doInBackground(Void... params) {
-										long start = System.currentTimeMillis();
-										//Get the current thread's token
-										synchronized (this) {
-											OSMWrapperAPI.updateSemanticLocations(getActivity(), corners.first, corners.second);
-										}
-										long end = System.currentTimeMillis();
-										if ((boolean) Utils.getBuildConfigValue(getActivity(), "LOGGING")) {
-											Log.d(LOGTAG, "Time to save semantic area : " + (end - start) + " ms.");
-										}
-										return null;
-									}
-
-									//after executing the code in the thread
-									@Override
-									protected void onPostExecute(Void result) {
-										// Save area into db
-										VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(getActivity());
-										dbDataSource.insertSemanticArea(corners.first, corners.second);
-										// Clear the map and show areas
-										firstCorner = null;
-										secondCorner = null;
-										googleMap.clear();
-
-										//Adding Marker
-										String timeStamp = dateFormat.format(new Date());
-										String markerTitle = timeStamp + " " + currentLocation.toString();
-										MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
-										googleMap.addMarker(markerOptions);
-										drawDownloadedArea();
-
-										//close the progress dialog
-										progressDialog.dismiss();
-									}
-								}.execute();
+								new DownloadSemanticMapAsyncTask().execute(corners);
 							}
 						} else {
 							Toast.makeText(getActivity(), "This area is already loaded", Toast.LENGTH_SHORT).show();
@@ -257,6 +202,28 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 						googleMap.addMarker(markerOptions);
 
 						drawArea(firstCorner, secondCorner, googleMap);
+					}
+				}
+			});
+
+			updateSemanticButton = (Button) rootView.findViewById(R.id.update_semantic_area);
+			updateSemanticButton.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+					NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+					if (!mWifi.isConnected()) {
+						Toast.makeText(getActivity(), "You must be connected to Wifi to perform this operation !", Toast.LENGTH_LONG).show();
+					} else {
+						for (Pair<LatLng, LatLng> p : pairs) {
+							try {
+								//new DownloadSemanticMapAsyncTask().execute(p)
+								new UpdateSemanticMapAsyncTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, p);
+							} catch (Exception e) {
+								Log.e(LOGTAG, e.getMessage());
+								e.printStackTrace();
+							}
+						}
 					}
 				}
 			});
@@ -447,5 +414,129 @@ public class SemanticMapFragment extends Fragment implements GoogleApiClient.Con
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Async Task to download semantic informations
+	 */
+	private class DownloadSemanticMapAsyncTask extends AsyncTask<Pair<LatLng, LatLng>, Void, Pair<LatLng, LatLng>> {
+		ProgressDialog progressDialog;
+		@Override
+		protected void onPreExecute() {
+			//Create a new progress dialog
+			progressDialog = new ProgressDialog(getActivity());
+			//Set the progress dialog to display a horizontal progress bar
+			progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+			//Set the dialog title to 'Loading...'
+			progressDialog.setTitle("Loading...");
+			//Set the dialog message to 'Loading application View, please wait...'
+			progressDialog.setMessage("Loading Semantic informations from OSM...");
+			//This dialog can't be canceled by pressing the back key
+			progressDialog.setCancelable(false);
+			//This dialog isn't indeterminate
+			progressDialog.setIndeterminate(true);
+			//Display the progress dialog
+			progressDialog.show();
+		}
+
+		//The code to be executed in a background thread.
+		@Override
+		protected Pair<LatLng, LatLng> doInBackground(Pair<LatLng, LatLng>... params) {
+			long start = System.currentTimeMillis();
+			Pair<LatLng, LatLng> corners = params[0];
+			//Get the current thread's token
+			synchronized (this) {
+				OSMWrapperAPI.updateSemanticLocations(getActivity(), corners.first, corners.second);
+			}
+			long end = System.currentTimeMillis();
+			if ((boolean) Utils.getBuildConfigValue(getActivity(), "LOGGING")) {
+				Log.d(LOGTAG, "Time to save semantic area : " + (end - start) + " ms.");
+			}
+			return params[0];
+		}
+
+		//after executing the code in the thread
+		@Override
+		protected void onPostExecute(Pair<LatLng, LatLng> corners) {
+			// Save area into db
+			VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(getActivity());
+			dbDataSource.insertSemanticArea(corners.first, corners.second);
+			// Clear the map and show areas
+			firstCorner = null;
+			secondCorner = null;
+			googleMap.clear();
+
+			//Adding Marker
+			String timeStamp = dateFormat.format(new Date());
+			String markerTitle = timeStamp + " " + currentLocation.toString();
+			MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+			googleMap.addMarker(markerOptions);
+			drawDownloadedArea();
+
+			//close the progress dialog
+			progressDialog.dismiss();
+		}
+	}
+
+	/**
+	 * Async Task to update semantic informations
+	 */
+	private class UpdateSemanticMapAsyncTask extends AsyncTask<Pair<LatLng, LatLng>, Void, Pair<LatLng, LatLng>> {
+		ProgressDialog progressDialog;
+		@Override
+		protected void onPreExecute() {
+			//Create a new progress dialog
+			progressDialog = new ProgressDialog(getActivity());
+			//Set the progress dialog to display a horizontal progress bar
+			progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+			//Set the dialog title to 'Loading...'
+			progressDialog.setTitle("Updating...");
+			//Set the dialog message to 'Loading application View, please wait...'
+			progressDialog.setMessage("Updating Semantic informations from OSM...");
+			//This dialog can't be canceled by pressing the back key
+			progressDialog.setCancelable(false);
+			//This dialog isn't indeterminate
+			progressDialog.setIndeterminate(true);
+			//Display the progress dialog
+			progressDialog.show();
+		}
+
+		//The code to be executed in a background thread.
+		@Override
+		protected Pair<LatLng, LatLng> doInBackground(Pair<LatLng, LatLng>... params) {
+			long start = System.currentTimeMillis();
+			Pair<LatLng, LatLng> corners = params[0];
+			//Get the current thread's token
+			synchronized (this) {
+				OSMWrapperAPI.updateSemanticLocations(getActivity(), corners.first, corners.second);
+			}
+			long end = System.currentTimeMillis();
+			if ((boolean) Utils.getBuildConfigValue(getActivity(), "LOGGING")) {
+				Log.d(LOGTAG, "Time to save semantic area : " + (end - start) + " ms.");
+			}
+			return params[0];
+		}
+
+		//after executing the code in the thread
+		@Override
+		protected void onPostExecute(Pair<LatLng, LatLng> corners) {
+			// Save area into db
+			VenuesCondensedDBDataSource dbDataSource = VenuesCondensedDBDataSource.getInstance(getActivity());
+			dbDataSource.updateSemanticArea(corners.first, corners.second);
+			// Clear the map and show areas
+			firstCorner = null;
+			secondCorner = null;
+			googleMap.clear();
+
+			//Adding Marker
+			String timeStamp = dateFormat.format(new Date());
+			String markerTitle = timeStamp + " " + currentLocation.toString();
+			MarkerOptions markerOptions = new MarkerOptions().title(markerTitle).position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
+			googleMap.addMarker(markerOptions);
+			drawDownloadedArea();
+
+			//close the progress dialog
+			progressDialog.dismiss();
+		}
 	}
 }
