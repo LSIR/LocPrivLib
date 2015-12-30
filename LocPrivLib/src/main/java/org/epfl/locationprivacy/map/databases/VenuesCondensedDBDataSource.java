@@ -297,7 +297,8 @@ public class VenuesCondensedDBDataSource {
 			for (String[] row : rows) {
 				String name = row[0];
 				String semantic = row[1];
-				ArrayList<LatLng> points = MyPolygon.parseSpatialMulipolygon(row[2]);
+				String geometry = row[2].trim().replaceAll("[\\(]*([0-9]+.[0-9]+| |,|\\))+", "");
+				ArrayList<LatLng> points = MyPolygon.parseSpatialPolygon(geometry, row[2]);
 				MyPolygon polygon = new MyPolygon(name, semantic, points);
 				polygons.add(polygon);
 				if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
