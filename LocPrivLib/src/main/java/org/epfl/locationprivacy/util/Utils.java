@@ -666,10 +666,9 @@ public class Utils {
 
 	public static String filePathPart1 = "LocationPrivacyLibrary";
 	public static String filePathPart2;
-	public static String filePathPart3;
 
 	public static void createNewLoggingFolder(Context context, String task) {
-		filePathPart2 = task + "_" + System.currentTimeMillis();
+		filePathPart2 = task;
 		File path;
 		if (isExternalStorageWritable()) {
 			path = context.getExternalFilesDir(null);
@@ -680,18 +679,6 @@ public class Utils {
 		completePath.mkdirs();
 	}
 
-	public static void createNewLoggingSubFolder(Context context) {
-		filePathPart3 = System.currentTimeMillis() + "";
-		File path;
-		if (isExternalStorageWritable()) {
-			path = context.getExternalFilesDir(null);
-		} else {
-			path = context.getFilesDir();
-		}
-		File completePath = new File(path, filePathPart1 + File.separator + filePathPart2 + File.separator + filePathPart3);
-		//completePath.mkdirs();
-	}
-
 	public static void appendLog(String fileName, String text, Context context) {
 		File path;
 		if (isExternalStorageWritable()) {
@@ -699,13 +686,13 @@ public class Utils {
 		} else {
 			path = context.getFilesDir();
 		}
+		text = System.currentTimeMillis() + " : " + text;
 		File completePath = new File(path, filePathPart1 + File.separator + filePathPart2);
 		File logFile = new File(completePath, fileName);
 		if (!logFile.exists()) {
 			try {
 				logFile.createNewFile();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				Toast.makeText(context, "Problem with logging", Toast.LENGTH_SHORT);
 				e.printStackTrace();
 			}
@@ -717,7 +704,6 @@ public class Utils {
 			buf.newLine();
 			buf.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			Toast.makeText(context, "Problem with logging", Toast.LENGTH_SHORT);
 			e.printStackTrace();
 		}

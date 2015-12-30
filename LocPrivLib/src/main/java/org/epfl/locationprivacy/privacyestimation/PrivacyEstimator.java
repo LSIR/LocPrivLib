@@ -66,7 +66,6 @@ public class PrivacyEstimator implements PrivacyEstimatorInterface {
 				logLG("Loading LG from DB");
 				loadLinkabilityGraphFromDB();
 				Utils.createNewLoggingFolder(context, LOGTAG);
-				Utils.createNewLoggingSubFolder(context);
 				Utils.logLinkabilityGraph(linkabilityGraphLevels, "nodes.txt", "edges.txt", context);
 				logLG("Finished Loading LG from DB in "
 					+ (System.currentTimeMillis() - startLoading) + " ms");

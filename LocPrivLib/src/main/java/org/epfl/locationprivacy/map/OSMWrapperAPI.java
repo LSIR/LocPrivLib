@@ -294,7 +294,7 @@ public final class OSMWrapperAPI {
 	private static void log(Context context, String s) {
 		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
 			Log.d(LOGTAG, s);
-			Utils.createNewLoggingFolder(context, "OSMWrapperAPI");
+			Utils.createNewLoggingFolder(context, LOGTAG);
 			Utils.appendLog(LOGTAG + ".txt", s, context);
 		}
 	}
@@ -309,7 +309,17 @@ public final class OSMWrapperAPI {
 	public static boolean updateSemanticLocations(Context context, LatLng topRight, LatLng bottomLeft) {
 		List<String> amenities = loadSemanticTags(context);
 		try {
-			loadSemanticLocations(context, getNodesViaOverpass(topRight, bottomLeft, amenities), amenities);
+			log(context, "========= START DOWNLOADING SEMANTIC DATA FROM OVERPASS ====");
+			log(context, "Loading data for area : " + topRight.toString() + " and " + bottomLeft.toString());
+			long start = System.currentTimeMillis();
+			Document doc = getNodesViaOverpass(topRight, bottomLeft, amenities);
+			long end = System.currentTimeMillis();
+			log(context, "========= END DOWNLOADING SEMANTIC DATA FROM OVERPASS ====");
+			log(context, "Loading data from OverpassAPI took " + (end - start) + " ms.");
+			start = System.currentTimeMillis();
+			loadSemanticLocations(context, doc, amenities);
+			end = System.currentTimeMillis();
+			log(context, "Storing semantic data for zone : " + topRight.toString() + " and " + bottomLeft.toString() + " took " + (end-start) + " ms.");
 		} catch (Exception e) {
 			log(context, "Error getting semantic Locations : " + e.getMessage());
 			e.printStackTrace();

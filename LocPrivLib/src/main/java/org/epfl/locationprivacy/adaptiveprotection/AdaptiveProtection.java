@@ -89,12 +89,12 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 	public Pair<LatLng, LatLng> getObfuscationLocation(LatLng location) {
 
 		// Logging
-		initLog();
 		long startGetLocationTimeStamp = System.currentTimeMillis();
 		totalLoggingTime = 0;
 		log("================================");
 		log("Current Location : " + location.latitude + "," + location.longitude);
 		logCurrentLocation = location;
+		logSensitivity("Exact:" + location.latitude + "," + location.longitude);
 
 		// DBs preparation
 		GridDBDataSource gridDBDataSource = GridDBDataSource.getInstance(context);
@@ -276,6 +276,9 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 			logPrivacyEstimation = privacyEstimation;
 			log("This loop took: " + (System.currentTimeMillis() - startLoopTime) + " ms");
 		}
+		logSensitivity("obfuscatedRegion:" + gridEnds.first.latitude + "," + gridEnds.first.longitude + "," + gridEnds.second.latitude + "," + gridEnds.second.longitude);
+		logSensitivity("Theta*sensitivity:" + (THETA * sensitivity));
+		logSensitivity("privacyEstimation:" + logPrivacyEstimation);
 
 		//===========================================================================================
 
@@ -318,19 +321,22 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 		return 1 + (int) Math.floor(lambda / 2.0);
 	}
 
-
-	private void initLog() {
-		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
-			Utils.createNewLoggingFolder(context, LOGTAG);
-		}
-	}
-
 	private void log(String s) {
 		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
 			long startlogging = System.currentTimeMillis();
 			Log.d(LOGTAG, s);
-			Utils.createNewLoggingSubFolder(context);
+			Utils.createNewLoggingFolder(context, LOGTAG);
 			Utils.appendLog(LOGTAG + ".txt", s, context);
+			totalLoggingTime += (System.currentTimeMillis() - startlogging);
+		}
+	}
+
+	private void logSensitivity(String s) {
+		String tag = "SensitivityEstimation";
+		if ((boolean) Utils.getBuildConfigValue(context, "LOGGING")) {
+			long startlogging = System.currentTimeMillis();
+			Log.d(tag, s);
+			Utils.appendLog(tag + ".txt", s, context);
 			totalLoggingTime += (System.currentTimeMillis() - startlogging);
 		}
 	}
