@@ -6,6 +6,8 @@ import com.google.android.gms.maps.model.LatLng;
 
 public interface AdaptiveProtectionInterface {
 
+	Pair<LatLng, LatLng> getObfuscationLocation(LatLng location, long time);
+
 	Pair<LatLng, LatLng> getObfuscationLocation(LatLng location);
 
 	Pair<LatLng, LatLng> getObfuscationLocation();

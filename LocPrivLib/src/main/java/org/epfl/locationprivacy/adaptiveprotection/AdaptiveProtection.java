@@ -1,7 +1,9 @@
 package org.epfl.locationprivacy.adaptiveprotection;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 
 import org.epfl.locationprivacy.map.OSMWrapperAPI;
@@ -87,6 +89,11 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 	@Override
 	public Pair<LatLng, LatLng> getObfuscationLocation(LatLng location) {
+		return getObfuscationLocation(location, System.currentTimeMillis());
+	}
+
+	@Override
+	public Pair<LatLng, LatLng> getObfuscationLocation(LatLng location, long time) {
 
 		// Logging
 		long startGetLocationTimeStamp = System.currentTimeMillis();
@@ -153,7 +160,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 		//===========================================================================================
 		// Create a new transition with the new position
-		long currTime = System.currentTimeMillis();
+		long currTime = time;
 		long currLocID = cellID;
 		int currTimeID = Utils.findDayPortionID(currTime);
 		if (previousLocID != -1) {
@@ -243,7 +250,7 @@ public class AdaptiveProtection implements AdaptiveProtectionInterface,
 
 			//--> Phase 2:
 			// Get feedback from the privacy estimator
-			long timeStamp = System.currentTimeMillis();
+			long timeStamp = time;
 			LatLng[][] mapGrid = Utils.generateMapGrid(ObfRegionHeightCells, ObfRegionWidthCells, gridEnds.first);
 			double privacyEstimation = privacyEstimator.calculatePrivacyEstimation(cell, mapGrid, timeStamp);
 			log("Expected Distortion = " + privacyEstimation);
