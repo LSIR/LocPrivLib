@@ -1,0 +1,65 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:map="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              tools:context="${relativePackage}.${activityClass}">
+
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/semantic_map"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="30"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/get_semantic_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Get Informations"/>
+
+            <Button
+                android:id="@+id/clear_points_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/get_semantic_button"
+                android:text="Clear Points"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/update_semantic_area"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Update Informations"/>
+
+            <Button
+                android:id="@+id/delete_database_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_below="@id/update_semantic_area"
+                android:layout_centerVertical="true"
+                android:text="Clean Database"/>
+        </RelativeLayout>
+    </LinearLayout>
+
+</LinearLayout>

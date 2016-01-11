@@ -1,0 +1,41 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion '21.1.2'
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 21
+    }
+    buildTypes {
+        def BOOLEAN = "boolean"
+        def LOGGING = "LOGGING"
+        def PERF = "PERFORMANCE"
+        def TRUE = "true"
+        def FALSE = "false"
+
+        debug {
+            buildConfigField BOOLEAN, LOGGING, TRUE
+            buildConfigField BOOLEAN, PERF, FALSE
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+        release {
+            buildConfigField BOOLEAN, LOGGING, FALSE
+            buildConfigField BOOLEAN, PERF, FALSE
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+    dexOptions {
+        incremental true
+        jumboMode = true
+    }
+}
+
+dependencies {
+    compile files('libs/sqliteassethelper-2.0.1.jar')
+    compile 'com.google.code.gson:gson:2.3'
+    compile 'com.google.android.gms:play-services-location:8.1.0'
+    compile 'com.android.support:appcompat-v7:21.0.3'
+}
